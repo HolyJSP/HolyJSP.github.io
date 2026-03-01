@@ -1002,7 +1002,7 @@ const TWEAKS = {
 const TOTALS={cpu:23,gpu:10,network:31,system:23,memory:11,input:4,general:6,cs2:7,valorant:7};
 const TOTAL_ALL=Object.values(TOTALS).reduce((a,b)=>a+b,0);
 const appliedState={};
-const STORAGE_KEY='opti_v3';
+const STORAGE_KEY='JSPOpti_v3';
 
 function esc(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
 
@@ -1158,9 +1158,9 @@ function exportScript(type){
     s+=`REM ── ${t.name} ──\n`+(type==='apply'?t.apply:t.revert)+'\n\n';
   }
   s+=`echo.\necho ════════════════════════════════════\necho  ${type==='apply'?'Done! Restart for full effect.':'All tweaks reverted!'}\necho ════════════════════════════════════\npause`;
-  const a=Object.assign(document.createElement('a'),{href:URL.createObjectURL(new Blob([s],{type:'text/plain'})),download:`opti_${type}.bat`});
+  const a=Object.assign(document.createElement('a'),{href:URL.createObjectURL(new Blob([s],{type:'text/plain'})),download:`JSPOpti_${type}.bat`});
   a.click();URL.revokeObjectURL(a.href);
-  toast(`⬇ Saved & downloaded opti_${type}.bat`);
+  toast(`⬇ Saved & downloaded JSPOpti_${type}.bat`);
 }
 
 function S(id){
