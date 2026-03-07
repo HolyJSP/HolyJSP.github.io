@@ -893,7 +893,7 @@
 <header>
   <div class="logo">
     <em>O</em>PTI
-    <span class="logo-v">v3.1.1</span>
+    <span class="logo-v">v3.1</span>
   </div>
   <div class="hdr-center">
     <div class="live-dot"></div>
@@ -1425,12 +1425,12 @@ const TWEAKS = {
      desc:'CS2 executes benefit from all cores being awake: the engine needs to process multiple player positions, particle effects, and audio simultaneously. A single parked core waking up during an execute phase adds frame time variance. In Valorant, ability interactions (Sage wall + Brimstone smoke + Sova scan simultaneously) demand all cores immediately.',
      apply:`REM Step 1: Set registry policy (min AND max both to 0 = fully unparked)\nreg add "HKLM\\SYSTEM\\CurrentControlSet\\Control\\Power\\PowerSettings\\54533251-82be-4824-96c1-47b60b740d00\\0cc5b647-c1df-4637-891a-dec35c318583" /v ValueMin /t REG_DWORD /d 0 /f\nreg add "HKLM\\SYSTEM\\CurrentControlSet\\Control\\Power\\PowerSettings\\54533251-82be-4824-96c1-47b60b740d00\\0cc5b647-c1df-4637-891a-dec35c318583" /v ValueMax /t REG_DWORD /d 0 /f\nREM Step 2: Apply to the ACTIVE power scheme immediately (no reboot needed)\npowercfg /setacvalueindex scheme_current 54533251-82be-4824-96c1-47b60b740d00 0cc5b647-c1df-4637-891a-dec35c318583 0\npowercfg /setdcvalueindex scheme_current 54533251-82be-4824-96c1-47b60b740d00 0cc5b647-c1df-4637-891a-dec35c318583 0\npowercfg /setactive scheme_current\nREM Verify: open Task Manager > Performance > CPU — all cores should show activity`,
      revert:`reg add "HKLM\\SYSTEM\\CurrentControlSet\\Control\\Power\\PowerSettings\\54533251-82be-4824-96c1-47b60b740d00\\0cc5b647-c1df-4637-891a-dec35c318583" /v ValueMin /t REG_DWORD /d 0 /f\nreg add "HKLM\\SYSTEM\\CurrentControlSet\\Control\\Power\\PowerSettings\\54533251-82be-4824-96c1-47b60b740d00\\0cc5b647-c1df-4637-891a-dec35c318583" /v ValueMax /t REG_DWORD /d 100 /f\npowercfg /setacvalueindex scheme_current 54533251-82be-4824-96c1-47b60b740d00 0cc5b647-c1df-4637-891a-dec35c318583 100\npowercfg /setactive scheme_current`},
-    {id:'hpet',icon:'⏱️',name:'Disable Dynamic Tick / HPET',badges:['latency'],risky:true,
-     riskNote:'✅ Fixed: An earlier version of this tweak included bcdedit /set useplatformtick yes which forced Windows to use TSC as the only boot clock. On AMD CPUs and Intel boards with variable TSC this caused a complete boot failure requiring Windows recovery. That command has been permanently removed. The tweak now only runs deletevalue useplatformclock and disabledynamictick yes — both safe on all hardware. Revert if you notice audio glitches.',
+    {id:'hpet',icon:'⏱️',name:'Disable Dynamic Tick / HPET',badges:['latency'],risky:true,presetExclude:true,
+     riskNote:'⚠ Manual-only tweak — excluded from all presets because it can cause Windows recovery on AMD Ryzen + Windows 11. On Ryzen systems, bcdedit /set disabledynamictick yes can cause the kernel timer to get stuck, creating a boot loop or recovery screen on certain AMD boards with fTPM enabled. Intel users on Win10/11 generally benefit without issues. If you are on AMD, skip this tweak or test with caution and have a recovery USB ready. Revert command uses deletevalue to cleanly restore Windows default (never re-sets useplatformclock, which is also unsafe on AMD).',
      impact:`The High Precision Event Timer conflict with the TSC (Time Stamp Counter) on modern CPUs adds overhead to every timer interrupt. CS2 and Valorant both use high-frequency timer calls for sub-millisecond input processing. Disabling dynamic tick reduces interrupt frequency overhead without forcing exclusive TSC-based timing, keeping the system stable across all hardware.`,
      desc:'Disables the HPET platform clock preference and dynamic tick coalescing. Reduces timer interrupt overhead for lower-latency game thread scheduling. Safe version — does not force useplatformtick which caused boot failure on variable-TSC systems.',
      apply:`bcdedit /deletevalue useplatformclock\nbcdedit /set disabledynamictick yes`,
-     revert:`bcdedit /set useplatformclock true\nbcdedit /set disabledynamictick no`},
+     revert:`bcdedit /deletevalue useplatformclock\nbcdedit /set disabledynamictick no`},
     {id:'timer-res',icon:'⌚',name:'Boost Windows Timer Resolution to 0.5ms',badges:['latency','perf'],
      impact:`Windows default timer fires 64 times per second (every 15.6ms) — the OS can only respond to frame requests at that rate. At 240Hz your game produces a frame every 4.17ms, meaning the default timer misses up to 3–4 frame delivery windows per frame. Forcing 0.5ms resolution (2000 checks/second) gives the scheduler 8 check points per 240Hz frame, so frame delivery, frame caps, and input processing all hit their targets accurately.
 
@@ -1515,7 +1515,8 @@ REM Download: https://cms.lucashale.com/timer-resolution/`,
      impact:`Pre-configures core affinity for game executables so when they launch they immediately run on the highest-performance cores without Windows needing to decide. On hybrid CPUs (Intel 12th+), games defaulting to E-cores instead of P-cores is a real issue. Forcing cs2.exe and VALORANT.exe to P-cores ensures the most critical game threads always get the fastest silicon.`,
      apply:`REM Set affinity for CS2 (runs on cores 0-5 = mask 63 decimal = 3F hex):\nreg add "HKLM\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Image File Execution Options\\cs2.exe" /v "Affinity" /t REG_DWORD /d 63 /f\nREM Set for Valorant:\nreg add "HKLM\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Image File Execution Options\\VALORANT-Win64-Shipping.exe" /v "Affinity" /t REG_DWORD /d 63 /f\nREM Adjust the mask value to match your CPU (63 = first 6 cores)`,
      revert:`reg delete "HKLM\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Image File Execution Options\\cs2.exe" /v Affinity /f\nreg delete "HKLM\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Image File Execution Options\\VALORANT-Win64-Shipping.exe" /v Affinity /f`},
-    {id:'smt-heterogeneous',icon:'🔀',name:'Optimize Thread Director for Hybrid CPUs (Intel 12th+)',badges:['perf','latency'],
+    {id:'smt-heterogeneous',hw:'intel',icon:'🔀',name:'Optimize Thread Director for Hybrid CPUs (Intel 12th+)',badges:['perf','latency'],risky:true,
+     riskNote:'Intel 12th gen+ (Alder Lake / Raptor Lake / Arrow Lake) only. AMD CPUs do not use Thread Director and this tweak has no effect on Ryzen systems — skip if you are on AMD. On Intel, requires Windows 11 22H2 or newer for full Thread Director support.',
      desc:'On Intel 12th gen and newer (P-cores + E-cores), Windows Thread Director must be properly configured to keep game threads on P-cores and move background tasks to E-cores. Without this, your game threads can land on E-cores giving 30-40% lower IPC for those frames.',
      impact:`On Intel 12th gen+ CPUs, Windows Thread Director uses Cooperative Scheduling to place threads on P-cores or E-cores. Misconfigured, game threads land on E-cores while Discord lands on P-cores. Setting the heterogeneous policy correctly keeps your game's render and sim threads on P-cores exclusively. In CS2 and Valorant, this prevents the E-core fallback stutters seen on Raptor Lake systems at high scene complexity.`,
      apply:`REM Verify your BIOS has "Intel Thread Director" enabled\nREM Then ensure Windows updates are current (requires Win11 22H2+)\nREM Force game onto P-cores only via Process Lasso:\nREM Set your game's CPU class to "P-cores only"\nREM OR via registry (ITD registry config):\nreg add "HKLM\\SYSTEM\\CurrentControlSet\\Control\\Session Manager\\kernel" /v ThreadDirectorControl /t REG_DWORD /d 1 /f`,
@@ -1542,59 +1543,59 @@ REM Download: https://cms.lucashale.com/timer-resolution/`,
      revert:`reg delete "HKLM\\SYSTEM\\CurrentControlSet\\Control\\Session Manager\\kernel" /v DisableExceptionChainValidation /f`},
   ],
   intel: [
-    {id:'intel-speed-shift',icon:'⚡',name:'Intel Speed Shift / HWP — Max Performance',badges:['latency','perf','cpu'],
+    {id:'intel-speed-shift',hw:'intel',icon:'⚡',name:'Intel Speed Shift / HWP — Max Performance',badges:['latency','perf','cpu'],
      impact:`CPU jumps to full boost clock instantly when a game needs it. No more frequency ramp lag between frame start and peak performance.`,
      desc:'Intel CPUs boost individual cores higher than all-core turbo. Games using 6-12 threads rarely benefit from single-core turbo. Locking to max all-core turbo gives consistent, predictable clocks every frame — eliminating per-frame frequency variance that causes 1% low spikes.',
      apply:`REM Method 1 — BIOS (recommended):\nREM Advanced > CPU Configuration > Per Core Turbo Ratio\nREM Set ALL cores to your max single-core turbo (e.g. 52 for 5.2GHz)\nREM\nREM Method 2 — Intel XTU (free download from Intel):\nREM Core Ratio Limit = your max all-core boost\nREM\nREM Method 3 — Registry (requires intelppm driver):\nreg add "HKLM\\SYSTEM\\CurrentControlSet\\Services\\intelppm\\Parameters" /v ProcessorPerformanceMaximum /t REG_DWORD /d 100 /f\nreg add "HKLM\\SYSTEM\\CurrentControlSet\\Services\\intelppm\\Parameters" /v ProcessorPerformanceMinimum /t REG_DWORD /d 100 /f\nREM\nREM Verify stability: Prime95 small FFTs for 15 min, HWiNFO64 for clock consistency`,
      revert:`reg delete "HKLM\\SYSTEM\\CurrentControlSet\\Services\\intelppm\\Parameters" /v ProcessorPerformanceMaximum /f\nreg delete "HKLM\\SYSTEM\\CurrentControlSet\\Services\\intelppm\\Parameters" /v ProcessorPerformanceMinimum /f`},
-    {id:'intel-e-core',icon:'🧩',name:'Intel Hybrid (P+E Core) — Thread Director Gaming Setup',badges:['perf','latency','cpu'],
+    {id:'intel-e-core',hw:'intel',icon:'🧩',name:'Intel Hybrid (P+E Core) — Thread Director Gaming Setup',badges:['perf','latency','cpu'],
      desc:'On Intel 12th gen+ (Alder Lake, Raptor Lake) with P-cores and E-cores, Windows must place game threads on P-cores. Without proper Thread Director config, game threads can land on E-cores causing 30-40% lower IPC for those frames. This ensures proper scheduling.',
      impact:`On Intel 12th/13th/14th gen hybrid CPUs, E-cores handle background tasks while P-cores handle the game. Proper Thread Director configuration ensures your game never gets migrated to E-cores during high load moments. In CS2, correct P/E-core assignment prevents the 10–20ms frame spikes seen when the game is migrated mid-frame to lower-frequency E-cores during intense smoke/fire scenarios.`,
      apply:`REM Windows 11 22H2+ is required for full Intel Thread Director support\nREM\nREM Step 1: Enable in BIOS\nREM Advanced > CPU Configuration > Intel Thread Director = Enabled\nREM\nREM Step 2: Registry enable Thread Director control:\nreg add "HKLM\\SYSTEM\\CurrentControlSet\\Control\\Session Manager\\kernel" /v ThreadDirectorControl /t REG_DWORD /d 1 /f\nREM\nREM Step 3: For heavy games, use Process Lasso (free) to force game .exe to P-cores only:\nREM Right-click game process > CPU Affinity > P-Core Only preset\nREM\nREM Verify: Task Manager > CPU graph showing P-cores under load during gaming`,
      revert:`reg delete "HKLM\\SYSTEM\\CurrentControlSet\\Control\\Session Manager\\kernel" /v ThreadDirectorControl /f`},
-    {id:'intel-ring-cache',icon:'💾',name:'Intel Ring Bus & Cache Frequency Optimization',badges:['latency','cpu'],
+    {id:'intel-ring-cache',hw:'intel',icon:'💾',name:'Intel Ring Bus & Cache Frequency Optimization',badges:['latency','cpu'],
      desc:'Intel CPUs have a Ring Bus connecting cores to the Last Level Cache. The Ring and Cache frequency can be set independently in BIOS. Matching or slightly overclocking the Ring Bus to core frequency reduces cache access latency, which is directly felt in game as better 1% lows.',
      impact:`The Intel Ring Bus connects all CPU cores to the Last Level Cache. If Ring frequency runs slower than Core frequency, cache latency increases — game data fetches take longer. Setting Ring to match Core frequency ensures your game's working set (maps, textures, animations) is served from L3 cache at full speed. In CS2 and Valorant, this reduces the frame variance caused by L3 cache miss stalls on heavy scenes.`,
      apply:`REM BIOS Setting only (cannot be done in Windows):\nREM Advanced > CPU Configuration > Ring Ratio / Cache Ratio\nREM Target: Set Cache/Ring ratio to max all-core turbo OR max stable value\nREM Example: 5.1GHz all-core, set ring to 48-50 (4.8-5.0GHz)\nREM\nREM Test stability:\nREM Run Cinebench R23 multi-core stress test for 10+ minutes\nREM Monitor with HWiNFO64 > Ring Bus Frequency\nREM\nREM DO NOT set higher than core frequency or system will crash`,
      revert:`REM Revert in BIOS: set Cache Ratio back to Auto`},
-    {id:'intel-imc',icon:'⚡',name:'Intel XMP / EXPO Memory Profile Enable',badges:['perf','latency'],
+    {id:'intel-imc',hw:'intel',icon:'⚡',name:'Intel XMP / EXPO Memory Profile Enable',badges:['perf','latency'],
      desc:'Intel CPUs default RAM to JEDEC minimum speeds (often 4800MHz when your kit is rated 6000MHz+). Enabling XMP in BIOS activates the memory manufacturer tested profile, giving you the full rated speed and timings — directly improving game frame pacing and load times.',
      impact:`Intel CPUs ship with RAM defaulting to JEDEC minimum speeds (often 4800MHz even if your kit is rated 6000MHz). Enabling XMP in BIOS brings your RAM to its rated speed, reducing memory latency by 20–40%. In CS2, faster memory means the game's map streaming and entity tracking systems get data from RAM faster — visible in faster texture pop-in and lower 1% lows during smoke and grenade explosions.`,
      apply:`REM BIOS Setting — Intel platform:\nREM Advanced > Memory Configuration > XMP Profile = Profile 1\nREM\nREM If unstable with XMP Profile 1:\nREM Try Profile 2 (looser timings, same speed)\nREM Or manually lower speed by 200MHz while keeping XMP timings\nREM\nREM Verify in Windows:\nCPU-Z > Memory tab > check "Channels #" = Dual\nCPU-Z > Memory > DRAM Frequency should show half your rated speed (DDR5: 3000=6000)\nREM\nREM Also verify dual-channel: RAM slots 2+4, not 1+2`,
      revert:`REM BIOS: Set XMP = Disabled or JEDEC Auto`},
-    {id:'intel-power-limit',icon:'🔋',name:'Intel Power Limit Unlock (PL1/PL2)',badges:['perf','cpu'],
+    {id:'intel-power-limit',hw:'intel',icon:'🔋',name:'Intel Power Limit Unlock (PL1/PL2)',badges:['perf','cpu'],
      desc:'Intel locks PL1 (sustained power) below maximum to protect cheap motherboards. On gaming systems this causes throttling mid-session. Setting PL1=PL2=maximum wattage lets the CPU run at full Turbo indefinitely — critical for sustained gaming performance.',
      impact:`Intel restricts the CPU's sustained power draw (PL1) to protect motherboard VRMs on budget boards. On gaming systems with capable VRMs, unlocking PL1 = PL2 lets the CPU maintain its full boost clock indefinitely instead of throttling after 56 seconds. In CS2 and Valorant during long sessions, this prevents the subtle FPS creep-down that happens after ~1 minute of sustained load when PL1 kicks in.`,
      apply:`REM Method 1 — BIOS (most reliable):\nREM Advanced > CPU Configuration > Power Limits\nREM PL1 = PL2 = your CPU TDP max (e.g. 253W for i9-13900K)\nREM Tau (time limit) = 56 seconds → set to 0 (unlimited)\nREM\nREM Method 2 — Intel XTU:\nREM Processor Power Limit 1 = max wattage\nREM Processor Power Limit 2 = max wattage\nREM\nREM Method 3 — ThrottleStop (free):\nREM Enable "Disable BD PROCHOT" if throttling persists\nREM Monitor: HWiNFO64 > CPU Package Power = should not drop during gaming`,
      revert:`REM BIOS: Reset PL1/PL2 to Default\nREM XTU: Reset to Default`},
   ],
   amd: [
-    {id:'amd-pbo',icon:'🔴',name:'AMD Precision Boost Overdrive (PBO) Setup',badges:['perf','cpu'],
+    {id:'amd-pbo',hw:'amd',icon:'🔴',name:'AMD Precision Boost Overdrive (PBO) Setup',badges:['perf','cpu'],
      impact:`CPU runs at higher sustained clocks during gaming sessions. More FPS headroom before hitting CPU bottleneck.`,
      desc:'AMD Ryzen PBO allows the CPU to boost beyond stock limits using available thermal headroom. For gaming, PBO Scalar 1x with +200MHz boost offset gives predictable high clocks without the instability of aggressive auto-PBO. Pair with Curve Optimizer negative offset for stable higher clocks.',
      apply:`REM BIOS Configuration — AMD Ryzen CPUs:\nREM Advanced > AMD Overclocking > Precision Boost Overdrive:\n\nREM --- CONSERVATIVE (gaming stable) ---\nREM PBO: Enabled\nREM PBO Scalar: 1x\nREM Boost Clock Override: +100 to +200 MHz\nREM Curve Optimizer: Per Core, all cores -10\n\nREM --- AGGRESSIVE (test stability) ---\nREM PBO Scalar: 3-5x\nREM Boost Clock Override: +200 MHz\nREM Curve Optimizer: Per Core, all cores -20 to -30\n\nREM Power Limits (example for 7700X/7800X3D):\nREM PPT: 142W, TDC: 95A, EDC: 140A\nREM (adjust based on your specific CPU model)\n\nREM Windows registry for AMD power profile:\nreg add "HKLM\\SYSTEM\\CurrentControlSet\\Services\\amdppm\\Parameters" /v ProcessorPerformanceMaximum /t REG_DWORD /d 100 /f\npowercfg /setacvalueindex scheme_current sub_processor PERFBOOSTMODE 2\npowercfg /setactive scheme_current`,
      revert:`reg delete "HKLM\\SYSTEM\\CurrentControlSet\\Services\\amdppm\\Parameters" /v ProcessorPerformanceMaximum /f\nREM BIOS: Set PBO = Auto or Disabled`},
-    {id:'amd-x3d-latency',icon:'🏆',name:'AMD 3D V-Cache (X3D) Gaming Optimization',badges:['latency','cpu'],
+    {id:'amd-x3d-latency',hw:'amd',icon:'🏆',name:'AMD 3D V-Cache (X3D) Gaming Optimization',badges:['latency','cpu'],
      impact:`Ensures Windows routes game threads to the V-Cache CCD. Maximizes the cache advantage that makes X3D CPUs dominant in gaming.`,
      desc:'AMD X3D CPUs (5800X3D, 7800X3D, 7900X3D, 7950X3D) have a massive 96-192MB L3 cache that transforms cache-bound games. The 7950X3D has two CCDs — Windows 11 23H2+ handles V-Cache CCD prioritization automatically, but older Windows and the 5800X3D need manual help.',
      apply:`REM For ALL X3D CPUs:\nREM Windows Settings > Gaming > Game Mode = ON (critical)\nREM This enables scheduler awareness for X3D topology\n\nREM For 7950X3D / 7900X3D only (dual-CCD):\nREM Chipset driver 4.10.0+ required\nREM Windows 11 23H2+ handles V-Cache CCD routing automatically\nREM\nREM Registry: Thread Director for V-Cache preference:\nreg add "HKLM\\SYSTEM\\CurrentControlSet\\Control\\Session Manager\\kernel" /v ThreadDirectorControl /t REG_DWORD /d 1 /f\n\nREM Optional: Disable SMT for pure gaming (5800X3D specific):\nREM BIOS: Simultaneous Multi-Threading = Disabled\nREM Can improve 1% lows by 5-15% on some games\n\nREM Verify with CPU-Z:\nREM L3 Cache should show 96MB (5800X3D) or 64MB per CCD (7xxx)`,
      revert:`reg delete "HKLM\\SYSTEM\\CurrentControlSet\\Control\\Session Manager\\kernel" /v ThreadDirectorControl /f`},
-    {id:'amd-expo-xmp',icon:'💾',name:'AMD EXPO / XMP Memory Profile Enable',badges:['perf','latency'],
+    {id:'amd-expo-xmp',hw:'amd',icon:'💾',name:'AMD EXPO / XMP Memory Profile Enable',badges:['perf','latency'],
      desc:'AMD Ryzen CPUs are extremely sensitive to memory speed and latency — more so than Intel. EXPO (AMD) and XMP (Intel) profiles activate the rated memory speed. On AM5 (Ryzen 7000+) running 6000MHz CL30 is the sweet spot for Infinity Fabric 1:1 ratio.',
      impact:`AMD Ryzen CPUs are uniquely sensitive to memory speed and latency — the Infinity Fabric runs synchronised to memory, so slow RAM means a slow Fabric. Most kits ship running at 2133–4800MHz even when rated 6000MHz+. Enabling EXPO brings your RAM to its rated speed and can cut memory latency by 30–50%. In CS2 and Valorant, Ryzen 7000/9000 CPUs can see 10–20% FPS gains from correct EXPO — one of the highest-impact changes available.`,
      apply:`REM BIOS Setting — AMD platform:\nREM Advanced > DOCP/EXPO Profile = Profile 1\n\nREM AM5 SWEET SPOT: DDR5-6000 CL30 (Infinity Fabric 1:1 ratio)\nREM If your RAM is DDR5-6400+, enable EXPO then set to 6000MHz\nREM Infinity Fabric 1:1 at 6000 = FCLK 3000\n\nREM AM4 SWEET SPOT: DDR4-3600 CL16 or CL18 (IF 1800)\nREM\nREM Verify with CPU-Z or HWiNFO64:\nREM Memory > DRAM Frequency = 3000 (shows half, so 6000 effective)\nREM Memory > Channels = Dual\nREM\nREM If system won't POST: clear CMOS and try lower speed`,
      revert:`REM BIOS: DOCP/EXPO = Disabled or JEDEC Auto`},
-    {id:'amd-fclk',icon:'⚙️',name:'AMD Infinity Fabric Clock (FCLK) Tuning',badges:['latency','perf'],
+    {id:'amd-fclk',hw:'amd',icon:'⚙️',name:'AMD Infinity Fabric Clock (FCLK) Tuning',badges:['latency','perf'],
      desc:'The Infinity Fabric connects CPU cores, I/O die, and memory controller. Its clock (FCLK) directly affects inter-core communication latency. Running FCLK at 1:1 ratio with memory controller (MCLK) eliminates cross-domain latency penalty — critical for frame time consistency.',
      impact:`The Infinity Fabric (FCLK) connects Ryzen's CPU cores, I/O die, and memory controller. At 1:1 FCLK:MCLK ratio (e.g. 3000MHz FCLK for 6000MT/s DDR5), latency is minimised. If FCLK is below memory clock, an asynchronous divider adds ~10ns of latency to every memory access. In CS2, correct FCLK tuning cuts the memory latency that shows up in frame time variance during fast-paced gunfights.`,
      apply:`REM BIOS Setting — AMD Ryzen:\nREM Advanced > AMD Overclocking > FCLK Frequency\n\nREM AM5 (Ryzen 7000 series):\nREM RAM at 6000MHz (DDR5) = MCLK 3000 = set FCLK 3000\nREM RAM at 5600MHz (DDR5) = MCLK 2800 = set FCLK 2800\n\nREM AM4 (Ryzen 5000 series):\nREM RAM at 3600MHz (DDR4) = MCLK 1800 = set FCLK 1800\nREM RAM at 3200MHz (DDR4) = MCLK 1600 = set FCLK 1600\n\nREM Warning: FCLK instability causes random crashes\nREM Test with OCCT memory test for 30 minutes before considering stable\n\nREM If 1:1 fails, use BIOS FCLK Auto (2:1 mode) — still better than JEDEC`,
      revert:`REM BIOS: FCLK Frequency = Auto`},
-    {id:'amd-power-plan',icon:'⚡',name:'AMD Ryzen Power Plan (Chipset Driver Plan)',badges:['latency','perf'],
+    {id:'amd-power-plan',hw:'amd',icon:'⚡',name:'AMD Ryzen Power Plan (Chipset Driver Plan)',badges:['latency','perf'],
      desc:'The AMD chipset driver installs a "AMD Ryzen Balanced" power plan that is specifically tuned for Ryzen boost behavior — it allows faster P-state transitions than Windows Balanced while avoiding the constant 100% voltage of Ultimate Performance. This is generally better for Ryzen than Ultimate Performance.',
      impact:`The AMD Ryzen Balanced power plan from the chipset driver includes Ryzen-specific governor logic that responds faster to frequency requests than the generic Windows plans. On standard Windows High Performance plan, Ryzen can take 30–50ms to ramp from idle to boost — the AMD plan cuts this to under 1ms. In CS2 and Valorant, this eliminates the subtle stutter at the start of rounds when the CPU is cold and needs to ramp up fast.`,
      apply:`REM Install latest AMD chipset drivers first (amd.com/en/support)\nREM The Ryzen Balanced plan is installed automatically\n\nREM Set AMD Ryzen Balanced as active plan:\npowercfg /setactive AMD Ryzen Balanced\nREM If the above fails (name varies), list all plans:\npowercfg /list\nREM Then activate using the GUID shown for "AMD Ryzen Balanced"\n\nREM Alternatively, use Ultimate Performance for pure gaming:\npowercfg -duplicatescheme e9a42b02-d5df-448d-aa00-03f14749eb61\npowercfg /setactive e9a42b02-d5df-448d-aa00-03f14749eb61`,
      revert:`powercfg /setactive 381b4222-f694-41f0-9685-ff5bb260df2e`},
-    {id:'amd-curve-optimizer',icon:'📊',name:'AMD Curve Optimizer Per-Core Tuning',badges:['perf','cpu'],
+    {id:'amd-curve-optimizer',hw:'amd',icon:'📊',name:'AMD Curve Optimizer Per-Core Tuning',badges:['perf','cpu'],
      desc:'Curve Optimizer lets you apply a per-core voltage offset to each individual core. Ryzen CPUs have natural variation between cores — the best cores (lowest voltage needed for a given frequency) can run faster with a negative offset. This is the single most impactful free performance unlock on Ryzen.',
      impact:`Every Ryzen CPU has cores that can boost higher than others. Curve Optimizer lets you lower the voltage on weaker cores and raise it on the strongest core, pushing your best core (where the game thread runs) to 100–200MHz higher. In CS2 and Valorant — which are primarily single-threaded bottlenecked — boosting your best core's ceiling directly translates to higher average FPS and tighter 1% lows.`,
      apply:`REM BIOS only — AMD Overclocking > Precision Boost Overdrive > Curve Optimizer\n\nREM STEP 1: Identify best cores using CoreCycler (free tool):\nREM Download: github.com/sp00n/corecycler\nREM Run for 30-60 min, note which cores have most stability\n\nREM STEP 2: Start conservative (all cores -5), test stability:\nREM OCCT CPU test 20 minutes — if stable, increase magnitude\n\nREM STEP 3: Progressive tuning:\nREM All cores: -10 (stable for most Ryzen 5000/7000)\nREM Best cores can usually handle -20 to -30\nREM Weak cores may only take -5 to -10\n\nREM STEP 4: Final validation:\nREM Cinebench R23 5x run + gaming session = stable system`,
@@ -2587,7 +2588,7 @@ function card(t, cat) {
   const shortDesc=TWEAK_SHORT[t.id]||(t.impact||'').split('.')[0]+'.';
 
   // Collapsed card face only — no expand panel here
-  return `<div class="tweak-card${sc}${isApplied?' applied':''}${inSel?' selected':''}" id="card-${t.id}" data-cat="${cat}">
+  return `<div class="tweak-card${sc}${isApplied?' applied':''}${inSel?' selected':''}" id="card-${t.id}" data-cat="${cat}"${t.hw?` data-hw="${t.hw}"`:''}">
   ${hwBadge}
   <div class="tweak-top">
     <div class="t-icon">${t.icon}</div>
@@ -3301,6 +3302,26 @@ function applyHWFilters(){
     get('sec-nvidia')?.style && (get('sec-nvidia').style.display='');
     if(gpuBrand==='nvidia'){ showHWBadge('nav-nvidia','← YOUR GPU'); updateNvidiaTweakText(); }
     else { hideHWBadge('nav-nvidia'); clearPatchNotes('nvidia'); }
+  }
+
+  // ── Card-level platform filtering ──
+  // Hide/dim individual cards that have hw:'intel' or hw:'amd' when wrong platform detected
+  if(cpuBrand) {
+    document.querySelectorAll('.tweak-card[data-hw]').forEach(card => {
+      const cardHw = card.dataset.hw;
+      if(!cardHw) return;
+      const match = cardHw === cpuBrand;
+      card.style.opacity = match ? '' : '0.25';
+      card.style.pointerEvents = match ? '' : 'none';
+      card.title = match ? '' : `This tweak is for ${cardHw.toUpperCase()} CPUs only — not applicable to your ${cpuBrand.toUpperCase()} system`;
+    });
+  } else {
+    // No CPU detected — show all cards but add a subtle note
+    document.querySelectorAll('.tweak-card[data-hw]').forEach(card => {
+      card.style.opacity = '';
+      card.style.pointerEvents = '';
+      card.title = '';
+    });
   }
 }
 
@@ -4832,6 +4853,7 @@ function getPresetTweakIds(preset) {
       const el = document.getElementById('card-'+t.id);
       if (el && el.style.display === 'none') continue;
       if (preset.excludeRisky && t.risky) continue;
+      if (t.presetExclude) continue; // Always excluded from presets — must be applied manually
       if (preset.filterFn && !preset.filterFn(t)) continue;
       ids.push(t.id);
     }
