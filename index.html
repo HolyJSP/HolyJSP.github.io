@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>OPTI — Gaming Optimizer | JSPOpti</title>
+<title>OPTI — Optimizer | JSPOpti</title>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Barlow+Condensed:wght@600;800&display=swap');
   :root {
@@ -893,7 +893,7 @@
 <header>
   <div class="logo">
     <em>O</em>PTI
-    <span class="logo-v">v3.1</span>
+    <span class="logo-v">v3.1.2</span>
   </div>
   <div class="hdr-center">
     <div class="live-dot"></div>
@@ -914,7 +914,7 @@
     <div class="nav-item active" onclick="S('dashboard')" id="nav-dashboard"><span class="nav-icon">⚡</span>Dashboard</div>
     <div class="nav-div"></div>
     <div class="nav-section-lbl">System Tweaks</div>
-    <div class="nav-item" onclick="S('cpu')"     id="nav-cpu"><span class="nav-icon">🔲</span>CPU & Power<span class="nav-count" id="nc-cpu">0/23</span></div>
+    <div class="nav-item" onclick="S('cpu')"     id="nav-cpu"><span class="nav-icon">🔲</span>CPU & Power<span class="nav-count" id="nc-cpu">0/22</span></div>
     <div class="nav-item in" onclick="S('intel')" id="nav-intel"><span class="nav-icon">🔵</span>Intel CPU<span class="nav-count" id="nc-intel">0/5</span></div>
     <div class="nav-item an" onclick="S('amd')"   id="nav-amd"><span class="nav-icon">🔴</span>AMD CPU<span class="nav-count" id="nc-amd">0/6</span></div>
     <div class="nav-item" onclick="S('gpu')"     id="nav-gpu"><span class="nav-icon">🖥️</span>GPU & Display<span class="nav-count" id="nc-gpu">0/10</span></div>
@@ -1083,7 +1083,7 @@
       </a>
       <div class="dash-grid">
         <div class="dash-card"><div class="dash-num" style="color:var(--accent)"  id="d-applied">0</div><div class="dash-lbl">Tweaks Applied</div></div>
-        <div class="dash-card"><div class="dash-num" style="color:var(--accent-bright)" id="d-total">135</div><div class="dash-lbl">Total Available</div></div>
+        <div class="dash-card"><div class="dash-num" style="color:var(--accent-bright)" id="d-total">134</div><div class="dash-lbl">Total Available</div></div>
         <div class="dash-card"><div class="dash-num" style="color:var(--green)"   id="d-pct">0%</div><div class="dash-lbl">Optimized</div></div>
       </div>
       <div class="prog-section">
@@ -1418,19 +1418,13 @@ const TWEAKS = {
     {id:'ult-power',icon:'⚡',name:'Ultimate Performance Power Plan',badges:['perf','latency'],
      impact:`Ultimate Performance plan disables every power-saving feature that throttles your CPU between frames. In CS2, frame time consistency (not just average FPS) determines how smooth the game feels — ULP eliminates the microsecond clock speed dips between frames that create micro-stutter even at high average FPS.`,
      desc:'CS2 runs best with completely consistent CPU clock speeds. Every time Windows drops your CPU from 5.0GHz to 4.8GHz to save power between frames, that transition costs microseconds. In Valorant with Vanguard running, those power state transitions add up across hundreds of frames per second.',
-     apply:`powercfg -duplicatescheme e9a42b02-d5df-448d-aa00-03f14749eb61\npowercfg /setactive e9a42b02-d5df-448d-aa00-03f14749eb61`,
+     apply:`REM Duplicate and activate Ultimate Performance power plan:\npowercfg -duplicatescheme e9a42b02-d5df-448d-aa00-03f14749eb61 2>nul\npowercfg /setactive e9a42b02-d5df-448d-aa00-03f14749eb61\nREM Verify: powercfg /getactivescheme should show Ultimate Performance`,
      revert:`powercfg /setactive 381b4222-f694-41f0-9685-ff5bb260df2e`},
     {id:'core-park',icon:'🅿️',name:'Disable CPU Core Parking',badges:['latency','perf'],
      impact:`Core parking puts CPU cores into a sleep state during quiet moments to save power. When a CS2 smoke grenade lands and 6 players suddenly need processing simultaneously, parked cores need 1-3ms to wake up — during which that processing is delayed. Disabling parking keeps all cores instantly available.`,
      desc:'CS2 executes benefit from all cores being awake: the engine needs to process multiple player positions, particle effects, and audio simultaneously. A single parked core waking up during an execute phase adds frame time variance. In Valorant, ability interactions (Sage wall + Brimstone smoke + Sova scan simultaneously) demand all cores immediately.',
      apply:`REM Step 1: Set registry policy (min AND max both to 0 = fully unparked)\nreg add "HKLM\\SYSTEM\\CurrentControlSet\\Control\\Power\\PowerSettings\\54533251-82be-4824-96c1-47b60b740d00\\0cc5b647-c1df-4637-891a-dec35c318583" /v ValueMin /t REG_DWORD /d 0 /f\nreg add "HKLM\\SYSTEM\\CurrentControlSet\\Control\\Power\\PowerSettings\\54533251-82be-4824-96c1-47b60b740d00\\0cc5b647-c1df-4637-891a-dec35c318583" /v ValueMax /t REG_DWORD /d 0 /f\nREM Step 2: Apply to the ACTIVE power scheme immediately (no reboot needed)\npowercfg /setacvalueindex scheme_current 54533251-82be-4824-96c1-47b60b740d00 0cc5b647-c1df-4637-891a-dec35c318583 0\npowercfg /setdcvalueindex scheme_current 54533251-82be-4824-96c1-47b60b740d00 0cc5b647-c1df-4637-891a-dec35c318583 0\npowercfg /setactive scheme_current\nREM Verify: open Task Manager > Performance > CPU — all cores should show activity`,
      revert:`reg add "HKLM\\SYSTEM\\CurrentControlSet\\Control\\Power\\PowerSettings\\54533251-82be-4824-96c1-47b60b740d00\\0cc5b647-c1df-4637-891a-dec35c318583" /v ValueMin /t REG_DWORD /d 0 /f\nreg add "HKLM\\SYSTEM\\CurrentControlSet\\Control\\Power\\PowerSettings\\54533251-82be-4824-96c1-47b60b740d00\\0cc5b647-c1df-4637-891a-dec35c318583" /v ValueMax /t REG_DWORD /d 100 /f\npowercfg /setacvalueindex scheme_current 54533251-82be-4824-96c1-47b60b740d00 0cc5b647-c1df-4637-891a-dec35c318583 100\npowercfg /setactive scheme_current`},
-    {id:'hpet',icon:'⏱️',name:'Disable Dynamic Tick / HPET',badges:['latency'],risky:true,presetExclude:true,
-     riskNote:'⚠ Manual-only tweak — excluded from all presets because it can cause Windows recovery on AMD Ryzen + Windows 11. On Ryzen systems, bcdedit /set disabledynamictick yes can cause the kernel timer to get stuck, creating a boot loop or recovery screen on certain AMD boards with fTPM enabled. Intel users on Win10/11 generally benefit without issues. If you are on AMD, skip this tweak or test with caution and have a recovery USB ready. Revert command uses deletevalue to cleanly restore Windows default (never re-sets useplatformclock, which is also unsafe on AMD).',
-     impact:`The High Precision Event Timer conflict with the TSC (Time Stamp Counter) on modern CPUs adds overhead to every timer interrupt. CS2 and Valorant both use high-frequency timer calls for sub-millisecond input processing. Disabling dynamic tick reduces interrupt frequency overhead without forcing exclusive TSC-based timing, keeping the system stable across all hardware.`,
-     desc:'Disables the HPET platform clock preference and dynamic tick coalescing. Reduces timer interrupt overhead for lower-latency game thread scheduling. Safe version — does not force useplatformtick which caused boot failure on variable-TSC systems.',
-     apply:`bcdedit /deletevalue useplatformclock\nbcdedit /set disabledynamictick yes`,
-     revert:`bcdedit /deletevalue useplatformclock\nbcdedit /set disabledynamictick no`},
     {id:'timer-res',icon:'⌚',name:'Boost Windows Timer Resolution to 0.5ms',badges:['latency','perf'],
      impact:`Windows default timer fires 64 times per second (every 15.6ms) — the OS can only respond to frame requests at that rate. At 240Hz your game produces a frame every 4.17ms, meaning the default timer misses up to 3–4 frame delivery windows per frame. Forcing 0.5ms resolution (2000 checks/second) gives the scheduler 8 check points per 240Hz frame, so frame delivery, frame caps, and input processing all hit their targets accurately.
 
@@ -1449,8 +1443,7 @@ REM Download: https://cms.lucashale.com/timer-resolution/`,
      desc:'CS2 frames are generated by a tight render loop that must never be interrupted. MMCSS guarantees the game thread can\'t be preempted mid-frame by background services. In Valorant, Vanguard runs in a separate process — MMCSS ensures the game thread is always prioritized over Vanguard\'s background checks.',
      apply:`reg add "HKLM\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Multimedia\\SystemProfile" /v SystemResponsiveness /t REG_DWORD /d 0 /f\nreg add "HKLM\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Multimedia\\SystemProfile\\Tasks\\Games" /v "GPU Priority" /t REG_DWORD /d 8 /f\nreg add "HKLM\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Multimedia\\SystemProfile\\Tasks\\Games" /v Priority /t REG_DWORD /d 6 /f\nreg add "HKLM\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Multimedia\\SystemProfile\\Tasks\\Games" /v "Scheduling Category" /t REG_SZ /d "High" /f`,
      revert:`reg add "HKLM\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Multimedia\\SystemProfile" /v SystemResponsiveness /t REG_DWORD /d 20 /f\nreg add "HKLM\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Multimedia\\SystemProfile\\Tasks\\Games" /v "GPU Priority" /t REG_DWORD /d 2 /f\nreg add "HKLM\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Multimedia\\SystemProfile\\Tasks\\Games" /v Priority /t REG_DWORD /d 2 /f\nreg add "HKLM\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Multimedia\\SystemProfile\\Tasks\\Games" /v "Scheduling Category" /t REG_SZ /d "Medium" /f`},
-    {id:'spectre',icon:'🛡️',name:'Disable Spectre/Meltdown Mitigations',badges:['perf'],risky:true,
-     riskNote:'Security trade-off. ONLY for dedicated gaming rigs not used for banking, work, or sensitive data.',
+    {id:'spectre',icon:'🛡️',name:'Disable Spectre/Meltdown Mitigations',badges:['perf'],
      impact:`Spectre and Meltdown mitigations add 3-15% CPU overhead to every kernel-to-userspace transition. CS2 and Valorant make hundreds of kernel calls per second (network packets, audio, input). Disabling these mitigations on gaming PCs (which aren't shared servers with untrusted code) recovers that CPU overhead.`,
      desc:'CS2 performs kernel transitions for every network packet, every mouse input event, every sound playback. At 500+ FPS, kernel transitions happen thousands of times per second. Spectre mitigations add ~3-15% CPU overhead to each one. Disabling recovers FPS particularly on older CPUs (Skylake, Zen 1/2) where mitigations are most costly.',
      apply:`reg add "HKLM\\SYSTEM\\CurrentControlSet\\Control\\Session Manager\\Memory Management" /v FeatureSettingsOverride /t REG_DWORD /d 3 /f\nreg add "HKLM\\SYSTEM\\CurrentControlSet\\Control\\Session Manager\\Memory Management" /v FeatureSettingsOverrideMask /t REG_DWORD /d 3 /f`,
@@ -1515,8 +1508,7 @@ REM Download: https://cms.lucashale.com/timer-resolution/`,
      impact:`Pre-configures core affinity for game executables so when they launch they immediately run on the highest-performance cores without Windows needing to decide. On hybrid CPUs (Intel 12th+), games defaulting to E-cores instead of P-cores is a real issue. Forcing cs2.exe and VALORANT.exe to P-cores ensures the most critical game threads always get the fastest silicon.`,
      apply:`REM Set affinity for CS2 (runs on cores 0-5 = mask 63 decimal = 3F hex):\nreg add "HKLM\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Image File Execution Options\\cs2.exe" /v "Affinity" /t REG_DWORD /d 63 /f\nREM Set for Valorant:\nreg add "HKLM\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Image File Execution Options\\VALORANT-Win64-Shipping.exe" /v "Affinity" /t REG_DWORD /d 63 /f\nREM Adjust the mask value to match your CPU (63 = first 6 cores)`,
      revert:`reg delete "HKLM\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Image File Execution Options\\cs2.exe" /v Affinity /f\nreg delete "HKLM\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Image File Execution Options\\VALORANT-Win64-Shipping.exe" /v Affinity /f`},
-    {id:'smt-heterogeneous',hw:'intel',icon:'🔀',name:'Optimize Thread Director for Hybrid CPUs (Intel 12th+)',badges:['perf','latency'],risky:true,
-     riskNote:'Intel 12th gen+ (Alder Lake / Raptor Lake / Arrow Lake) only. AMD CPUs do not use Thread Director and this tweak has no effect on Ryzen systems — skip if you are on AMD. On Intel, requires Windows 11 22H2 or newer for full Thread Director support.',
+    {id:'smt-heterogeneous',hw:'intel',icon:'🔀',name:'Optimize Thread Director for Hybrid CPUs (Intel 12th+)',badges:['perf','latency'],
      desc:'On Intel 12th gen and newer (P-cores + E-cores), Windows Thread Director must be properly configured to keep game threads on P-cores and move background tasks to E-cores. Without this, your game threads can land on E-cores giving 30-40% lower IPC for those frames.',
      impact:`On Intel 12th gen+ CPUs, Windows Thread Director uses Cooperative Scheduling to place threads on P-cores or E-cores. Misconfigured, game threads land on E-cores while Discord lands on P-cores. Setting the heterogeneous policy correctly keeps your game's render and sim threads on P-cores exclusively. In CS2 and Valorant, this prevents the E-core fallback stutters seen on Raptor Lake systems at high scene complexity.`,
      apply:`REM Verify your BIOS has "Intel Thread Director" enabled\nREM Then ensure Windows updates are current (requires Win11 22H2+)\nREM Force game onto P-cores only via Process Lasso:\nREM Set your game's CPU class to "P-cores only"\nREM OR via registry (ITD registry config):\nreg add "HKLM\\SYSTEM\\CurrentControlSet\\Control\\Session Manager\\kernel" /v ThreadDirectorControl /t REG_DWORD /d 1 /f`,
@@ -1605,18 +1597,120 @@ REM Download: https://cms.lucashale.com/timer-resolution/`,
     {id:'nvcp-latency-profile',icon:'🟢',name:'NVIDIA Control Panel — Low Latency Profile',badges:['latency','gpu'],
      impact:`Forces NVIDIA driver to minimize render queue depth. Input latency drops 20-40ms. Clicks feel noticeably snappier.`,
      desc:'Configures NVIDIA Control Panel for absolute minimum input-to-display latency. Low Latency Mode Ultra reduces render queue depth. Prefer Maximum Performance keeps clocks at peak. This .bat writes directly to the NVIDIA profile registry — no NVCP interaction needed.',
-     apply:`@echo off\nREM NVIDIA Low Latency Profile — writes to NVIDIA profile store\nREM Run as Administrator\n\nREM Low Latency Mode = Ultra (0x00000001)\nReg add "HKLM\\SYSTEM\\CurrentControlSet\\Services\\nvlddmkm\\Global\\NVTweak" /v "NV_REG_STR_RM_CLIENT_RM_CTRL_CMD_LATENCY_ENABLED" /t REG_DWORD /d 1 /f\n\nREM Max Frame Latency = 1\nReg add "HKLM\\SOFTWARE\\NVIDIA Corporation\\NvControlPanel2\\Client" /v "MaxPreRenderedFrames" /t REG_DWORD /d 1 /f\n\nREM Prefer Maximum Performance (prevent GPU downclocking)\nReg add "HKLM\\SYSTEM\\CurrentControlSet\\Services\\nvlddmkm\\Global\\NVTweak" /v "PowerMizerEnable" /t REG_DWORD /d 1 /f\nReg add "HKLM\\SYSTEM\\CurrentControlSet\\Services\\nvlddmkm\\Global\\NVTweak" /v "PowerMizerLevel" /t REG_DWORD /d 1 /f\nReg add "HKLM\\SYSTEM\\CurrentControlSet\\Services\\nvlddmkm\\Global\\NVTweak" /v "PowerMizerLevelAC" /t REG_DWORD /d 1 /f\n\nREM Disable VSync globally\nReg add "HKLM\\SOFTWARE\\NVIDIA Corporation\\NvControlPanel2\\Client" /v "ForceVSync" /t REG_DWORD /d 0 /f\n\nREM Threaded Optimization = On\nReg add "HKLM\\SOFTWARE\\NVIDIA Corporation\\Global\\NVTweak" /v "ThreadedOptimization" /t REG_DWORD /d 1 /f\n\necho.\necho NVIDIA Low Latency Profile Applied\necho Restart recommended for full effect\npause`,
-     revert:`Reg delete "HKLM\\SYSTEM\\CurrentControlSet\\Services\\nvlddmkm\\Global\\NVTweak" /v "PowerMizerEnable" /f\nReg delete "HKLM\\SYSTEM\\CurrentControlSet\\Services\\nvlddmkm\\Global\\NVTweak" /v "PowerMizerLevel" /f\nReg delete "HKLM\\SYSTEM\\CurrentControlSet\\Services\\nvlddmkm\\Global\\NVTweak" /v "PowerMizerLevelAC" /f\nReg delete "HKLM\\SOFTWARE\\NVIDIA Corporation\\NvControlPanel2\\Client" /v "MaxPreRenderedFrames" /f`},
+     apply:`@echo off
+REM ─────────────────────────────────────────────────────
+REM OPTI — NVIDIA Low Latency Profile
+REM Applies confirmed-working registry keys + guides for
+REM settings that require NvidiaProfileInspector
+REM Run as Administrator
+REM ─────────────────────────────────────────────────────
+
+echo [1/3] Setting GPU Power Management to Max Performance...
+Reg add "HKLM\SYSTEM\CurrentControlSet\Services\nvlddmkm\Global\NVTweak" /v "PowerMizerEnable" /t REG_DWORD /d 1 /f
+Reg add "HKLM\SYSTEM\CurrentControlSet\Services\nvlddmkm\Global\NVTweak" /v "PowerMizerLevel" /t REG_DWORD /d 1 /f
+Reg add "HKLM\SYSTEM\CurrentControlSet\Services\nvlddmkm\Global\NVTweak" /v "PowerMizerLevelAC" /t REG_DWORD /d 1 /f
+
+echo [2/3] Reducing flip queue length to 1...
+Reg add "HKLM\SYSTEM\CurrentControlSet\Control\GraphicsDrivers" /v "HwFlipQueueLength" /t REG_DWORD /d 1 /f
+
+echo [3/3] Registry changes applied.
+echo.
+echo ══ NVIDIA Control Panel — set these manually ══
+echo  3D Settings ^> Manage 3D Settings:
+echo  - Low Latency Mode       : Ultra
+echo  - Max Frame Rate         : [your Hz]
+echo  - Power Management Mode  : Prefer Maximum Performance
+echo  - VSync                  : Off
+echo  - Threaded Optimization  : On
+echo.
+echo Or use NvidiaProfileInspector (free):
+echo  github.com/Orbmu2k/nvidiaProfileInspector
+echo  Set PRERENDERED_FRAMES=1, VSYNCSMOOTHAFR=0
+echo.
+echo Restart PC for PowerMizer changes to take full effect.
+pause`,
+     revert:`@echo off
+Reg delete "HKLM\SYSTEM\CurrentControlSet\Services\nvlddmkm\Global\NVTweak" /v "PowerMizerEnable" /f 2>nul
+Reg delete "HKLM\SYSTEM\CurrentControlSet\Services\nvlddmkm\Global\NVTweak" /v "PowerMizerLevel" /f 2>nul
+Reg delete "HKLM\SYSTEM\CurrentControlSet\Services\nvlddmkm\Global\NVTweak" /v "PowerMizerLevelAC" /f 2>nul
+Reg delete "HKLM\SYSTEM\CurrentControlSet\Control\GraphicsDrivers" /v "HwFlipQueueLength" /f 2>nul
+echo NVIDIA registry settings reverted. Restart PC.
+pause`},
     {id:'nvcp-fps-profile',icon:'🟢',name:'NVIDIA Control Panel — Max FPS Profile',badges:['fps','gpu'],
      impact:`Removes driver-level overhead from texture processing. Gains 3-8% FPS in GPU-bound games with no visual quality loss.`,
      desc:'Maximizes raw FPS output. Enables Threaded Optimization, sets Texture Filtering to Performance mode, disables FXAA, enables Digital Vibrance at optimal gaming level. This profile trades slight visual quality for measurable FPS gains on CPU-bound systems.',
-     apply:`@echo off\nREM NVIDIA Max FPS Profile\nREM Run as Administrator\n\nREM Texture Filtering Quality = Performance (0x00000020)\nReg add "HKLM\\SOFTWARE\\NVIDIA Corporation\\Global\\NVTweak" /v "TextureFilteringQuality" /t REG_DWORD /d 32 /f\n\nREM Anisotropic Filtering = Application Controlled (0)\nReg add "HKLM\\SOFTWARE\\NVIDIA Corporation\\Global\\NVTweak" /v "AnisotropicFilteringMode" /t REG_DWORD /d 0 /f\n\nREM FXAA = Off (0)\nReg add "HKLM\\SOFTWARE\\NVIDIA Corporation\\Global\\NVTweak" /v "FXAAEnable" /t REG_DWORD /d 0 /f\n\nREM Shader Cache = Enabled (1)\nReg add "HKLM\\SOFTWARE\\NVIDIA Corporation\\Global\\NVTweak" /v "GLShaderDiskCache" /t REG_DWORD /d 1 /f\n\nREM Shader Cache Size = 100GB (unlimited for gaming)\nReg add "HKLM\\SOFTWARE\\NVIDIA Corporation\\Global\\NVTweak" /v "GLShaderDiskCacheMaxSize" /t REG_DWORD /d 102400 /f\n\nREM Threaded Optimization = On\nReg add "HKLM\\SOFTWARE\\NVIDIA Corporation\\Global\\NVTweak" /v "ThreadedOptimization" /t REG_DWORD /d 1 /f\n\nREM Power Management = Prefer Maximum Performance\nReg add "HKLM\\SYSTEM\\CurrentControlSet\\Services\\nvlddmkm\\Global\\NVTweak" /v "PowerMizerLevel" /t REG_DWORD /d 1 /f\nReg add "HKLM\\SYSTEM\\CurrentControlSet\\Services\\nvlddmkm\\Global\\NVTweak" /v "PowerMizerLevelAC" /t REG_DWORD /d 1 /f\n\necho.\necho NVIDIA Max FPS Profile Applied\necho Open NVCP to verify settings\npause`,
-     revert:`Reg delete "HKLM\\SOFTWARE\\NVIDIA Corporation\\Global\\NVTweak" /v "TextureFilteringQuality" /f\nReg delete "HKLM\\SOFTWARE\\NVIDIA Corporation\\Global\\NVTweak" /v "FXAAEnable" /f\nReg delete "HKLM\\SYSTEM\\CurrentControlSet\\Services\\nvlddmkm\\Global\\NVTweak" /v "PowerMizerLevel" /f\nReg delete "HKLM\\SYSTEM\\CurrentControlSet\\Services\\nvlddmkm\\Global\\NVTweak" /v "PowerMizerLevelAC" /f`},
+     apply:`@echo off
+REM ─────────────────────────────────────────────────────
+REM OPTI — NVIDIA Max FPS Profile
+REM Applies confirmed-working registry keys + guides for
+REM settings that require NvidiaProfileInspector
+REM Run as Administrator
+REM ─────────────────────────────────────────────────────
+
+echo [1/2] Setting GPU Power to Max Performance...
+Reg add "HKLM\SYSTEM\CurrentControlSet\Services\nvlddmkm\Global\NVTweak" /v "PowerMizerLevel" /t REG_DWORD /d 1 /f
+Reg add "HKLM\SYSTEM\CurrentControlSet\Services\nvlddmkm\Global\NVTweak" /v "PowerMizerLevelAC" /t REG_DWORD /d 1 /f
+
+echo [2/2] Enabling unlimited shader cache...
+Reg add "HKLM\SOFTWARE\NVIDIA Corporation\Global\NVTweak" /v "GLShaderDiskCache" /t REG_DWORD /d 1 /f
+Reg add "HKLM\SOFTWARE\NVIDIA Corporation\Global\NVTweak" /v "GLShaderDiskCacheMaxSize" /t REG_DWORD /d 102400 /f
+
+echo.
+echo ══ NVIDIA Control Panel — set these manually ══
+echo  3D Settings ^> Manage 3D Settings:
+echo  - Texture Filtering Quality  : Performance
+echo  - Anisotropic Filtering      : Application Controlled
+echo  - FXAA                       : Off
+echo  - Low Latency Mode           : Ultra
+echo  - Power Management Mode      : Prefer Maximum Performance
+echo  - VSync                      : Off
+echo  - Threaded Optimization      : On
+echo.
+echo Restart PC for full effect.
+pause`,
+     revert:`@echo off
+Reg delete "HKLM\SYSTEM\CurrentControlSet\Services\nvlddmkm\Global\NVTweak" /v "PowerMizerLevel" /f 2>nul
+Reg delete "HKLM\SYSTEM\CurrentControlSet\Services\nvlddmkm\Global\NVTweak" /v "PowerMizerLevelAC" /f 2>nul
+Reg delete "HKLM\SOFTWARE\NVIDIA Corporation\Global\NVTweak" /v "GLShaderDiskCache" /f 2>nul
+Reg delete "HKLM\SOFTWARE\NVIDIA Corporation\Global\NVTweak" /v "GLShaderDiskCacheMaxSize" /f 2>nul
+echo NVIDIA Max FPS profile reverted. Restart PC.
+pause`},
     {id:'nvcp-performance-profile',icon:'🟢',name:'NVIDIA Control Panel — Balanced Performance Profile',badges:['perf','fps','gpu'],
      desc:'A balanced profile for systems where you want good FPS without sacrificing all visual quality. Keeps texture filtering at High Quality, enables DLSS where supported, and uses Adaptive VSync to eliminate tearing without full VSync input lag.',
      impact:`Sets NVIDIA Control Panel to prioritise performance over image quality and enables low-latency mode. Disables unnecessary post-processing, forces the GPU to use its render pipeline at maximum efficiency. In CS2 and Valorant, the low-latency submit mode reduces the GPU's pre-rendered frame queue from 3 frames to 1, cutting the lag between your mouse movement and the frame appearing on screen by up to 2–4ms.`,
-     apply:`@echo off\nREM NVIDIA Balanced Performance Profile\nREM Run as Administrator\n\nREM Texture Filtering = High Quality (0x00000002)\nReg add "HKLM\\SOFTWARE\\NVIDIA Corporation\\Global\\NVTweak" /v "TextureFilteringQuality" /t REG_DWORD /d 2 /f\n\nREM Anisotropic Filtering = 16x (maximum quality)\nReg add "HKLM\\SOFTWARE\\NVIDIA Corporation\\Global\\NVTweak" /v "AnisotropicFilteringMode" /t REG_DWORD /d 16 /f\n\nREM VSync = Adaptive (reduces tearing without full VSync lag)\nReg add "HKLM\\SOFTWARE\\NVIDIA Corporation\\NvControlPanel2\\Client" /v "ForceVSync" /t REG_DWORD /d 2 /f\n\nREM Low Latency Mode = On (not Ultra — balanced with quality)\nReg add "HKLM\\SOFTWARE\\NVIDIA Corporation\\NvControlPanel2\\Client" /v "MaxPreRenderedFrames" /t REG_DWORD /d 2 /f\n\nREM Triple Buffering = Off (reduces memory use)\nReg add "HKLM\\SOFTWARE\\NVIDIA Corporation\\Global\\NVTweak" /v "TripleBuffering" /t REG_DWORD /d 0 /f\n\nREM Threaded Optimization = On\nReg add "HKLM\\SOFTWARE\\NVIDIA Corporation\\Global\\NVTweak" /v "ThreadedOptimization" /t REG_DWORD /d 1 /f\n\nREM Shader Cache = Unlimited\nReg add "HKLM\\SOFTWARE\\NVIDIA Corporation\\Global\\NVTweak" /v "GLShaderDiskCacheMaxSize" /t REG_DWORD /d 102400 /f\n\necho.\necho NVIDIA Balanced Profile Applied\necho Restart recommended\npause`,
-     revert:`Reg delete "HKLM\\SOFTWARE\\NVIDIA Corporation\\Global\\NVTweak" /v "TextureFilteringQuality" /f\nReg delete "HKLM\\SOFTWARE\\NVIDIA Corporation\\Global\\NVTweak" /v "AnisotropicFilteringMode" /f\nReg delete "HKLM\\SOFTWARE\\NVIDIA Corporation\\NvControlPanel2\\Client" /v "ForceVSync" /f\nReg delete "HKLM\\SOFTWARE\\NVIDIA Corporation\\NvControlPanel2\\Client" /v "MaxPreRenderedFrames" /f`},
+     apply:`@echo off
+REM ─────────────────────────────────────────────────────
+REM OPTI — NVIDIA Balanced Performance Profile
+REM Applies confirmed-working registry keys + guides for
+REM settings that require NvidiaProfileInspector
+REM Run as Administrator
+REM ─────────────────────────────────────────────────────
+
+echo [1/2] Setting power management to balanced...
+REM Remove forced max performance to let driver manage clocks
+Reg delete "HKLM\SYSTEM\CurrentControlSet\Services\nvlddmkm\Global\NVTweak" /v "PowerMizerEnable" /f 2>nul
+Reg delete "HKLM\SYSTEM\CurrentControlSet\Services\nvlddmkm\Global\NVTweak" /v "PowerMizerLevel" /f 2>nul
+Reg delete "HKLM\SYSTEM\CurrentControlSet\Services\nvlddmkm\Global\NVTweak" /v "PowerMizerLevelAC" /f 2>nul
+
+echo [2/2] Enabling shader cache...
+Reg add "HKLM\SOFTWARE\NVIDIA Corporation\Global\NVTweak" /v "GLShaderDiskCacheMaxSize" /t REG_DWORD /d 102400 /f
+
+echo.
+echo ══ NVIDIA Control Panel — set these manually ══
+echo  3D Settings ^> Manage 3D Settings:
+echo  - Texture Filtering Quality  : High Quality
+echo  - Anisotropic Filtering      : 16x
+echo  - Low Latency Mode           : On (not Ultra)
+echo  - Power Management Mode      : Optimal Power
+echo  - VSync                      : Adaptive
+echo  - Threaded Optimization      : On
+echo.
+echo Restart PC for full effect.
+pause`,
+     revert:`@echo off
+Reg delete "HKLM\SOFTWARE\NVIDIA Corporation\Global\NVTweak" /v "GLShaderDiskCacheMaxSize" /f 2>nul
+echo NVIDIA Balanced profile reverted. Restart PC.
+pause`},
     {id:'nvcp-g-sync',icon:'🖥️',name:'NVIDIA G-Sync / DLSS / Reflex Setup',badges:['latency','gpu'],
      desc:'Configure G-Sync, DLSS, and NVIDIA Reflex for the best combination of frame smoothness and low latency. G-Sync + FPS cap = no tearing, no VSync lag, and no GPU queue buildup. NVIDIA Reflex cuts system latency by up to 50ms in supported games.',
      impact:`G-Sync synchronises the monitor's refresh rate to your GPU's render rate, eliminating screen tearing without the frame time stall of V-Sync. NVIDIA Reflex reduces the CPU-side latency by aligning game simulation ticks with GPU renders. Together with in-game Reflex enabled, this combination delivers the lowest achievable end-to-end latency in CS2 and Valorant while maintaining a tear-free image.`,
@@ -1629,8 +1723,7 @@ REM Download: https://cms.lucashale.com/timer-resolution/`,
      revert:`REM NVCP > Display > Adjust desktop color settings\nREM Digital Vibrance: 50% (neutral/default)`},
   ],
   gpu: [
-    {id:'hags',icon:'🎮',name:'Hardware GPU Scheduling (HAGS)',badges:['gpu','latency'],risky:true,
-     riskNote:'RTX 30xx+ / RX 6000+ / Arc only. May reduce FPS on older GPUs.',
+    {id:'hags',icon:'🎮',name:'Hardware GPU Scheduling (HAGS)',badges:['gpu','latency'],
      impact:`HAGS moves GPU command queue management from CPU to GPU hardware. In CS2, every frame submitted to the GPU previously required CPU involvement — HAGS removes the CPU from this loop. Result: lower CPU-GPU synchronization latency, more consistent frametimes, and slightly higher FPS especially at CPU-bottlenecked framerates.`,
      desc:'CS2\'s render pipeline submits work to the GPU thousands of times per second at high framerates. Traditional GPU scheduling requires CPU involvement for every submission. HAGS removes the CPU from this loop, reducing the latency between CS2\'s render thread finishing frame preparation and the GPU starting to render it.\'s render pipeline submits work to the GPU thousands of times per second. Traditional GPU scheduling requires CPU involvement for every submission. HAGS removes the CPU from this loop, reducing the latency between CS2\'s render thread finishing frame preparation and the GPU starting to render it. Result: lower frame latency, slightly higher FPS.',
      apply:`reg add "HKLM\\SYSTEM\\CurrentControlSet\\Control\\GraphicsDrivers" /v HwSchMode /t REG_DWORD /d 2 /f`,
@@ -1710,7 +1803,7 @@ REM Download: https://cms.lucashale.com/timer-resolution/`,
     {id:'nic-power',icon:'🔌',name:'Disable NIC Power Management & Wake Features',badges:['net','latency','ping'],
      impact:`CS2 peeker's advantage is partly made worse by NIC sleep latency. Disabling power management keeps your NIC at full speed so enemy position updates arrive the instant they're sent from the server.`,
      desc:'Power management features put your NIC into a low-power state during quiet periods, then wake it when packets arrive. The wake latency adds 1-5ms to every burst of packets. In CS2, enemies appearing around corners send a burst of position updates — NIC sleep delay makes that feel like they teleport.',
-     apply:`powercfg /SETACVALUEINDEX SCHEME_CURRENT 19caa947-ffffffff-ffffffff-ffffffff-ffffffff-ffffffff-ffffffff-ffffffff-ffffffff /v 0 /f\nnetsh int ip set global taskoffload=enabled\nREM Also: Device Manager > NIC > Power Management > uncheck all power saving options`,
+     apply:`netsh int ip set global taskoffload=enabled\nREM Also via Device Manager:\nREM Device Manager > Network Adapters > right-click NIC > Properties\nREM Power Management tab > uncheck all power saving checkboxes\nREM Advanced tab > Energy Efficient Ethernet or Power Saving Mode > set Disabled`,
      revert:`REM Re-enable via Device Manager > NIC > Power Management > Allow computer to turn off this device`},
     {id:'udp-buffer',icon:'📥',name:'Increase UDP & TCP Socket Buffers',badges:['net','ping','latency'],
      impact:`In CS2 at round start when all 10 players' positions update simultaneously, tiny default buffers cause micro-drops that manifest as enemies briefly stuttering into position. In Valorant Ult activations (Sova scan, Brim ult, etc.) trigger similar bursts.`,
@@ -1770,7 +1863,7 @@ REM Download: https://cms.lucashale.com/timer-resolution/`,
     {id:'tcp-delayed-ack',icon:'⏳',name:'Disable TCP Delayed ACK',badges:['net','latency','ping'],
      desc:"TCP Delayed ACK intentionally waits up to 200ms before sending acknowledgements, hoping to piggyback them on outgoing data. In games, almost every packet needs an immediate ACK. Disabling the delay makes your game's TCP traffic acknowledge packets instantly.",
      impact:`TCP Delayed ACK holds acknowledgement packets for up to 200ms waiting to bundle them with data. For game traffic this artificially inflates round-trip time. Disabling it forces immediate ACK responses. Combined with Nagle disabled, this gives you the minimum possible network round trip for CS2 matchmaking servers and Valorant's live service servers.`,
-     apply:`reg add "HKLM\\SYSTEM\\CurrentControlSet\\Services\\Tcpip\\Parameters\\Interfaces\\{YOUR-NIC-GUID}" /v TcpDelAckTicks /t REG_DWORD /d 0 /f\nreg add "HKLM\\SYSTEM\\CurrentControlSet\\Services\\Tcpip\\Parameters" /v TcpDelayedAckFrequency /t REG_DWORD /d 1 /f\nreg add "HKLM\\SYSTEM\\CurrentControlSet\\Services\\Tcpip\\Parameters" /v TcpDelayedAckTicks /t REG_DWORD /d 0 /f`,
+     apply:`REM Per-NIC (needs YOUR GUID from regedit > Tcpip\Parameters\Interfaces):\nREM reg add "HKLM\\SYSTEM\\CurrentControlSet\\Services\\Tcpip\\Parameters\\Interfaces\\{YOUR-NIC-GUID}" /v TcpDelAckTicks /t REG_DWORD /d 0 /f\nreg add "HKLM\\SYSTEM\\CurrentControlSet\\Services\\Tcpip\\Parameters" /v TcpDelayedAckFrequency /t REG_DWORD /d 1 /f\nreg add "HKLM\\SYSTEM\\CurrentControlSet\\Services\\Tcpip\\Parameters" /v TcpDelayedAckTicks /t REG_DWORD /d 0 /f`,
      revert:`reg delete "HKLM\\SYSTEM\\CurrentControlSet\\Services\\Tcpip\\Parameters" /v TcpDelayedAckFrequency /f\nreg delete "HKLM\\SYSTEM\\CurrentControlSet\\Services\\Tcpip\\Parameters" /v TcpDelayedAckTicks /f`},
     {id:'udp-offload',icon:'🔧',name:'Enable UDP Offload & Disable URO',badges:['net','latency','perf'],
      impact:`In CS2, delayed ACKs on server position update packets mean the server waits up to 200ms before sending the next update, thinking you haven't received the last one. At 128Hz that's missing 25 server updates. Disabling makes your client ACK instantly, keeping the full update rate flowing.`,
@@ -1897,8 +1990,6 @@ for /f "tokens=*" %%i in ('netsh interface show interface ^| findstr "Connected"
 
 echo [2/3] Flushing DNS cache...
 ipconfig /flushdns
-net stop dnscache
-net start dnscache
 
 echo [3/3] Disabling DNS negative caching delay...
 reg add "HKLM\\SYSTEM\\CurrentControlSet\\Services\\Dnscache\\Parameters" /v NegativeCacheTime /t REG_DWORD /d 0 /f
@@ -1967,7 +2058,7 @@ echo MTU restored to 1500. pause`},
 
   ],
   system: [
-    {id:'fast-startup',icon:'⚡',name:'Enable Fast Startup (Quick Boot)',badges:['perf'],
+    {id:'fast-startup',presetExclude:true,icon:'⚡',name:'Enable Fast Startup (Quick Boot)',badges:['perf'],
      impact:`PC restarts in 5-15 seconds instead of 30-60. After applying tweaks, your next restart will be noticeably faster.`,
      desc:'Fast Startup is a hybrid shutdown mode — instead of a full kernel shutdown, Windows saves the kernel session to the hiberfil.sys file and resumes it on next boot. This skips the full driver initialization sequence, cutting restart times by 50-80%. Works on SSDs especially well. Note: only applies to Shutdown, not Restart — use Shutdown to get the speed benefit after applying tweaks.',
      apply:`@echo off
@@ -2019,7 +2110,7 @@ pause`},
      impact:`USB Selective Suspend puts USB devices to sleep after a period of inactivity to save power. When your mouse moves after a brief still period, the OS must wake the USB device — adding a small but real re-connection delay. During tense CS2 or Valorant moments (holding an angle, waiting to peek), a still mouse that suddenly moves may have 1–3ms of re-activation lag before the first input registers. Disabling this keeps all USB devices always-on.`,
      apply:`powercfg /SETACVALUEINDEX SCHEME_CURRENT 2a737441-1930-4402-8d77-b2bebba308a3 48e6b7a6-50f5-4782-a5d4-53bb8f07e226 0\npowercfg /SETACTIVE SCHEME_CURRENT`,
      revert:`powercfg /SETACVALUEINDEX SCHEME_CURRENT 2a737441-1930-4402-8d77-b2bebba308a3 48e6b7a6-50f5-4782-a5d4-53bb8f07e226 1\npowercfg /SETACTIVE SCHEME_CURRENT`},
-    {id:'disable-hibernation',icon:'😴',name:'Disable Hibernation & Fast Startup',badges:['perf'],
+    {id:'disable-hibernation',presetExclude:true,icon:'😴',name:'Disable Hibernation & Fast Startup',badges:['perf'],
      impact:`Fast Startup loads a partial OS state from hibernate instead of doing a fresh boot. This saves boot time but can load stale GPU driver states, stale audio driver states, and stale network driver states. In CS2 this manifests as GPU-related crashes, audio cutting out, or network adapter issues in the first session after boot.`,
      desc:'CS2 instability after waking from hibernate-based Fast Startup is a known issue. The GPU driver loads its previous state which may be incompatible with updates applied while hibernated. Disabling Fast Startup ensures a clean driver initialization on every boot — trading 20 seconds of boot time for session stability.',
      apply:`powercfg /h off\nreg add "HKLM\\SYSTEM\\CurrentControlSet\\Control\\Session Manager\\Power" /v HiberbootEnabled /t REG_DWORD /d 0 /f`,
@@ -2029,8 +2120,7 @@ pause`},
      desc:'CS2 players often notice a tiny stutter exactly when a Discord notification fires. That\'s not coincidence — the notification toast forces DWM to render an overlay, interrupting the GPU mid-frame. In Valorant, Riot\'s own client sends notifications that trigger the same effect.',
      apply:`reg add "HKCU\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\PushNotifications" /v ToastEnabled /t REG_DWORD /d 0 /f\nreg add "HKCU\\SOFTWARE\\Policies\\Microsoft\\Windows\\CurrentVersion\\PushNotifications" /v NoToastApplicationNotification /t REG_DWORD /d 1 /f`,
      revert:`reg add "HKCU\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\PushNotifications" /v ToastEnabled /t REG_DWORD /d 1 /f\nreg delete "HKCU\\SOFTWARE\\Policies\\Microsoft\\Windows\\CurrentVersion\\PushNotifications" /v NoToastApplicationNotification /f`},
-    {id:'disable-defender-rt',icon:'🦠',name:'Disable Windows Defender Real-Time Scanning',badges:['perf'],risky:true,
-     riskNote:'Security risk. Only disable if you have an alternative AV solution or are on an isolated gaming rig. Re-enable after gaming sessions.',
+    {id:'disable-defender-rt',presetExclude:true,icon:'🦠',name:'Disable Windows Defender Real-Time Scanning',badges:['perf'],
      impact:`Real-time protection scans every file access — including CS2's shader cache files, Valorant's game assets, and their temporary files. Every frame that accesses a new shader or texture triggers a Defender scan. During shader compilation (especially after updates), this can cause 100-500ms hitches.`,
      desc:'After CS2 updates, Defender scans newly downloaded game files in real-time, causing significant I/O competition during the first launch post-update. In Valorant, Vanguard\'s own driver files trigger Defender scans at startup. Excluding game folders from Defender scanning eliminates these scan-induced hitches.',
      apply:`reg add "HKLM\\SOFTWARE\\Policies\\Microsoft\\Windows Defender" /v DisableAntiSpyware /t REG_DWORD /d 1 /f\nreg add "HKLM\\SOFTWARE\\Policies\\Microsoft\\Windows Defender\\Real-Time Protection" /v DisableRealtimeMonitoring /t REG_DWORD /d 1 /f`,
@@ -2074,10 +2164,9 @@ pause`},
     {id:'disable-event-log',icon:'📋',name:'Disable Non-Critical Windows Event Logging',badges:['perf'],
      desc:'The Windows Event Log service writes thousands of entries per session to disk. During gaming, these disk writes compete with game asset streaming. Disabling the Application and System event logs (not Security) eliminates this constant background write traffic.',
      impact:`The Windows Event Log writes thousands of entries per gaming session to disk — every application start, network event, and security check generates log entries. These disk writes compete with game asset streaming. Disabling non-critical event logging reduces background disk I/O, which matters most on SATA SSDs and HDDs. In CS2 and Valorant, this primarily helps with map load times and texture streaming consistency.`,
-     apply:`sc config "eventlog" start= manual\nREM Disable specific verbose logs:\nwevtutil sl Microsoft-Windows-Diagnostics-Performance/Operational /e:false\nwevtutil sl Microsoft-Windows-UserPnp/ActionCenter /e:false\nwevtutil sl Microsoft-Windows-WindowsUpdateClient/Operational /e:false`,
-     revert:`sc config "eventlog" start= auto\nsc start "eventlog"`},
-    {id:'handle-inheritance',icon:'🔗',name:'Reduce Handle Table & Object Manager Overhead',badges:['perf','latency'],risky:true,
-     riskNote:'✅ Fixed: An earlier version of this tweak overwrote the Windows kernel ObjectDirectories registry value with a single entry, destroying the kernel object namespace and causing a BSOD or complete boot failure on the next restart. That command has been permanently removed. This tweak now only adjusts heap segment sizes which are safe and fully reversible.',
+     apply:`REM Only disable specific verbose event channels (never touch the eventlog service):\nwevtutil sl Microsoft-Windows-Diagnostics-Performance/Operational /e:false\nwevtutil sl Microsoft-Windows-UserPnp/ActionCenter /e:false\nwevtutil sl Microsoft-Windows-WindowsUpdateClient/Operational /e:false\nwevtutil sl Microsoft-Windows-AppXDeploymentServer/Operational /e:false\nwevtutil sl Microsoft-Windows-Store/Operational /e:false`,
+     revert:`wevtutil sl Microsoft-Windows-Diagnostics-Performance/Operational /e:true\nwevtutil sl Microsoft-Windows-UserPnp/ActionCenter /e:true\nwevtutil sl Microsoft-Windows-WindowsUpdateClient/Operational /e:true\nwevtutil sl Microsoft-Windows-AppXDeploymentServer/Operational /e:true\nwevtutil sl Microsoft-Windows-Store/Operational /e:true`},
+    {id:'handle-inheritance',icon:'🔗',name:'Reduce Handle Table & Object Manager Overhead',badges:['perf','latency'],
      desc:'Games create thousands of kernel handles (file handles, sync objects, memory maps). The default handle table grows dynamically causing reallocation pauses. Pre-committing a larger table eliminates the dynamic growth overhead during active gameplay.',
      impact:`Games create thousands of kernel handles (file handles, sync objects, memory maps). By default Windows allows these handles to be inherited by child processes, requiring the kernel to walk the handle table on every process creation. Restricting inheritance reduces the per-process handle table overhead. In CS2 which spawns several sub-processes for audio and crash handling, this reduces the overhead of those process creation events.`,
      apply:`reg add "HKLM\\SYSTEM\\CurrentControlSet\\Control\\Session Manager" /v HeapDeCommitFreeBlockThreshold /t REG_DWORD /d 262144 /f\nreg add "HKLM\\SYSTEM\\CurrentControlSet\\Control\\Session Manager" /v HeapSegmentCommit /t REG_DWORD /d 131072 /f\nreg add "HKLM\\SYSTEM\\CurrentControlSet\\Control\\Session Manager" /v HeapSegmentReserve /t REG_DWORD /d 262144 /f`,
@@ -2102,19 +2191,18 @@ pause`},
     {id:'pagefile-fixed',icon:'📎',name:'Set Fixed PageFile Size (No Dynamic Resize)',badges:['perf','mem'],
      impact:`A dynamic pagefile resizes itself constantly as memory usage changes. Each resize is a disk I/O operation that can momentarily stall processes waiting for virtual memory. A fixed pagefile at a consistent size eliminates resize operations entirely, ensuring consistent virtual memory performance throughout a gaming session.`,
      desc:'CS2 memory usage grows over a long session as more map areas are visited and more assets are cached. A dynamic pagefile growing to accommodate this triggers disk I/O at the worst moments. A fixed pagefile pre-allocates the space, eliminating resize-induced latency spikes in the middle of competitive matches.',
-     apply:`REM Set pagefile to fixed 16GB (adjust to your preference):\nwmic computersystem set AutomaticManagedPagefile=False\nwmic pagefileset create name="C:\\pagefile.sys"\nwmic pagefileset set InitialSize=16384, MaximumSize=16384\nREM Restart required`,
-     revert:`wmic computersystem set AutomaticManagedPagefile=True\nREM Restart required`},
+     apply:`REM Set pagefile to fixed 16GB (wmic removed in Win11 24H2, using PowerShell):\npowershell -Command \"$cs = Get-WmiObject Win32_ComputerSystem; $cs.AutomaticManagedPagefile = $false; $cs.Put()\"\npowershell -Command \"Get-WmiObject Win32_PageFileSetting | Remove-WmiObject\"\npowershell -Command \"Set-WMIInstance -Class Win32_PageFileSetting -Arguments @{Name=\\\"C:\\\\pagefile.sys\\\"; InitialSize=16384; MaximumSize=16384}\"\nREM Restart required after this change`,
+     revert:`powershell -Command \"$cs = Get-WmiObject Win32_ComputerSystem; $cs.AutomaticManagedPagefile = $true; $cs.Put()\"\nREM Restart required`},
     {id:'working-set',icon:'🔬',name:'Disable Process Working Set Trim',badges:['perf','mem'],
      impact:`Windows can page out game memory to disk even when you have free RAM, as part of its memory prediction system. CS2 and Valorant are memory-locked applications — having any part of the game swapped to disk means a disk read (even SSD) when that memory is accessed, causing multi-millisecond stutters.`,
      desc:'CS2 mid-match stutters on systems with 16GB RAM often come from Windows paging out game assets to make room for \'predicted\' future uses. Setting process working sets prevents this — the game\'s memory stays locked in RAM throughout the match, eliminating page fault stutters.',
      apply:`reg add "HKLM\\SYSTEM\\CurrentControlSet\\Control\\Session Manager\\Memory Management" /v DisablePagingExecutive /t REG_DWORD /d 1 /f`,
      revert:`reg add "HKLM\\SYSTEM\\CurrentControlSet\\Control\\Session Manager\\Memory Management" /v DisablePagingExecutive /t REG_DWORD /d 0 /f`},
-    {id:'heap-opt',icon:'📊',name:'Optimize System Heap & Pool Allocations',badges:['perf','mem'],risky:true,
-     riskNote:'✅ Fixed: An earlier version of this tweak set PagedPoolSize to 192 bytes — a value so small the Windows kernel would immediately exhaust its memory pool while loading drivers on boot, causing a BSOD before reaching the login screen. That command has been permanently removed. This tweak now only sets HeapDeCommitFreeBlockThreshold and PoolUsageMaximum, both safe and reversible.',
+    {id:'heap-opt',icon:'📊',name:'Optimize System Heap & Pool Allocations',badges:['perf','mem'],
      impact:`The Windows heap allocator's default settings don't optimize for the allocation pattern of game engines — frequent small allocations and deallocations. HeapDeCommitFreeBlockThreshold and related settings tune when the heap returns memory to the OS vs keeping it ready for reuse, reducing allocation latency for game engine memory operations.`,
      desc:'CS2 and Valorant\'s game engines create and destroy thousands of small objects per second — bullets, effects, sound sources. Heap allocator overhead on these operations adds CPU time that accumulates over millions of allocations per match. Optimized heap settings reduce this overhead, particularly on CPU-bound systems.',
-     apply:`reg add "HKLM\\SYSTEM\\CurrentControlSet\\Control\\Session Manager" /v HeapDeCommitFreeBlockThreshold /t REG_DWORD /d 262144 /f\\nreg add "HKLM\\SYSTEM\\CurrentControlSet\\Control\\Session Manager\\Memory Management" /v PoolUsageMaximum /t REG_DWORD /d 60 /f`,
-     revert:`reg delete "HKLM\\SYSTEM\\CurrentControlSet\\Control\\Session Manager" /v HeapDeCommitFreeBlockThreshold /f\\nreg delete "HKLM\\SYSTEM\\CurrentControlSet\\Control\\Session Manager\\Memory Management" /v PoolUsageMaximum /f`},
+     apply:`reg add "HKLM\\SYSTEM\\CurrentControlSet\\Control\\Session Manager" /v HeapDeCommitFreeBlockThreshold /t REG_DWORD /d 262144 /f\nreg add "HKLM\\SYSTEM\\CurrentControlSet\\Control\\Session Manager\\Memory Management" /v PoolUsageMaximum /t REG_DWORD /d 60 /f`,
+     revert:`reg delete "HKLM\\SYSTEM\\CurrentControlSet\\Control\\Session Manager" /v HeapDeCommitFreeBlockThreshold /f\nreg delete "HKLM\\SYSTEM\\CurrentControlSet\\Control\\Session Manager\\Memory Management" /v PoolUsageMaximum /f`},
     {id:'ram-timing',icon:'🕹️',name:'Enable XMP/EXPO RAM Profile (BIOS Reminder)',badges:['mem','perf'],
      desc:'This is the single most impactful memory change you can make. Most RAM ships running at 2133MHz even though it is rated for 3200-6000MHz+. Enabling XMP (Intel) or EXPO (AMD) in BIOS activates the rated speed. A 3200MHz to 6000MHz upgrade can give 10-30% gaming performance gains.',
      impact:`Running RAM below its rated speed is the single most common un-fixed bottleneck on gaming PCs. RAM defaulting to 2133MHz when rated for 6000MHz means 64% less memory bandwidth — every texture load, physics calculation, and game state update takes longer. In CS2, proper XMP/EXPO can increase average FPS by 15–25% and dramatically tighten 1% lows. In Valorant, it reduces the memory latency that causes the 'rubberbanding' feel on Ryzen systems.`,
@@ -2138,8 +2226,8 @@ pause`},
     {id:'virtual-memory-location',icon:'📂',name:'Move PageFile to Fastest Drive',badges:['mem','perf'],
      impact:`The pagefile (virtual memory) should be on your fastest drive. When Windows pages memory out — even rarely — accessing it on a slow drive adds hundreds of milliseconds of stall time. On systems with multiple drives, moving the pagefile to the NVMe ensures that the rare pagefile access is as fast as possible.`,
      desc:'If CS2 or Valorant ever presses against the physical RAM limit and Windows pages some game data, that page being on a slow HDD causes a multi-second stall while the data is read back. On the fastest NVMe, the same page-in takes ~1ms. Always put the pagefile on your fastest drive.',
-     apply:`REM Move pagefile to fastest drive:\nwmic computersystem set AutomaticManagedPagefile=False\nREM Delete from slow drive (e.g. C:):\nwmic pagefileset where name="C:\\\\pagefile.sys" delete\nREM Create on fast drive (e.g. D: which is your NVMe):\nwmic pagefileset create name="D:\\pagefile.sys"\nwmic pagefileset where name="D:\\\\pagefile.sys" set InitialSize=16384,MaximumSize=16384\nREM Restart required`,
-     revert:`wmic computersystem set AutomaticManagedPagefile=True\nREM Restart required`},
+     apply:`REM Move pagefile to fastest NVMe drive (change D: to your drive letter):\npowershell -Command \"$cs = Get-WmiObject Win32_ComputerSystem; $cs.AutomaticManagedPagefile = $false; $cs.Put()\"\nREM Remove pagefile from C: drive:\npowershell -Command \"Get-WmiObject Win32_PageFileSetting | Remove-WmiObject\"\nREM Create on NVMe D: drive:\npowershell -Command \"Set-WMIInstance -Class Win32_PageFileSetting -Arguments @{Name=\\\"D:\\\\pagefile.sys\\\"; InitialSize=16384; MaximumSize=16384}\"\nREM Restart required`,
+     revert:`powershell -Command \"$cs = Get-WmiObject Win32_ComputerSystem; $cs.AutomaticManagedPagefile = $true; $cs.Put()\"\nREM Restart required`},
   ],
   input: [
     {id:'mouse-accel',icon:'🖱️',name:'Disable Mouse Acceleration',badges:['latency'],
@@ -2175,7 +2263,7 @@ pause`},
      desc:'Win32PrioritySeparation=38 gives the foreground app maximum CPU time quantum and extends it. Background tasks like Discord, browsers, and launchers get a fraction of the CPU time they normally steal. Most noticeable in CS2 during smokes and nades when the CPU is already loaded.',
      apply:`reg add "HKLM\\SYSTEM\\CurrentControlSet\\Control\\PriorityControl" /v Win32PrioritySeparation /t REG_DWORD /d 38 /f`,
      revert:`reg add "HKLM\\SYSTEM\\CurrentControlSet\\Control\\PriorityControl" /v Win32PrioritySeparation /t REG_DWORD /d 2 /f`},
-    {id:'no-hibernation-g',icon:'😴',name:'Disable Hibernation (Clean GPU Driver State)',style:'gc',badges:['perf'],
+    {id:'no-hibernation-g',presetExclude:true,icon:'😴',name:'Disable Hibernation (Clean GPU Driver State)',style:'gc',badges:['perf'],
      impact:`Prevents the GPU driver from loading a stale state on boot which can cause CS2 crashes, black screens, and inconsistent frame times in the first game session.`,
      desc:'Fast Startup keeps a partial OS state on disk which causes driver initialization issues and GPU state corruption on boot. Disabling ensures a completely clean OS and GPU driver state every single boot — especially important after driver updates.',
      apply:`powercfg /h off\nreg add "HKLM\\SYSTEM\\CurrentControlSet\\Control\\Session Manager\\Power" /v HiberbootEnabled /t REG_DWORD /d 0 /f`,
@@ -2350,8 +2438,8 @@ pause`,
     {id:'cs2-process',icon:'🔲',name:'CS2 High Priority via Registry (Auto on Launch)',style:'cc',badges:['cs2','latency','perf'],
      impact:`CS2 gets CPU time before every process on the machine — automatically, every launch. The frame hitches caused by a Discord message arriving or Windows Defender doing a background scan disappear because the OS scheduler always returns to CS2 first.`,
      desc:'Sets CS2 to High CPU priority and High I/O priority via IFEO (Image File Execution Options) in the registry. Persists every launch without needing a script. Vanguard-equivalent: Valorant uses the same registry path for its own priority setting.',
-     apply:`reg add "HKLM\\\\SOFTWARE\\\\Microsoft\\\\Windows NT\\\\CurrentVersion\\\\Image File Execution Options\\\\cs2.exe\\\\PerfOptions" /v CpuPriorityClass /t REG_DWORD /d 3 /f\nreg add "HKLM\\\\SOFTWARE\\\\Microsoft\\\\Windows NT\\\\CurrentVersion\\\\Image File Execution Options\\\\cs2.exe\\\\PerfOptions" /v IoPriority /t REG_DWORD /d 3 /f\nREM Verify: Launch CS2 > Task Manager > Details > cs2.exe priority = High`,
-     revert:`reg delete "HKLM\\\\SOFTWARE\\\\Microsoft\\\\Windows NT\\\\CurrentVersion\\\\Image File Execution Options\\\\cs2.exe" /f`},
+     apply:`reg add \"HKLM\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Image File Execution Options\\cs2.exe\\PerfOptions\" /v CpuPriorityClass /t REG_DWORD /d 3 /f\nreg add \"HKLM\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Image File Execution Options\\cs2.exe\\PerfOptions\" /v IoPriority /t REG_DWORD /d 3 /f\nREM Verify: Launch CS2 > Task Manager > Details > cs2.exe priority = High`,
+     revert:`reg delete \"HKLM\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Image File Execution Options\\cs2.exe\" /f`},
     {id:'cs2-shader-warmup',icon:'🔥',name:'CS2 Shader Warmup — Eliminate Round 1 Stutter',style:'cc',badges:['cs2','fps'],
      impact:`The first time a smoke grenade, molotov, or flashbang renders in CS2, DirectX compiles its shader variant on-the-spot — freezing your game for 200-800ms. Shader warmup pre-compiles all effects in a safe environment so this never happens mid-round. This fixes the stutter that happens on round 2 of every first match after a patch.`,
      desc:'Even after Steam background shader pre-compilation, CS2 compiles game-specific shader permutations for your exact GPU+driver combo on first render. Warmup triggers this compilation in a bot match environment. Clear the DirectX cache monthly — corrupted shader cache entries cause persistent micro-stutters that no other tweak can fix.',
@@ -2387,13 +2475,13 @@ pause`,
     {id:'val-priority',icon:'🛡️',name:'Vanguard-Safe Process Priority (Registry)',style:'vc',badges:['val','perf','latency'],
      impact:`Valorant gets CPU time before Discord, browsers, and every background process. The frame hitches that happen when a teammate pings the map or a Discord notification fires disappear because the CPU scheduler always returns to Valorant first.`,
      desc:'Sets Valorant to High CPU priority and High I/O priority via Image File Execution Options (IFEO) — a standard Windows registry path that Vanguard explicitly permits. No DLL injection, no driver-level changes. Applies automatically every launch without any script running.',
-     apply:`reg add "HKLM\\\\SOFTWARE\\\\Microsoft\\\\Windows NT\\\\CurrentVersion\\\\Image File Execution Options\\\\VALORANT-Win64-Shipping.exe\\\\PerfOptions" /v CpuPriorityClass /t REG_DWORD /d 3 /f\nreg add "HKLM\\\\SOFTWARE\\\\Microsoft\\\\Windows NT\\\\CurrentVersion\\\\Image File Execution Options\\\\VALORANT-Win64-Shipping.exe\\\\PerfOptions" /v IoPriority /t REG_DWORD /d 3 /f\n\nREM Verify: Launch Valorant > Task Manager > Details\nREM VALORANT-Win64-Shipping.exe priority = High`,
-     revert:`reg delete "HKLM\\\\SOFTWARE\\\\Microsoft\\\\Windows NT\\\\CurrentVersion\\\\Image File Execution Options\\\\VALORANT-Win64-Shipping.exe" /f`},
+     apply:`reg add \"HKLM\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Image File Execution Options\\VALORANT-Win64-Shipping.exe\\PerfOptions\" /v CpuPriorityClass /t REG_DWORD /d 3 /f\nreg add \"HKLM\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Image File Execution Options\\VALORANT-Win64-Shipping.exe\\PerfOptions\" /v IoPriority /t REG_DWORD /d 3 /f\nREM Verify: Launch Valorant > Task Manager > Details > priority = High`,
+     revert:`reg delete \"HKLM\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Image File Execution Options\\VALORANT-Win64-Shipping.exe\" /f`},
     {id:'val-network',icon:'📡',name:'Valorant Network — Reduce Packet Loss & Ping Spikes',style:'vc',badges:['val','net','ping','latency'],
      impact:`Valorant's tickrate is 128Hz but most ISP connections introduce micro-bursts of packet loss that cause rubberbanding and hit registration failures. This script optimizes the Windows network stack specifically for UDP gaming traffic, which Valorant uses for all positional data.`,
      desc:'Valorant uses UDP for game traffic with its own reliability layer on top. Windows default network settings are optimized for TCP throughput, not low-latency UDP. Nagle algorithm delays, receive window sizing, and interrupt coalescing all add latency that shows up as inconsistent hit registration even at low ping.',
-     apply:`@echo off\nREM Valorant Network Stack Optimization\nREM Run as Administrator\n\nREM Disable Nagle algorithm (batches packets — adds latency)\nreg add "HKLM\\\\SYSTEM\\\\CurrentControlSet\\\\Services\\\\Tcpip\\\\Parameters\\\\Interfaces\\\\{YOUR-NIC-GUID}" /v TcpAckFrequency /t REG_DWORD /d 1 /f\nreg add "HKLM\\\\SYSTEM\\\\CurrentControlSet\\\\Services\\\\Tcpip\\\\Parameters\\\\Interfaces\\\\{YOUR-NIC-GUID}" /v TCPNoDelay /t REG_DWORD /d 1 /f\n\nREM Flush DNS cache\nipconfig /flushdns\n\nREM Set QoS for Valorant UDP traffic\nnetsh advfirewall firewall add rule name="OPTI-VAL-UDP" protocol=UDP dir=out localport=7000-8000 action=allow\nreg add "HKLM\\\\SOFTWARE\\\\Policies\\\\Microsoft\\\\Windows\\\\QoS\\\\OPTI-VAL-NET" /v "Version" /t REG_SZ /d "1.0" /f\nreg add "HKLM\\\\SOFTWARE\\\\Policies\\\\Microsoft\\\\Windows\\\\QoS\\\\OPTI-VAL-NET" /v "Application Name" /t REG_SZ /d "VALORANT-Win64-Shipping.exe" /f\nreg add "HKLM\\\\SOFTWARE\\\\Policies\\\\Microsoft\\\\Windows\\\\QoS\\\\OPTI-VAL-NET" /v "Protocol" /t REG_SZ /d "UDP" /f\nreg add "HKLM\\\\SOFTWARE\\\\Policies\\\\Microsoft\\\\Windows\\\\QoS\\\\OPTI-VAL-NET" /v "Local Port" /t REG_SZ /d "*" /f\nreg add "HKLM\\\\SOFTWARE\\\\Policies\\\\Microsoft\\\\Windows\\\\QoS\\\\OPTI-VAL-NET" /v "Remote Port" /t REG_SZ /d "*" /f\nreg add "HKLM\\\\SOFTWARE\\\\Policies\\\\Microsoft\\\\Windows\\\\QoS\\\\OPTI-VAL-NET" /v "Local IP" /t REG_SZ /d "*" /f\nreg add "HKLM\\\\SOFTWARE\\\\Policies\\\\Microsoft\\\\Windows\\\\QoS\\\\OPTI-VAL-NET" /v "Remote IP" /t REG_SZ /d "*" /f\nreg add "HKLM\\\\SOFTWARE\\\\Policies\\\\Microsoft\\\\Windows\\\\QoS\\\\OPTI-VAL-NET" /v "DSCP Value" /t REG_SZ /d "46" /f\nreg add "HKLM\\\\SOFTWARE\\\\Policies\\\\Microsoft\\\\Windows\\\\QoS\\\\OPTI-VAL-NET" /v "Throttle Rate" /t REG_SZ /d "-1" /f\n\necho Valorant network optimization applied.\npause`,
-     revert:`@echo off\nreg delete "HKLM\\\\SOFTWARE\\\\Policies\\\\Microsoft\\\\Windows\\\\QoS\\\\OPTI-VAL-NET" /f 2>nul\nnetsh advfirewall firewall delete rule name="OPTI-VAL-UDP"\necho Valorant network tweaks reverted.\npause`},
+     apply:`@echo off\nREM Valorant Network Stack Optimization\nREM Run as Administrator\n\nREM Disable Nagle algorithm (batches packets — adds latency)\nREM (manual) reg add "HKLM\\SYSTEM\\CurrentControlSet\\Services\\Tcpip\\Parameters\\Interfaces\\{YOUR-NIC-GUID}" /v TcpAckFrequency /t REG_DWORD /d 1 /f\nREM (manual) reg add "HKLM\\SYSTEM\\CurrentControlSet\\Services\\Tcpip\\Parameters\\Interfaces\\{YOUR-NIC-GUID}" /v TCPNoDelay /t REG_DWORD /d 1 /f\n\nREM Flush DNS cache\nipconfig /flushdns\n\nREM Set QoS for Valorant UDP traffic\nnetsh advfirewall firewall add rule name="OPTI-VAL-UDP" protocol=UDP dir=out localport=7000-8000 action=allow\nreg add "HKLM\\SOFTWARE\\Policies\\Microsoft\\Windows\\QoS\\OPTI-VAL-NET" /v "Version" /t REG_SZ /d "1.0" /f\nreg add "HKLM\\SOFTWARE\\Policies\\Microsoft\\Windows\\QoS\\OPTI-VAL-NET" /v "Application Name" /t REG_SZ /d "VALORANT-Win64-Shipping.exe" /f\nreg add "HKLM\\SOFTWARE\\Policies\\Microsoft\\Windows\\QoS\\OPTI-VAL-NET" /v "Protocol" /t REG_SZ /d "UDP" /f\nreg add "HKLM\\SOFTWARE\\Policies\\Microsoft\\Windows\\QoS\\OPTI-VAL-NET" /v "Local Port" /t REG_SZ /d "*" /f\nreg add "HKLM\\SOFTWARE\\Policies\\Microsoft\\Windows\\QoS\\OPTI-VAL-NET" /v "Remote Port" /t REG_SZ /d "*" /f\nreg add "HKLM\\SOFTWARE\\Policies\\Microsoft\\Windows\\QoS\\OPTI-VAL-NET" /v "Local IP" /t REG_SZ /d "*" /f\nreg add "HKLM\\SOFTWARE\\Policies\\Microsoft\\Windows\\QoS\\OPTI-VAL-NET" /v "Remote IP" /t REG_SZ /d "*" /f\nreg add "HKLM\\SOFTWARE\\Policies\\Microsoft\\Windows\\QoS\\OPTI-VAL-NET" /v "DSCP Value" /t REG_SZ /d "46" /f\nreg add "HKLM\\SOFTWARE\\Policies\\Microsoft\\Windows\\QoS\\OPTI-VAL-NET" /v "Throttle Rate" /t REG_SZ /d "-1" /f\n\necho Valorant network optimization applied.\npause`,
+     revert:`@echo off\nreg delete "HKLM\\SOFTWARE\\Policies\\Microsoft\\Windows\\QoS\\OPTI-VAL-NET" /f 2>nul\nnetsh advfirewall firewall delete rule name="OPTI-VAL-UDP"\necho Valorant network tweaks reverted.\npause`},
     {id:'val-fps-cap',icon:'🎯',name:'Valorant FPS Cap — Riot Recommended Method',style:'vc',badges:['val','fps','latency'],
      impact:`Riot officially recommends capping FPS in Valorant to reduce GPU load and CPU heat which can cause thermal throttling during long matches. A 480 FPS cap on a 240Hz monitor wastes GPU cycles on invisible frames that heat your card and reduce boost clocks over a 45-minute match.`,
      desc:'Valorant renders at whatever FPS it can achieve. On high-end hardware this can push 600-800 FPS, generating heat that triggers GPU throttling by map 4 of a match. Capping in-game at Hz+20 keeps the GPU at sustainable temperatures and prevents clock speed reductions that lower your fps in the rounds that matter most.',
@@ -2401,7 +2489,7 @@ pause`,
      revert:`REM Valorant > Settings > Video > Frame Rate Limit > Uncapped`},
   ],
 };
-const TOTALS={cpu:23,intel:5,amd:6,nvidia:5,gpu:10,network:28,system:18,memory:11,input:4,general:6,apps:4,cs2:9,valorant:6};
+const TOTALS={cpu:22,intel:5,amd:6,nvidia:5,gpu:10,network:28,system:18,memory:11,input:4,general:6,apps:4,cs2:9,valorant:6};
 const TOTAL_ALL=Object.values(TOTALS).reduce((a,b)=>a+b,0);
 
 // appliedState = permanent progress (persists via localStorage, drives dashboard)
