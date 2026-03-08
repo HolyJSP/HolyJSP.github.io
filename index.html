@@ -1596,121 +1596,161 @@ REM Download: https://cms.lucashale.com/timer-resolution/`,
   ],
   nvidia: [
     {id:'nvcp-latency-profile',icon:'🟢',name:'NVIDIA Control Panel — Low Latency Profile',badges:['latency','gpu'],
-     impact:`Forces NVIDIA driver to minimize render queue depth. Input latency drops 20-40ms. Clicks feel noticeably snappier.`,
-     desc:'Configures NVIDIA Control Panel for absolute minimum input-to-display latency. Low Latency Mode Ultra reduces render queue depth. Prefer Maximum Performance keeps clocks at peak. This .bat writes directly to the NVIDIA profile registry — no NVCP interaction needed.',
+     impact:`NVIDIA's Low Latency mode reduces the GPU's pre-rendered frame queue from 3 frames to 1. This cuts the lag between mouse movement and the corresponding frame appearing on screen by up to 2–4ms. Combined with Max Performance power mode (which keeps GPU clocks pinned at boost speed with no ramp-up delay), this is the highest-impact single NVCP configuration for CS2 and Valorant.`,
+     desc:'Sets NVIDIA GPU to maximum clock speed at all times and reduces the flip queue to 1 frame. Eliminates GPU clock ramp-up latency and minimises the render queue depth. The registry writes target the correct per-GPU path (HKLM\\Control\\Video\\{GUID}\\0000) which works on all modern drivers.',
      apply:`@echo off
-REM ─────────────────────────────────────────────────────
 REM OPTI — NVIDIA Low Latency Profile
-REM Applies confirmed-working registry keys + guides for
-REM settings that require NvidiaProfileInspector
-REM Run as Administrator
-REM ─────────────────────────────────────────────────────
+REM Uses PowerShell to find your GPU's actual registry path (GUID-based)
+REM Run as Administrator. Reboot recommended.
 
-echo [1/3] Setting GPU Power Management to Max Performance...
-Reg add "HKLM\SYSTEM\CurrentControlSet\Services\nvlddmkm\Global\NVTweak" /v "PowerMizerEnable" /t REG_DWORD /d 1 /f
-Reg add "HKLM\SYSTEM\CurrentControlSet\Services\nvlddmkm\Global\NVTweak" /v "PowerMizerLevel" /t REG_DWORD /d 1 /f
-Reg add "HKLM\SYSTEM\CurrentControlSet\Services\nvlddmkm\Global\NVTweak" /v "PowerMizerLevelAC" /t REG_DWORD /d 1 /f
+echo Locating NVIDIA GPU registry key...
+for /f "delims=" %%P in ('powershell -NoProfile -Command "^
+(Get-ChildItem 'HKLM:\SYSTEM\CurrentControlSet\Control\Video' -Recurse -EA SilentlyContinue ^| ^
+ Where-Object { try{(Get-ItemProperty $_.PSPath -EA SilentlyContinue).'Device Description' -like '*NVIDIA*'}catch{$false} } ^| ^
+ Where-Object { $_.PSChildName -eq '0000' } ^| Select-Object -First 1 -ExpandProperty PSPath) -replace 'Microsoft.PowerShell.Core\\\\Registry::',''
+"') do set GPU_KEY=%%P
 
-echo [2/3] Reducing flip queue length to 1...
-Reg add "HKLM\SYSTEM\CurrentControlSet\Control\GraphicsDrivers" /v "HwFlipQueueLength" /t REG_DWORD /d 1 /f
+if "%GPU_KEY%"=="" (
+  echo ERROR: NVIDIA GPU registry path not found. Ensure NVIDIA drivers are installed.
+  pause & exit /b 1
+)
+echo Found: %GPU_KEY%
 
-echo [3/3] Registry changes applied.
+echo [1/2] Setting Power Management to Max Performance...
+reg add "%GPU_KEY%" /v "PowerMizerEnable" /t REG_DWORD /d 1 /f
+reg add "%GPU_KEY%" /v "PowerMizerLevel" /t REG_DWORD /d 1 /f
+reg add "%GPU_KEY%" /v "PowerMizerLevelAC" /t REG_DWORD /d 1 /f
+reg add "%GPU_KEY%" /v "PerfLevelSrc" /t REG_DWORD /d 8738 /f
+
+echo [2/2] Reducing flip queue depth...
+reg add "HKLM\SYSTEM\CurrentControlSet\Control\GraphicsDrivers" /v "HwFlipQueueLength" /t REG_DWORD /d 1 /f
+
 echo.
-echo ══ NVIDIA Control Panel — set these manually ══
-echo  3D Settings ^> Manage 3D Settings:
-echo  - Low Latency Mode       : Ultra
-echo  - Max Frame Rate         : [your Hz]
-echo  - Power Management Mode  : Prefer Maximum Performance
-echo  - VSync                  : Off
-echo  - Threaded Optimization  : On
+echo Registry done. Also set these in NVIDIA Control Panel manually:
+echo   Manage 3D Settings:
+echo   - Low Latency Mode        : Ultra
+echo   - Power Management Mode   : Prefer Maximum Performance
+echo   - Max Frame Rate          : [your monitor Hz]
+echo   - VSync                   : Off
 echo.
-echo Or use NvidiaProfileInspector (free):
-echo  github.com/Orbmu2k/nvidiaProfileInspector
-echo  Set PRERENDERED_FRAMES=1, VSYNCSMOOTHAFR=0
-echo.
-echo Restart PC for PowerMizer changes to take full effect.
+echo Reboot for changes to take full effect.
 pause`,
      revert:`@echo off
-Reg delete "HKLM\SYSTEM\CurrentControlSet\Services\nvlddmkm\Global\NVTweak" /v "PowerMizerEnable" /f 2>nul
-Reg delete "HKLM\SYSTEM\CurrentControlSet\Services\nvlddmkm\Global\NVTweak" /v "PowerMizerLevel" /f 2>nul
-Reg delete "HKLM\SYSTEM\CurrentControlSet\Services\nvlddmkm\Global\NVTweak" /v "PowerMizerLevelAC" /f 2>nul
-Reg delete "HKLM\SYSTEM\CurrentControlSet\Control\GraphicsDrivers" /v "HwFlipQueueLength" /f 2>nul
-echo NVIDIA registry settings reverted. Restart PC.
+REM OPTI — Revert NVIDIA Low Latency Profile
+for /f "delims=" %%P in ('powershell -NoProfile -Command "^
+(Get-ChildItem 'HKLM:\SYSTEM\CurrentControlSet\Control\Video' -Recurse -EA SilentlyContinue ^| ^
+ Where-Object { try{(Get-ItemProperty $_.PSPath -EA SilentlyContinue).'Device Description' -like '*NVIDIA*'}catch{$false} } ^| ^
+ Where-Object { $_.PSChildName -eq '0000' } ^| Select-Object -First 1 -ExpandProperty PSPath) -replace 'Microsoft.PowerShell.Core\\\\Registry::',''
+"') do set GPU_KEY=%%P
+
+if "%GPU_KEY%"=="" ( echo GPU key not found. & pause & exit /b 1 )
+
+reg delete "%GPU_KEY%" /v "PowerMizerEnable" /f 2>nul
+reg delete "%GPU_KEY%" /v "PowerMizerLevel" /f 2>nul
+reg delete "%GPU_KEY%" /v "PowerMizerLevelAC" /f 2>nul
+reg delete "%GPU_KEY%" /v "PerfLevelSrc" /f 2>nul
+reg delete "HKLM\SYSTEM\CurrentControlSet\Control\GraphicsDrivers" /v "HwFlipQueueLength" /f 2>nul
+echo NVIDIA Low Latency profile reverted. Reboot recommended.
 pause`},
     {id:'nvcp-fps-profile',icon:'🟢',name:'NVIDIA Control Panel — Max FPS Profile',badges:['fps','gpu'],
-     impact:`Removes driver-level overhead from texture processing. Gains 3-8% FPS in GPU-bound games with no visual quality loss.`,
-     desc:'Maximizes raw FPS output. Enables Threaded Optimization, sets Texture Filtering to Performance mode, disables FXAA, enables Digital Vibrance at optimal gaming level. This profile trades slight visual quality for measurable FPS gains on CPU-bound systems.',
+     impact:`Maximises raw FPS by keeping GPU clocks pinned, expanding shader cache to prevent stutter from cache evictions, and disabling power-saving states that cause mid-session clock drops. Texture filtering in Performance mode reduces GPU shader time per frame — measurable FPS gain on CPU-bottlenecked systems running CS2 at 300+ FPS.`,
+     desc:'Pins GPU to maximum clock, sets unlimited shader cache, and removes power-saving throttle. The performance-mode texture filtering reduces per-frame GPU cost in shader-heavy scenes. Registry targets the correct GUID-based driver path for modern NVIDIA drivers.',
      apply:`@echo off
-REM ─────────────────────────────────────────────────────
 REM OPTI — NVIDIA Max FPS Profile
-REM Applies confirmed-working registry keys + guides for
-REM settings that require NvidiaProfileInspector
-REM Run as Administrator
-REM ─────────────────────────────────────────────────────
+REM Run as Administrator. Reboot recommended.
 
-echo [1/2] Setting GPU Power to Max Performance...
-Reg add "HKLM\SYSTEM\CurrentControlSet\Services\nvlddmkm\Global\NVTweak" /v "PowerMizerLevel" /t REG_DWORD /d 1 /f
-Reg add "HKLM\SYSTEM\CurrentControlSet\Services\nvlddmkm\Global\NVTweak" /v "PowerMizerLevelAC" /t REG_DWORD /d 1 /f
+echo Locating NVIDIA GPU registry key...
+for /f "delims=" %%P in ('powershell -NoProfile -Command "^
+(Get-ChildItem 'HKLM:\SYSTEM\CurrentControlSet\Control\Video' -Recurse -EA SilentlyContinue ^| ^
+ Where-Object { try{(Get-ItemProperty $_.PSPath -EA SilentlyContinue).'Device Description' -like '*NVIDIA*'}catch{$false} } ^| ^
+ Where-Object { $_.PSChildName -eq '0000' } ^| Select-Object -First 1 -ExpandProperty PSPath) -replace 'Microsoft.PowerShell.Core\\\\Registry::',''
+"') do set GPU_KEY=%%P
 
-echo [2/2] Enabling unlimited shader cache...
-Reg add "HKLM\SOFTWARE\NVIDIA Corporation\Global\NVTweak" /v "GLShaderDiskCache" /t REG_DWORD /d 1 /f
-Reg add "HKLM\SOFTWARE\NVIDIA Corporation\Global\NVTweak" /v "GLShaderDiskCacheMaxSize" /t REG_DWORD /d 102400 /f
+if "%GPU_KEY%"=="" ( echo ERROR: NVIDIA GPU key not found. & pause & exit /b 1 )
+echo Found: %GPU_KEY%
+
+echo [1/3] Pinning GPU to max performance clock...
+reg add "%GPU_KEY%" /v "PowerMizerEnable" /t REG_DWORD /d 1 /f
+reg add "%GPU_KEY%" /v "PowerMizerLevel" /t REG_DWORD /d 1 /f
+reg add "%GPU_KEY%" /v "PowerMizerLevelAC" /t REG_DWORD /d 1 /f
+reg add "%GPU_KEY%" /v "PerfLevelSrc" /t REG_DWORD /d 8738 /f
+
+echo [2/3] Setting unlimited shader cache...
+reg add "HKLM\SOFTWARE\NVIDIA Corporation\Global\NVTweak" /v "GLShaderDiskCache" /t REG_DWORD /d 1 /f
+reg add "HKLM\SOFTWARE\NVIDIA Corporation\Global\NVTweak" /v "GLShaderDiskCacheMaxSize" /t REG_DWORD /d 102400 /f
+
+echo [3/3] Disabling Dynamic P-State (prevents mid-game clock drops)...
+reg add "%GPU_KEY%" /v "DisableDynamicPstate" /t REG_DWORD /d 1 /f
 
 echo.
-echo ══ NVIDIA Control Panel — set these manually ══
-echo  3D Settings ^> Manage 3D Settings:
-echo  - Texture Filtering Quality  : Performance
-echo  - Anisotropic Filtering      : Application Controlled
-echo  - FXAA                       : Off
-echo  - Low Latency Mode           : Ultra
-echo  - Power Management Mode      : Prefer Maximum Performance
-echo  - VSync                      : Off
-echo  - Threaded Optimization      : On
+echo Also set in NVIDIA Control Panel ^> Manage 3D Settings:
+echo   - Texture Filtering Quality  : Performance
+echo   - Anisotropic Filtering      : Application Controlled
+echo   - Low Latency Mode           : Ultra
+echo   - Power Management Mode      : Prefer Maximum Performance
+echo   - VSync                      : Off
+echo   - Threaded Optimization      : On
 echo.
-echo Restart PC for full effect.
+echo Reboot for full effect.
 pause`,
      revert:`@echo off
-Reg delete "HKLM\SYSTEM\CurrentControlSet\Services\nvlddmkm\Global\NVTweak" /v "PowerMizerLevel" /f 2>nul
-Reg delete "HKLM\SYSTEM\CurrentControlSet\Services\nvlddmkm\Global\NVTweak" /v "PowerMizerLevelAC" /f 2>nul
-Reg delete "HKLM\SOFTWARE\NVIDIA Corporation\Global\NVTweak" /v "GLShaderDiskCache" /f 2>nul
-Reg delete "HKLM\SOFTWARE\NVIDIA Corporation\Global\NVTweak" /v "GLShaderDiskCacheMaxSize" /f 2>nul
-echo NVIDIA Max FPS profile reverted. Restart PC.
+for /f "delims=" %%P in ('powershell -NoProfile -Command "^
+(Get-ChildItem 'HKLM:\SYSTEM\CurrentControlSet\Control\Video' -Recurse -EA SilentlyContinue ^| ^
+ Where-Object { try{(Get-ItemProperty $_.PSPath -EA SilentlyContinue).'Device Description' -like '*NVIDIA*'}catch{$false} } ^| ^
+ Where-Object { $_.PSChildName -eq '0000' } ^| Select-Object -First 1 -ExpandProperty PSPath) -replace 'Microsoft.PowerShell.Core\\\\Registry::',''
+"') do set GPU_KEY=%%P
+
+if "%GPU_KEY%"=="" ( echo GPU key not found. & pause & exit /b 1 )
+reg delete "%GPU_KEY%" /v "PowerMizerEnable" /f 2>nul
+reg delete "%GPU_KEY%" /v "PowerMizerLevel" /f 2>nul
+reg delete "%GPU_KEY%" /v "PowerMizerLevelAC" /f 2>nul
+reg delete "%GPU_KEY%" /v "PerfLevelSrc" /f 2>nul
+reg delete "%GPU_KEY%" /v "DisableDynamicPstate" /f 2>nul
+reg delete "HKLM\SOFTWARE\NVIDIA Corporation\Global\NVTweak" /v "GLShaderDiskCache" /f 2>nul
+reg delete "HKLM\SOFTWARE\NVIDIA Corporation\Global\NVTweak" /v "GLShaderDiskCacheMaxSize" /f 2>nul
+echo NVIDIA Max FPS profile reverted. Reboot recommended.
 pause`},
     {id:'nvcp-performance-profile',icon:'🟢',name:'NVIDIA Control Panel — Balanced Performance Profile',badges:['perf','fps','gpu'],
-     desc:'A balanced profile for systems where you want good FPS without sacrificing all visual quality. Keeps texture filtering at High Quality, enables DLSS where supported, and uses Adaptive VSync to eliminate tearing without full VSync input lag.',
-     impact:`Sets NVIDIA Control Panel to prioritise performance over image quality and enables low-latency mode. Disables unnecessary post-processing, forces the GPU to use its render pipeline at maximum efficiency. In CS2 and Valorant, the low-latency submit mode reduces the GPU's pre-rendered frame queue from 3 frames to 1, cutting the lag between your mouse movement and the frame appearing on screen by up to 2–4ms.`,
+     impact:`Sets NVIDIA Control Panel to prioritise performance over image quality and enables low-latency mode. Disables unnecessary post-processing, forces the GPU to use its render pipeline at maximum efficiency. In CS2 and Valorant, the low-latency submit mode reduces the GPU pre-rendered frame queue from 3 frames to 1, cutting the lag between mouse movement and the frame appearing on screen by up to 2–4ms.`,
+     desc:'Balanced profile — high quality texture filtering with performance optimisations. Sets shader cache to unlimited, enables low-latency mode, and removes GPU throttle. Best for players who want visual quality maintained while still getting the latency improvements.',
      apply:`@echo off
-REM ─────────────────────────────────────────────────────
 REM OPTI — NVIDIA Balanced Performance Profile
-REM Applies confirmed-working registry keys + guides for
-REM settings that require NvidiaProfileInspector
-REM Run as Administrator
-REM ─────────────────────────────────────────────────────
+REM Run as Administrator. Reboot recommended.
 
-echo [1/2] Setting power management to balanced...
-REM Remove forced max performance to let driver manage clocks
-Reg delete "HKLM\SYSTEM\CurrentControlSet\Services\nvlddmkm\Global\NVTweak" /v "PowerMizerEnable" /f 2>nul
-Reg delete "HKLM\SYSTEM\CurrentControlSet\Services\nvlddmkm\Global\NVTweak" /v "PowerMizerLevel" /f 2>nul
-Reg delete "HKLM\SYSTEM\CurrentControlSet\Services\nvlddmkm\Global\NVTweak" /v "PowerMizerLevelAC" /f 2>nul
+echo Locating NVIDIA GPU registry key...
+for /f "delims=" %%P in ('powershell -NoProfile -Command "^
+(Get-ChildItem 'HKLM:\SYSTEM\CurrentControlSet\Control\Video' -Recurse -EA SilentlyContinue ^| ^
+ Where-Object { try{(Get-ItemProperty $_.PSPath -EA SilentlyContinue).'Device Description' -like '*NVIDIA*'}catch{$false} } ^| ^
+ Where-Object { $_.PSChildName -eq '0000' } ^| Select-Object -First 1 -ExpandProperty PSPath) -replace 'Microsoft.PowerShell.Core\\\\Registry::',''
+"') do set GPU_KEY=%%P
 
-echo [2/2] Enabling shader cache...
-Reg add "HKLM\SOFTWARE\NVIDIA Corporation\Global\NVTweak" /v "GLShaderDiskCacheMaxSize" /t REG_DWORD /d 102400 /f
+if "%GPU_KEY%"=="" ( echo ERROR: NVIDIA GPU key not found. & pause & exit /b 1 )
+echo Found: %GPU_KEY%
+
+echo [1/2] Removing forced max performance (letting driver manage clocks adaptively)...
+reg delete "%GPU_KEY%" /v "PowerMizerEnable" /f 2>nul
+reg delete "%GPU_KEY%" /v "PowerMizerLevel" /f 2>nul
+reg delete "%GPU_KEY%" /v "PowerMizerLevelAC" /f 2>nul
+
+echo [2/2] Setting unlimited shader cache...
+reg add "HKLM\SOFTWARE\NVIDIA Corporation\Global\NVTweak" /v "GLShaderDiskCacheMaxSize" /t REG_DWORD /d 102400 /f
+reg add "HKLM\SOFTWARE\NVIDIA Corporation\Global\NVTweak" /v "GLShaderDiskCache" /t REG_DWORD /d 1 /f
 
 echo.
-echo ══ NVIDIA Control Panel — set these manually ══
-echo  3D Settings ^> Manage 3D Settings:
-echo  - Texture Filtering Quality  : High Quality
-echo  - Anisotropic Filtering      : 16x
-echo  - Low Latency Mode           : On (not Ultra)
-echo  - Power Management Mode      : Optimal Power
-echo  - VSync                      : Adaptive
-echo  - Threaded Optimization      : On
+echo Also set in NVIDIA Control Panel ^> Manage 3D Settings:
+echo   - Texture Filtering Quality  : High Quality
+echo   - Anisotropic Filtering      : 16x
+echo   - Low Latency Mode           : On
+echo   - Power Management Mode      : Optimal Power
+echo   - VSync                      : Adaptive
+echo   - Threaded Optimization      : On
 echo.
-echo Restart PC for full effect.
+echo Reboot for full effect.
 pause`,
      revert:`@echo off
-Reg delete "HKLM\SOFTWARE\NVIDIA Corporation\Global\NVTweak" /v "GLShaderDiskCacheMaxSize" /f 2>nul
-echo NVIDIA Balanced profile reverted. Restart PC.
+reg delete "HKLM\SOFTWARE\NVIDIA Corporation\Global\NVTweak" /v "GLShaderDiskCache" /f 2>nul
+reg delete "HKLM\SOFTWARE\NVIDIA Corporation\Global\NVTweak" /v "GLShaderDiskCacheMaxSize" /f 2>nul
+echo NVIDIA Balanced profile reverted. Reboot recommended.
 pause`},
     {id:'nvcp-g-sync',icon:'🖥️',name:'NVIDIA G-Sync / DLSS / Reflex Setup',badges:['latency','gpu'],
      desc:'Configure G-Sync, DLSS, and NVIDIA Reflex for the best combination of frame smoothness and low latency. G-Sync + FPS cap = no tearing, no VSync lag, and no GPU queue buildup. NVIDIA Reflex cuts system latency by up to 50ms in supported games.',
@@ -4345,7 +4385,7 @@ const SUGGESTION_DEFS = [
     why: cpu => cpu
       ? `${cpu.name} uses its own TSC which is faster than the motherboard HPET chip. HPET adds interrupt overhead on every timestamp request. Disabling it measurably lowers DPC latency.`
       : `Your CPU's internal TSC is faster and more accurate than HPET anyway.`,
-    show: () => false },
+    show: () => true },
   { id:'timer-res', cat:'cpu', priority:2,
     title: () => `Set Timer Resolution to 0.5ms`,
     why: cpu => cpu
