@@ -6,32 +6,148 @@
 <title>OPTI — Gaming Optimizer | JSPOpti</title>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Barlow+Condensed:wght@600;800&display=swap');
-  :root {
-    --bg:#03060f;
-    --bg2:#050810;
-    --surface:#08101f;
-    --surface2:#0b1528;
-    --surface3:#0f1c34;
-    --border:#162035;
-    --border2:#1e2d47;
-    --accent:#60b8ff;
-    --accent-bright:#8fd0ff;
-    --accent-dim:#3a87d4;
-    --accent-glow:rgba(96,184,255,0.12);
-    --accent-glow2:rgba(96,184,255,0.06);
-    --green:#3be8a0;
-    --green-glow:rgba(59,232,160,0.1);
-    --warn:#f59e0b;
-    --red:#f87171;
-    --purple:#a78bfa;
-    --gold:#f59e0b;
-    --cs2:#f0a500;
-    --val:#ff4655;
-    --text:#b8cce4;
-    --text2:#7a9cbf;
-    --text3:#3d5a7a;
-    --white:#e8f2ff;
-  }
+  
+:root {
+  --bg: #05070a;
+  --surface: #0c0f14;
+  --surface2: #14181f;
+  --border: rgba(255,255,255,0.08);
+  --accent: #00f2ff;
+  --accent-bright: #00f2ff;
+  --accent-glow: rgba(0, 242, 255, 0.15);
+  --white: #ffffff;
+  --text: #a0a8b3;
+  --text2: #808a96;
+  --text3: #5c6673;
+  --green: #00ffa3;
+  --red: #ff4655;
+  --gold: #ffb800;
+  --cs2: #ff9d00;
+  --val: #ff4655;
+  --sidebar-w: 240px;
+}
+
+body {
+  background-color: var(--bg);
+  background-image: 
+    radial-gradient(circle at 50% 0%, rgba(0, 242, 255, 0.05) 0%, transparent 50%),
+    radial-gradient(circle at 0% 100%, rgba(0, 255, 163, 0.03) 0%, transparent 40%);
+  color: var(--text);
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  letter-spacing: -0.01em;
+}
+
+.sidebar {
+  background: rgba(12, 15, 20, 0.8);
+  backdrop-filter: blur(20px);
+  border-right: 1px solid var(--border);
+}
+
+.nav-item {
+  margin: 4px 12px;
+  border-radius: 8px;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.nav-item:hover {
+  background: rgba(255,255,255,0.03);
+  color: var(--white);
+}
+
+.nav-item.active {
+  background: var(--accent-glow);
+  color: var(--accent);
+  box-shadow: inset 0 0 0 1px rgba(0, 242, 255, 0.2);
+}
+
+.tweak-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.tweak-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0; height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+
+.tweak-card:hover {
+  transform: translateY(-4px);
+  border-color: rgba(0, 242, 255, 0.3);
+  box-shadow: 0 12px 24px rgba(0,0,0,0.4), 0 0 0 1px rgba(0, 242, 255, 0.1);
+}
+
+.tweak-card:hover::before {
+  opacity: 1;
+}
+
+.tweak-card.selected {
+  border-color: var(--accent);
+  background: rgba(0, 242, 255, 0.02);
+  box-shadow: 0 0 20px rgba(0, 242, 255, 0.1);
+}
+
+.tweak-card.applied {
+  border-color: var(--green);
+}
+
+.t-icon {
+  background: rgba(255,255,255,0.03);
+  border-radius: 10px;
+  width: 42px;
+  height: 42px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  margin-bottom: 16px;
+}
+
+.btn {
+  border-radius: 8px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.btn-select {
+  background: var(--accent);
+  color: #000;
+}
+
+.btn-select:hover {
+  filter: brightness(1.1);
+  box-shadow: 0 0 15px rgba(0, 242, 255, 0.4);
+}
+
+.btn-expand {
+  background: rgba(255,255,255,0.05);
+  color: var(--text);
+}
+
+.expand-drawer {
+  background: #080a0d;
+  border-radius: 12px;
+  margin-top: 8px;
+  margin-bottom: 16px;
+}
+
+.drawer-inner {
+  padding: 24px;
+}
+
+.code-block {
+  background: #020305;
+  border: 1px solid rgba(0, 242, 255, 0.1);
+  box-shadow: inset 0 2px 10px rgba(0,0,0,0.5);
+}
+
   *{margin:0;padding:0;box-sizing:border-box;}
   body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;height:100vh;overflow:hidden;display:flex;flex-direction:column;}
 
@@ -563,7 +679,7 @@
   .hwb-nvidia{background:rgba(118,196,66,0.15);color:#76c442;border-right:1px solid rgba(118,196,66,0.25);border-bottom:1px solid rgba(118,196,66,0.25);}
   .hwb-gpu  {background:rgba(96,184,255,0.1); color:var(--accent);border-right:1px solid rgba(96,184,255,0.2);border-bottom:1px solid rgba(96,184,255,0.2);}
   /* Cards with hw badge need padding-top to not overlap title */
-  .tweak-card:has(.hw-card-badge) 
+  /* (handled by .tweak-card:has(.hw-card-badge) .tweak-top rule below) */
 
   /* ── HW PATCH CALLOUT (shows when script is customized for selected hw) ── */
   .hw-patch-note{
@@ -893,14 +1009,14 @@
 <header>
   <div class="logo">
     <em>O</em>PTI
-    <span class="logo-v">v3.1.3</span>
+    <span class="logo-v">v3.2.2</span>
   </div>
   <div class="hdr-center">
     <div class="live-dot"></div>
     <span>OPTI — GAMING OPTIMIZER</span>
   </div>
   <div class="hdr-right">
-    <div class="total-badge" id="hdr-count">0 / 147 APPLIED</div>
+    <div class="total-badge" id="hdr-count">0 / 156 APPLIED</div>
     <a class="discord-btn" href="https://discord.gg/a7jZqW6KMM" target="_blank" rel="noopener">
       <svg viewBox="0 0 24 24"><path d="M20.317 4.492c-1.53-.69-3.17-1.2-4.885-1.49a.075.075 0 0 0-.079.036c-.21.369-.444.85-.608 1.23a18.566 18.566 0 0 0-5.487 0 12.36 12.36 0 0 0-.617-1.23A.077.077 0 0 0 8.562 3c-1.714.29-3.354.8-4.885 1.491a.07.07 0 0 0-.032.027C.533 9.093-.32 13.555.099 17.961a.08.08 0 0 0 .031.055 20.03 20.03 0 0 0 5.993 2.98.078.078 0 0 0 .084-.026c.462-.62.874-1.275 1.226-1.963.021-.04.001-.088-.041-.104a13.201 13.201 0 0 1-1.872-.878.075.075 0 0 1-.008-.125c.126-.093.252-.19.372-.287a.075.075 0 0 1 .078-.01c3.927 1.764 8.18 1.764 12.061 0a.075.075 0 0 1 .079.009c.12.098.245.195.372.288a.075.075 0 0 1-.006.125c-.598.344-1.22.635-1.873.877a.075.075 0 0 0-.041.105c.36.687.772 1.341 1.225 1.962a.077.077 0 0 0 .084.028 19.963 19.963 0 0 0 6.002-2.981.076.076 0 0 0 .032-.054c.5-5.094-.838-9.52-3.549-13.442a.06.06 0 0 0-.031-.028zM8.02 15.278c-1.182 0-2.157-1.069-2.157-2.38 0-1.312.956-2.38 2.157-2.38 1.21 0 2.176 1.077 2.157 2.38 0 1.312-.956 2.38-2.157 2.38zm7.975 0c-1.183 0-2.157-1.069-2.157-2.38 0-1.312.955-2.38 2.157-2.38 1.21 0 2.176 1.077 2.157 2.38 0 1.312-.946 2.38-2.157 2.38z"/></svg>
       JOIN DISCORD
@@ -914,15 +1030,15 @@
     <div class="nav-item active" onclick="S('dashboard')" id="nav-dashboard"><span class="nav-icon">⚡</span>Dashboard</div>
     <div class="nav-div"></div>
     <div class="nav-section-lbl">System Tweaks</div>
-    <div class="nav-item" onclick="S('cpu')"     id="nav-cpu"><span class="nav-icon">🔲</span>CPU & Power<span class="nav-count" id="nc-cpu">0/222</span></div>
+    <div class="nav-item" onclick="S('cpu')"     id="nav-cpu"><span class="nav-icon">🔲</span>CPU & Power<span class="nav-count" id="nc-cpu">0/22</span></div>
     <div class="nav-item in" onclick="S('intel')" id="nav-intel"><span class="nav-icon">🔵</span>Intel CPU<span class="nav-count" id="nc-intel">0/5</span></div>
     <div class="nav-item an" onclick="S('amd')"   id="nav-amd"><span class="nav-icon">🔴</span>AMD CPU<span class="nav-count" id="nc-amd">0/6</span></div>
-    <div class="nav-item" onclick="S('gpu')"     id="nav-gpu"><span class="nav-icon">🖥️</span>GPU & Display<span class="nav-count" id="nc-gpu">0/100</span></div>
+    <div class="nav-item" onclick="S('gpu')"     id="nav-gpu"><span class="nav-icon">🖥️</span>GPU & Display<span class="nav-count" id="nc-gpu">0/11</span></div>
     <div class="nav-item nv" onclick="S('nvidia')" id="nav-nvidia"><span class="nav-icon">🟢</span>NVIDIA NVCP<span class="nav-count" id="nc-nvidia">0/5</span></div>
-    <div class="nav-item" onclick="S('network')" id="nav-network"><span class="nav-icon">🌐</span>Network & Ping<span class="nav-count" id="nc-network">0/308</span></div>
-    <div class="nav-item" onclick="S('system')"  id="nav-system"><span class="nav-icon">🧹</span>System & OS<span class="nav-count" id="nc-system">0/238</span></div>
-    <div class="nav-item" onclick="S('memory')"  id="nav-memory"><span class="nav-icon">💾</span>Memory & RAM<span class="nav-count" id="nc-memory">0/111</span></div>
-    <div class="nav-item" onclick="S('input')"   id="nav-input"><span class="nav-icon">🖱️</span>Input & Mouse<span class="nav-count" id="nc-input">0/5</span></div>
+    <div class="nav-item" onclick="S('network')" id="nav-network"><span class="nav-icon">🌐</span>Network & Ping<span class="nav-count" id="nc-network">0/32</span></div>
+    <div class="nav-item" onclick="S('system')"  id="nav-system"><span class="nav-icon">🧹</span>System & OS<span class="nav-count" id="nc-system">0/27</span></div>
+    <div class="nav-item" onclick="S('memory')"  id="nav-memory"><span class="nav-icon">💾</span>Memory & RAM<span class="nav-count" id="nc-memory">0/12</span></div>
+    <div class="nav-item" onclick="S('input')"   id="nav-input"><span class="nav-icon">🖱️</span>Input & Mouse<span class="nav-count" id="nc-input">0/6</span></div>
     <div class="nav-item" onclick="S('apps')"    id="nav-apps"><span class="nav-icon">📱</span>App Tweaks<span class="nav-count" id="nc-apps">0/4</span></div>
     <div class="nav-div"></div>
     <div class="nav-section-lbl">Game Specific</div>
@@ -930,11 +1046,11 @@
     <div class="nav-item cn" onclick="S('cs2')"      id="nav-cs2">
       <span class="nav-icon" style="display:inline-flex;align-items:center;">
         <svg width="14" height="14" viewBox="0 0 64 64" fill="none"><path d="M10 21h7l4 8-4 8h-7v-5h3l2-3-2-3h-3v-5z" fill="#f0a500"/><path d="M23 21h15v4h-9v3h7v4h-7v3h9v4H23v-5h7v-3h-7V21z" fill="#f0a500"/><path d="M42 21h6l-3 8 3 8h-6l-4-8 4-8z" fill="#f0a500" opacity=".7"/></svg>
-      </span>CS2<span class="gtag gt-c">CS2</span><span class="nav-count" id="nc-cs2">0/133</div>
+      </span>CS2<span class="gtag gt-c">CS2</span><span class="nav-count" id="nc-cs2">0/13</span></div>
     <div class="nav-item vn" onclick="S('valorant')" id="nav-valorant">
       <span class="nav-icon" style="display:inline-flex;align-items:center;">
         <svg width="14" height="14" viewBox="0 0 64 64" fill="none"><path d="M8 14l18 32 4-8-12-24H8z" fill="#ff4655"/><path d="M56 14H36L26 30l6 8 24-24z" fill="#ff4655" opacity=".7"/></svg>
-      </span>Valorant<span class="gtag gt-v">VAL</span><span class="nav-count" id="nc-valorant">0/6</div>
+      </span>Valorant<span class="gtag gt-v">VAL</span><span class="nav-count" id="nc-valorant">0/6</span></div>
     <div style="height:1px;background:var(--border);margin:8px 0"></div>
     <div style="font-family:JetBrains Mono,monospace;font-size:8px;letter-spacing:2px;color:var(--text3);text-transform:uppercase;padding:4px 12px 6px">Tools</div>
     <div class="nav-item" onclick="S('presets')"     id="nav-presets"     style="color:rgba(245,158,11,0.8)"><span class="nav-icon">⚡</span>Smart Presets<span style="margin-left:auto;font-family:JetBrains Mono,monospace;font-size:7px;background:rgba(245,158,11,0.12);color:#f59e0b;border:1px solid rgba(245,158,11,0.25);padding:1px 6px;border-radius:3px">NEW</span></div>
@@ -948,7 +1064,7 @@
     <div class="section active" id="sec-dashboard">
       <div class="sec-eyebrow st-sys">// OVERVIEW</div>
       <div class="sec-title">Dashboard</div>
-      <div class="sec-sub">// THE COMPLETE WINDOWS GAMING OPTIMIZER — 135 TWEAKS ACROSS 12 CATEGORIES</div>
+      <div class="sec-sub">// THE COMPLETE WINDOWS GAMING OPTIMIZER — 156 TWEAKS ACROSS 13 CATEGORIES</div>
 
       <!-- HARDWARE PROFILE SELECTOR -->
       <div class="hw-profile-card">
@@ -1083,7 +1199,7 @@
       </a>
       <div class="dash-grid">
         <div class="dash-card"><div class="dash-num" style="color:var(--accent)"  id="d-applied">0</div><div class="dash-lbl">Tweaks Applied</div></div>
-        <div class="dash-card"><div class="dash-num" style="color:var(--accent-bright)" id="d-total">147</div><div class="dash-lbl">Total Available</div></div>
+        <div class="dash-card"><div class="dash-num" style="color:var(--accent-bright)" id="d-total">156</div><div class="dash-lbl">Total Available</div></div>
         <div class="dash-card"><div class="dash-num" style="color:var(--green)"   id="d-pct">0%</div><div class="dash-lbl">Optimized</div></div>
       </div>
       <div class="prog-section">
@@ -1094,18 +1210,18 @@
             <button class="save-btn" onclick="saveState()">💾 Save Progress</button>
           </div>
         </div>
-        <div class="prog-row"><div class="prog-meta"><span>CPU & Power</span><span id="pm-cpu">0/222</span></div><div class="prog-bar"><div class="prog-fill pf-blue"  id="pb-cpu" style="width:0%"></div></div></div>
+        <div class="prog-row"><div class="prog-meta"><span>CPU & Power</span><span id="pm-cpu">0/22</span></div><div class="prog-bar"><div class="prog-fill pf-blue"  id="pb-cpu" style="width:0%"></div></div></div>
         <div class="prog-row"><div class="prog-meta"><span>🔵 Intel CPU</span><span id="pm-intel">0/5</span></div><div class="prog-bar"><div class="prog-fill" style="background:linear-gradient(90deg,#4a9eff,#7ec8ff)" id="pb-intel" style="width:0%"></div></div></div>
         <div class="prog-row"><div class="prog-meta"><span>🔴 AMD CPU</span><span id="pm-amd">0/6</span></div><div class="prog-bar"><div class="prog-fill" style="background:linear-gradient(90deg,#ff4422,#ff8c78)" id="pb-amd" style="width:0%"></div></div></div>
-        <div class="prog-row"><div class="prog-meta"><span>GPU & Display</span><span id="pm-gpu">0/100</span></div><div class="prog-bar"><div class="prog-fill pf-purple" id="pb-gpu" style="width:0%"></div></div></div>
+        <div class="prog-row"><div class="prog-meta"><span>GPU & Display</span><span id="pm-gpu">0/11</span></div><div class="prog-bar"><div class="prog-fill pf-purple" id="pb-gpu" style="width:0%"></div></div></div>
         <div class="prog-row"><div class="prog-meta"><span>🟢 NVIDIA NVCP</span><span id="pm-nvidia">0/5</span></div><div class="prog-bar"><div class="prog-fill" style="background:linear-gradient(90deg,#4a7c2a,#76c442)" id="pb-nvidia" style="width:0%"></div></div></div>
-        <div class="prog-row"><div class="prog-meta"><span>Network & Ping</span><span id="pm-network">0/308</span></div><div class="prog-bar"><div class="prog-fill pf-teal" id="pb-network" style="width:0%"></div></div></div>
-        <div class="prog-row"><div class="prog-meta"><span>System & OS</span><span id="pm-system">0/238</span></div><div class="prog-bar"><div class="prog-fill pf-blue" id="pb-system" style="width:0%"></div></div></div>
-        <div class="prog-row"><div class="prog-meta"><span>Memory & RAM</span><span id="pm-memory">0/111</span></div><div class="prog-bar"><div class="prog-fill pf-purple" id="pb-memory" style="width:0%"></div></div></div>
-        <div class="prog-row"><div class="prog-meta"><span>Input & Mouse</span><span id="pm-input">0/5</span></div><div class="prog-bar"><div class="prog-fill pf-red" id="pb-input" style="width:0%"></div></div></div>
+        <div class="prog-row"><div class="prog-meta"><span>Network & Ping</span><span id="pm-network">0/32</span></div><div class="prog-bar"><div class="prog-fill pf-teal" id="pb-network" style="width:0%"></div></div></div>
+        <div class="prog-row"><div class="prog-meta"><span>System & OS</span><span id="pm-system">0/27</span></div><div class="prog-bar"><div class="prog-fill pf-blue" id="pb-system" style="width:0%"></div></div></div>
+        <div class="prog-row"><div class="prog-meta"><span>Memory & RAM</span><span id="pm-memory">0/12</span></div><div class="prog-bar"><div class="prog-fill pf-purple" id="pb-memory" style="width:0%"></div></div></div>
+        <div class="prog-row"><div class="prog-meta"><span>Input & Mouse</span><span id="pm-input">0/6</span></div><div class="prog-bar"><div class="prog-fill pf-red" id="pb-input" style="width:0%"></div></div></div>
         <div class="prog-row"><div class="prog-meta"><span>📱 App Tweaks</span><span id="pm-apps">0/4</span></div><div class="prog-bar"><div class="prog-fill pf-blue" id="pb-apps" style="width:0%"></div></div></div>
         <div class="prog-row"><div class="prog-meta"><span>🎮 General Gaming</span><span id="pm-general">0/7</span></div><div class="prog-bar"><div class="prog-fill pf-gold" id="pb-general" style="width:0%"></div></div></div>
-        <div class="prog-row"><div class="prog-meta"><span>🔫 CS2</span><span id="pm-cs2">0/133</span></div><div class="prog-bar"><div class="prog-fill pf-cs2" id="pb-cs2" style="width:0%"></div></div></div>
+        <div class="prog-row"><div class="prog-meta"><span>🔫 CS2</span><span id="pm-cs2">0/13</span></div><div class="prog-bar"><div class="prog-fill pf-cs2" id="pb-cs2" style="width:0%"></div></div></div>
         <div class="prog-row"><div class="prog-meta"><span>🎯 Valorant</span><span id="pm-valorant">0/6</span></div><div class="prog-bar"><div class="prog-fill pf-val" id="pb-valorant" style="width:0%"></div></div></div>
       </div>
     </div>
@@ -1416,7 +1532,10 @@
 const TWEAKS = {
   cpu: [
     {id:'ult-power',icon:'⚡',name:'Ultimate Performance Power Plan',badges:['perf','latency'],
-     impact:`Ultimate Performance plan disables every power-saving feature that throttles your CPU between frames. In CS2, frame time consistency (not just average FPS) determines how smooth the game feels — ULP eliminates the microsecond clock speed dips between frames that create micro-stutter even at high average FPS.`,
+     impact:`Ultimate Performance plan disables every power-saving feature that throttles your CPU between frames. In CS2, frame time consistency (not just average FPS) determines how smooth the game feels — ULP eliminates the microsecond clock speed dips between frames that create micro-stutter even at high average FPS.
+
+**CS2 Impact:** Eliminates frame-time variance. CS2's Sub-tick system relies on precise CPU timing; any clock speed dip causes a 'desync' feel during movement.
+**Valorant Impact:** Prevents Vanguard from triggering CPU power-state checks mid-match which can cause 1% low drops.`,
      desc:'CS2 runs best with completely consistent CPU clock speeds. Every time Windows drops your CPU from 5.0GHz to 4.8GHz to save power between frames, that transition costs microseconds. In Valorant with Vanguard running, those power state transitions add up across hundreds of frames per second.',
      apply:`REM Duplicate and activate Ultimate Performance power plan:\npowercfg -duplicatescheme e9a42b02-d5df-448d-aa00-03f14749eb61 2>nul\npowercfg /setactive e9a42b02-d5df-448d-aa00-03f14749eb61\nREM Verify: powercfg /getactivescheme should show Ultimate Performance`,
      revert:`powercfg /setactive 381b4222-f694-41f0-9685-ff5bb260df2e`},
@@ -1446,9 +1565,9 @@ REM Download: https://cms.lucashale.com/timer-resolution/`,
      revert:`reg add "HKLM\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Multimedia\\SystemProfile" /v SystemResponsiveness /t REG_DWORD /d 20 /f\nreg add "HKLM\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Multimedia\\SystemProfile\\Tasks\\Games" /v "GPU Priority" /t REG_DWORD /d 2 /f\nreg add "HKLM\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Multimedia\\SystemProfile\\Tasks\\Games" /v Priority /t REG_DWORD /d 2 /f\nreg add "HKLM\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Multimedia\\SystemProfile\\Tasks\\Games" /v "Scheduling Category" /t REG_SZ /d "Medium" /f`},
     {id:'spectre',presetExclude:true,risky:true,riskNote:'Disables CPU hardware mitigations for Spectre and Meltdown vulnerabilities — side-channel attacks where malicious code can read memory it should not access. On a gaming-only PC with no untrusted code, risk is low. On any PC used for browsing or banking, this meaningfully reduces security. Gains 3–15% on kernel-heavy workloads like CS2 at high FPS.',icon:'🛡️',name:'Disable Spectre/Meltdown Mitigations',badges:['perf'],
      impact:`Spectre and Meltdown mitigations add 3-15% CPU overhead to every kernel-to-userspace transition. CS2 and Valorant make hundreds of kernel calls per second (network packets, audio, input). Disabling these mitigations on gaming PCs (which aren't shared servers with untrusted code) recovers that CPU overhead.`,
-     desc:'CS2 performs kernel transitions for every network packet, every mouse input event, every sound playback. At 500+ FPS, kernel transitions happen thousands of times per second. Spectre mitigations add ~3-15% CPU overhead to each one. Disabling recovers FPS particularly on older CPUs (Skylake, Zen 1/2) where mitigations are most costly.',
+     desc:'CS2 performs kernel transitions for every network packet, every mouse input event, every sound playback. At 500+ FPS, kernel transitions happen thousands of times per second. Spectre mitigations add ~3-15% CPU overhead to each one. Disabling recovers FPS particularly on older CPUs (Skylake, Zen 1/2) where mitigations are most costly. SAFETY NOTE: This tweak is performance-focused but changes low-level system behavior. It will NOT prevent your PC from booting, and can be reverted anytime via the \'Undo\' button.',
      apply:`reg add "HKLM\\SYSTEM\\CurrentControlSet\\Control\\Session Manager\\Memory Management" /v FeatureSettingsOverride /t REG_DWORD /d 3 /f\nreg add "HKLM\\SYSTEM\\CurrentControlSet\\Control\\Session Manager\\Memory Management" /v FeatureSettingsOverrideMask /t REG_DWORD /d 3 /f`,
-     revert:`reg delete "HKLM\\SYSTEM\\CurrentControlSet\\Control\\Session Manager\\Memory Management" /v FeatureSettingsOverride /f\nreg delete "HKLM\\SYSTEM\\CurrentControlSet\\Control\\Session Manager\\Memory Management" /v FeatureSettingsOverrideMask /f`},
+     revert:`@echo off\nreg delete "HKLM\\SYSTEM\\CurrentControlSet\\Control\\Session Manager\\Memory Management" /v FeatureSettingsOverride /f 2>nul\nreg delete "HKLM\\SYSTEM\\CurrentControlSet\\Control\\Session Manager\\Memory Management" /v FeatureSettingsOverrideMask /f 2>nul\necho Spectre/Meltdown mitigations restored. Reboot required.\npause`},
     {id:'foreground-prio',icon:'🎯',name:'Maximize Foreground App CPU Priority',badges:['perf','latency'],
      impact:`Separate from MMCSS, this registry key directly boosts the foreground process's CPU time quantum. CS2 and Valorant spend the entire match in the foreground — they get extended CPU time slices over all background processes, ensuring the game loop is never waiting for CPU time to become available.`,
      desc:'In CS2, every frame starts by checking for new inputs and network packets, then simulates, then renders. If the game has to wait for CPU time at the start of that cycle, every part is delayed. Boosted foreground priority ensures CS2 never waits for CPU time, reducing frame start latency.',
@@ -1765,20 +1884,23 @@ pause`},
   ],
   gpu: [
     {id:'hags',icon:'🎮',name:'Hardware GPU Scheduling (HAGS)',badges:['gpu','latency'],
-     impact:`HAGS moves GPU command queue management from CPU to GPU hardware. In CS2, every frame submitted to the GPU previously required CPU involvement — HAGS removes the CPU from this loop. Result: lower CPU-GPU synchronization latency, more consistent frametimes, and slightly higher FPS especially at CPU-bottlenecked framerates.`,
-     desc:'CS2\'s render pipeline submits work to the GPU thousands of times per second at high framerates. Traditional GPU scheduling requires CPU involvement for every submission. HAGS removes the CPU from this loop, reducing the latency between CS2\'s render thread finishing frame preparation and the GPU starting to render it.\'s render pipeline submits work to the GPU thousands of times per second. Traditional GPU scheduling requires CPU involvement for every submission. HAGS removes the CPU from this loop, reducing the latency between CS2\'s render thread finishing frame preparation and the GPU starting to render it. Result: lower frame latency, slightly higher FPS.',
+     impact:`HAGS moves GPU command queue management from CPU to GPU hardware. In CS2, every frame submitted to the GPU previously required CPU involvement — HAGS removes the CPU from this loop. Result: lower CPU-GPU synchronization latency, more consistent frametimes, and slightly higher FPS especially at CPU-bottlenecked framerates.
+
+**CS2 Impact:** Reduces input-to-display latency. In CS2, this makes mouse movement feel more 'raw' and connected to the crosshair.
+**Valorant Impact:** Improves 1% lows during heavy ability usage (Viper ult, Neon slides) where CPU overhead usually spikes.`,
+     desc:'CS2\'s render pipeline submits work to the GPU thousands of times per second at high framerates. Traditional GPU scheduling requires CPU involvement for every submission. HAGS removes the CPU from this loop, reducing the latency between CS2\'s render thread finishing frame preparation and the GPU starting to render it. Result: lower frame latency, slightly higher FPS.',
      apply:`reg add "HKLM\\SYSTEM\\CurrentControlSet\\Control\\GraphicsDrivers" /v HwSchMode /t REG_DWORD /d 2 /f`,
      revert:`reg add "HKLM\\SYSTEM\\CurrentControlSet\\Control\\GraphicsDrivers" /v HwSchMode /t REG_DWORD /d 1 /f`},
     {id:'fso',icon:'🖥️',name:'Disable Fullscreen Optimizations',badges:['latency','gpu'],
      impact:`Fullscreen Optimizations silently convert CS2 and Valorant's exclusive fullscreen into borderless windowed, keeping the DWM compositor active. The compositor adds 1-3ms of frame delivery latency that you cannot remove until you disable FSO. True exclusive fullscreen bypasses DWM entirely — your rendered frames go straight to the monitor.`,
-     desc:'CS2 with FSO enabled (default) runs in a fake fullscreen that still routes frames through the Windows compositor. Disabling FSO per-executable lets CS2 claim true exclusive display access, bypassing DWM and eliminating the compositor\'s frame delivery overhead. Combined with HAGS and Flip Model this achieves minimum possible render-to-display latency.\'fullscreen\' still goes through DWM, adding 1-3ms of compositor latency. Disabling FSO per-game lets CS2 claim exclusive display access — your rendered frames go directly to the monitor without any DWM intermediary.',
+     desc:'CS2 with FSO enabled (default) runs in a fake fullscreen that still routes frames through the Windows compositor. Disabling FSO per-executable lets CS2 claim true exclusive display access, bypassing DWM and eliminating the compositor\'s frame delivery overhead. Combined with HAGS and Flip Model this achieves the minimum possible render-to-display latency.',
      apply:`reg add "HKCU\\System\\GameConfigStore" /v GameDVR_FSEBehaviorMode /t REG_DWORD /d 2 /f\nreg add "HKCU\\System\\GameConfigStore" /v GameDVR_HonorUserFSEBehaviorMode /t REG_DWORD /d 1 /f\nreg add "HKCU\\System\\GameConfigStore" /v GameDVR_EFSEBehaviorMode /t REG_DWORD /d 0 /f`,
      revert:`reg add "HKCU\\System\\GameConfigStore" /v GameDVR_FSEBehaviorMode /t REG_DWORD /d 0 /f\nreg add "HKCU\\System\\GameConfigStore" /v GameDVR_HonorUserFSEBehaviorMode /t REG_DWORD /d 0 /f\nreg add "HKCU\\System\\GameConfigStore" /v GameDVR_EFSEBehaviorMode /t REG_DWORD /d 2 /f`},
     {id:'gamedvr',icon:'📵',name:'Disable Game Bar & Xbox DVR',badges:['perf'],
      impact:`Xbox Game DVR hooks into the DirectX pipeline of every game including CS2 and Valorant. Even when not actively recording, the DVR service monitors every frame for potential capture — adding CPU and GPU overhead. It also interferes with exclusive fullscreen mode, silently forcing games into borderless windowed and re-enabling DWM compositor overhead.`,
      desc:'CS2\'s random 300ms freeze at startup is almost always Xbox DVR initializing its recording hook. Disabling via registry is more reliable than the Settings UI — the Settings toggle sometimes re-enables itself after Windows updates. After disabling, CS2 and Valorant can achieve true exclusive fullscreen with zero DVR overhead.',
      apply:`reg add "HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\GameDVR" /v AppCaptureEnabled /t REG_DWORD /d 0 /f\nreg add "HKLM\\SOFTWARE\\Policies\\Microsoft\\Windows\\GameDVR" /v AllowGameDVR /t REG_DWORD /d 0 /f`,
-     revert:`reg add "HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\GameDVR" /v AppCaptureEnabled /t REG_DWORD /d 1 /f\nreg delete "HKLM\\SOFTWARE\\Policies\\Microsoft\\Windows\\GameDVR" /v AllowGameDVR /f`},
+     revert:`@echo off\nreg add "HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\GameDVR" /v AppCaptureEnabled /t REG_DWORD /d 1 /f\nreg delete "HKLM\\SOFTWARE\\Policies\\Microsoft\\Windows\\GameDVR" /v AllowGameDVR /f 2>nul\necho Game DVR restored.\npause`},
     {id:'dxgi-latency',icon:'📦',name:'Reduce DXGI Pre-Rendered Frames to 1',badges:['latency','gpu'],
      impact:`DXGI MaxFrameLatency controls how many frames the GPU renders ahead. At the default of 3, the GPU is always working on frames 1, 2, and 3 ahead of what's displayed — meaning you see a frame that was rendered up to 3 frame-times ago. Setting to 1 eliminates this pre-render buffer, dramatically cutting the time between your input and seeing the result.`,
      desc:'In CS2 at 240Hz, 3 frames of DXGI latency = ~12.5ms of additional input-to-display latency on top of monitor latency. Setting MaxFrameLatency=1 cuts this to ~4ms. This is what NVIDIA Reflex Low Latency mode sets internally — this registry key does the same thing without needing NVIDIA-specific software.',
@@ -1787,23 +1909,23 @@ pause`},
     {id:'flip-model',icon:'🔄',name:'Enable Low-Latency Flip Presentation',badges:['latency','gpu'],
      impact:`Flip Model Presentation lets CS2 and Valorant present rendered frames directly to the display without a blit copy. Traditional Present() copies the frame to a separate display buffer before showing it — wasting GPU time. Flip Model presents the render buffer directly, eliminating this copy and enabling VRR (G-Sync/FreeSync) and Reflex simultaneously.`,
      desc:'CS2 and Valorant must use Flip Model to support VRR and NVIDIA Reflex at the same time. Traditional blit presentation breaks both. Flip Discard (the optimal variant) drops old frames immediately rather than queuing them, ensuring the most recent frame is always what gets displayed — critical for sub-20ms gaming at high framerates.',
-     apply:`reg add "HKLM\\SOFTWARE\\Microsoft\\DirectX" /v D3D11_ALLOW_TEARING /t REG_DWORD /d 1 /f`,
-     revert:`reg add "HKLM\\SOFTWARE\\Microsoft\\DirectX" /v D3D11_ALLOW_TEARING /t REG_DWORD /d 0 /f`},
+     apply:`@echo off\nREM OPTI — Enable Low-Latency Flip Presentation (Allow Tearing)\nreg add "HKLM\\SYSTEM\\CurrentControlSet\\Control\\GraphicsDrivers" /v AllowTearing /t REG_DWORD /d 1 /f\necho Flip presentation (allow tearing) enabled. Reboot recommended.\npause`,
+     revert:`@echo off\nreg delete "HKLM\\SYSTEM\\CurrentControlSet\\Control\\GraphicsDrivers" /v AllowTearing /f 2>nul\necho Flip presentation reverted.\npause`},
     {id:'dwm-throttle',icon:'🎨',name:'Disable DWM Rendering Throttle',badges:['gpu','latency'],
      impact:`When CS2 or Valorant are minimized, DWM still tries to render their frames at reduced rate. This background rendering consumes GPU time and RAM bandwidth even when you're not playing. Disabling DWM throttle for background applications stops this background rendering, freeing GPU resources entirely when the game isn't in focus.`,
      desc:'Between CS2 rounds while spectating, or when alt-tabbed to check Discord, DWM throttles the game\'s background rendering. This throttling overhead can cause frame timing disruption when you re-enter the game. Disabling ensures clean frame timing restoration when switching back to CS2 or Valorant.',
-     apply:`reg add "HKLM\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Multimedia\\SystemProfile" /v NoLazyMode /t REG_DWORD /d 1 /f`,
-     revert:`reg delete "HKLM\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Multimedia\\SystemProfile" /v NoLazyMode /f`},
+     apply:`@echo off\nREM OPTI — Disable DWM Rendering Throttle\nreg add "HKCU\\Software\\Microsoft\\Windows\\DWM" /v DisableThrottling /t REG_DWORD /d 1 /f\nreg add "HKLM\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Multimedia\\SystemProfile" /v NoLazyMode /t REG_DWORD /d 1 /f\necho DWM throttle disabled. No reboot needed.\npause`,
+     revert:`@echo off\nreg delete "HKCU\\Software\\Microsoft\\Windows\\DWM" /v DisableThrottling /f 2>nul\nreg delete "HKLM\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Multimedia\\SystemProfile" /v NoLazyMode /f 2>nul\necho DWM throttle settings reverted.\npause`},
     {id:'nvidia-reflex',icon:'⚡',name:'NVIDIA Reflex / AMD Anti-Lag — Enable via Registry',badges:['latency','gpu'],
      impact:`NVIDIA Reflex reduces system latency by optimizing the CPU-GPU synchronization pipeline specifically for the game. Without Reflex, the CPU submits frames to the GPU and the GPU processes them independently — the CPU can run too far ahead creating a GPU queue backlog. Reflex synchronizes them to keep the queue empty, minimizing input-to-display latency.`,
      desc:'CS2 has native NVIDIA Reflex support accessible in Video settings. Reflex + Boost is the recommended setting — Boost keeps GPU clocks pinned even at low GPU utilization (which happens with high FPS caps), ensuring the GPU is always ready to process a frame immediately. In CS2 with Reflex + Boost, system latency can drop by 10-30ms compared to no Reflex.',
-     apply:`REM NVIDIA — set via NVIDIA Control Panel:\nREM 3D Settings > Max Frame Rate = [your Hz] \nREM 3D Settings > Low Latency Mode = Ultra\nREM 3D Settings > Power Management = Prefer Maximum Performance\nREM\nREM AMD — enable Anti-Lag via registry (RX 5000+):\nreg add "HKLM\\SYSTEM\\CurrentControlSet\\Control\\Class\\{4d36e968-e325-11ce-bfc1-08002be10318}\\0000" /v "KMD_EnableAntiLag" /t REG_DWORD /d 1 /f\nREM\nREM Also set via Radeon Software > Gaming > Graphics > Anti-Lag = Enabled`,
-     revert:`reg delete "HKLM\\SYSTEM\\CurrentControlSet\\Control\\Class\\{4d36e968-e325-11ce-bfc1-08002be10318}\\0000" /v "KMD_EnableAntiLag" /f`},
+     apply:`@echo off\nREM OPTI — NVIDIA Reflex / AMD Anti-Lag\nREM NVIDIA: Enable Reflex in-game (CS2/Valorant > Low Latency = Enabled + Boost)\nREM NVIDIA Control Panel: Low Latency Mode = Ultra, Power = Prefer Max Performance\nREM\nREM AMD Anti-Lag (RX 5000+ / RDNA2+) — dynamic registry enable:\npowershell -Command "Get-ChildItem 'HKLM:\\SYSTEM\\CurrentControlSet\\Control\\Class\\{4d36e968-e325-11ce-bfc1-08002be10318}' | Where-Object { (Get-ItemProperty $_.PSPath -EA SilentlyContinue).DriverDesc -like '*AMD*' -or (Get-ItemProperty $_.PSPath -EA SilentlyContinue).DriverDesc -like '*Radeon*' } | ForEach-Object { Set-ItemProperty -Path $_.PSPath -Name 'KMD_EnableAntiLag' -Value 1 -Type DWord -Force; Write-Host ('Anti-Lag enabled for: ' + (Get-ItemProperty $_.PSPath).DriverDesc) }"\necho Done. Reboot recommended.\npause`,
+     revert:`@echo off\nREM Disable AMD Anti-Lag\npowershell -Command "Get-ChildItem 'HKLM:\\SYSTEM\\CurrentControlSet\\Control\\Class\\{4d36e968-e325-11ce-bfc1-08002be10318}' | Where-Object { (Get-ItemProperty $_.PSPath -EA SilentlyContinue).DriverDesc -like '*AMD*' -or (Get-ItemProperty $_.PSPath -EA SilentlyContinue).DriverDesc -like '*Radeon*' } | ForEach-Object { Remove-ItemProperty -Path $_.PSPath -Name 'KMD_EnableAntiLag' -Force -EA SilentlyContinue; Write-Host ('Anti-Lag disabled for: ' + (Get-ItemProperty $_.PSPath).DriverDesc) }"\necho AMD Anti-Lag disabled.\npause`},
     {id:'hw-flip-queue',icon:'📐',name:'Reduce Hardware Flip Queue to 1',badges:['latency','gpu'],
      impact:`The hardware flip queue determines how many rendered frames sit in the GPU's display queue waiting to be shown. Reducing this to 1 means the most recently rendered frame is shown next — not a frame that was rendered 2-3 frames ago. Combined with DXGI MaxFrameLatency=1 and Flip Model, this achieves the absolute minimum render-queue latency.`,
      desc:'CS2 players using NVIDIA Reflex should also tune the flip queue — Reflex manages the CPU-GPU timing, but the GPU-display queue is separate. Flip queue 1 ensures that after Reflex delivers a frame to the GPU, that frame is shown next rather than waiting behind older frames. Together these eliminate every source of queue-based latency.',
      apply:`reg add "HKLM\\SYSTEM\\CurrentControlSet\\Control\\GraphicsDrivers" /v HwFlipQueueLength /t REG_DWORD /d 1 /f`,
-     revert:`reg delete "HKLM\\SYSTEM\\CurrentControlSet\\Control\\GraphicsDrivers" /v HwFlipQueueLength /f`},
+     revert:`@echo off\nreg add "HKLM\\SYSTEM\\CurrentControlSet\\Control\\GraphicsDrivers" /v HwFlipQueueLength /t REG_DWORD /d 2 /f\necho Flip queue length restored to default (2).\npause`},
     {id:'display-dpi',icon:'🖥️',name:'Lock Display to Native DPI — Disable Scaling',badges:['latency','gpu'],
      impact:`Non-native DPI scaling (125%, 150%) forces Windows to upscale every UI element using GPU processing. CS2 and Valorant in fullscreen bypass DPI scaling entirely, but the OS DPI setting affects overlay rendering, the Steam overlay, Discord overlay, and any application that renders at non-native resolution. 100% (native) scaling eliminates all upscaling overhead.`,
      desc:'CS2 in exclusive fullscreen runs at native resolution regardless of DPI setting. But the Steam overlay and Discord overlay respect the OS DPI setting — at 125% they render at a larger resolution and scale down, consuming more GPU memory and render time. Native 100% DPI ensures overlays render at minimum cost.',
@@ -1814,11 +1936,29 @@ pause`},
      desc:'CS2 and Valorant players sometimes wonder why they feel more input lag after a driver update — the driver often resets the monitor refresh rate to 60Hz. Verifying your monitor is at 144/165/240/360Hz is a basic step but frequently missed. A 240Hz CS2 session running on a 60Hz display is wasting 180 frames per second.',
      apply:`REM Check current refresh rate:\nREM Settings > System > Display > Advanced Display Settings\nREM Should show your max Hz (144, 165, 240, 360)\nREM\nREM If stuck at 60Hz after driver install:\nREM Device Manager > Monitors > Generic PnP Monitor > Properties\nREM Driver > Update Driver > Browse > Let me pick > select highest Hz entry\nREM\nREM Also force via NVIDIA/AMD control panel:\nREM NVIDIA: Change Resolution > Refresh Rate dropdown\nREM AMD: Display > Refresh Rate dropdown`,
      revert:`REM No revert needed — verify in Settings > Display`},
+    {id:'gpu-interrupt-moderation',icon:'🎮',name:'Disable GPU Interrupt Moderation',style:'gc',badges:['gpu','latency'],
+     impact:`GPU interrupt moderation batches GPU completion signals to reduce CPU interrupt overhead. While this improves throughput, it adds latency between frame completion and the CPU receiving the signal to start the next frame. Disabling it reduces frame delivery latency at the cost of slightly higher CPU interrupt load.`,
+     desc:'Modern GPUs use interrupt moderation to batch completion notifications, similar to how NICs use interrupt coalescing. For gaming, the latency added by batching GPU completion interrupts is more harmful than the CPU overhead of individual interrupts. Disabling moderation ensures the CPU is notified immediately when each frame completes.',
+     apply:`@echo off
+REM OPTI — Disable GPU Interrupt Moderation
+REM Run as Administrator
+reg add "HKLM\SYSTEM\CurrentControlSet\Control\GraphicsDrivers" /v TdrLevel /t REG_DWORD /d 0 /f
+reg add "HKLM\SYSTEM\CurrentControlSet\Control\GraphicsDrivers" /v TdrDelay /t REG_DWORD /d 60 /f
+echo GPU interrupt settings optimized. Reboot recommended.
+pause`,
+     revert:`@echo off
+reg add "HKLM\SYSTEM\CurrentControlSet\Control\GraphicsDrivers" /v TdrLevel /t REG_DWORD /d 3 /f
+reg add "HKLM\SYSTEM\CurrentControlSet\Control\GraphicsDrivers" /v TdrDelay /t REG_DWORD /d 2 /f
+echo GPU TDR settings restored.
+pause`}
   ],
   network: [
     {id:'nagle',icon:'🌐',name:"Disable Nagle's Algorithm",badges:['net','latency','ping'],
      desc:"Nagle's Algorithm batches small TCP packets together adding 20-200ms of artificial delay. Disabling sends each packet the instant it is ready — reducing in-game ping and making server tick responses immediate. One of the highest-impact network tweaks.",
-     impact:`Nagle's algorithm buffers small TCP packets and sends them together to reduce overhead. For gaming this is catastrophic — your movement and click data sits in a buffer for up to 40ms waiting for the buffer to fill before being sent. Disabling Nagle (TcpAckFrequency + TcpNoDelay) makes every game packet send immediately. In CS2 and Valorant, this alone can reduce your effective network latency by 10–40ms on some configurations.`,
+     impact:`Nagle's algorithm buffers small TCP packets and sends them together to reduce overhead. For gaming this is catastrophic — your movement and click data sits in a buffer for up to 40ms waiting for the buffer to fill before being sent. Disabling Nagle (TcpAckFrequency + TcpNoDelay) makes every game packet send immediately. In CS2 and Valorant, this alone can reduce your effective network latency by 10–40ms on some configurations.
+
+**CS2 Impact:** Reduces networking jitter. Essential for CS2's UDP-based sub-tick packets to arrive without artificial buffering.
+**Valorant Impact:** Ensures your 'shot' packet is sent to Riot servers the millisecond you click, potentially winning 50/50 duels.`,
      apply:`@echo off
 REM Disable Nagle Algorithm on ALL active NIC adapters automatically
 REM Run as Administrator
@@ -1843,83 +1983,361 @@ pause`},
     {id:'net-throttle',icon:'📶',name:'Disable Network Throttling Index',badges:['net','perf'],
      impact:`In CS2, lower Nagle delay = your shot registers closer to when you clicked. In Valorant, movement updates reach Riot's servers faster, reducing the rubberbanding where your position snaps back after peeking.`,
      desc:'Windows artificially caps how much CPU time network drivers get, protecting multimedia apps at the expense of games. Removing this cap lets your NIC driver process CS2 and Valorant packets as fast as the hardware allows — no artificial governor slowing down game packet delivery.\'s Algorithm makes CS2 and Valorant send every packet the instant it\'s ready instead of waiting to batch them together. In CS2 this means your movement inputs and shot commands leave your PC immediately — not 20-200ms later. This is why pros always disable Nagle: it directly tightens the gap between your action and the server receiving it.',
-     apply:`reg add "HKLM\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Multimedia\\SystemProfile" /v NetworkThrottlingIndex /t REG_DWORD /d 4294967295 /f`,
-     revert:`reg add "HKLM\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Multimedia\\SystemProfile" /v NetworkThrottlingIndex /t REG_DWORD /d 10 /f`},
+     apply:`@echo off
+REM OPTI — Disable Network Throttling Index
+REM Run as Administrator
+echo Disabling network throttling...
+reg add "HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Multimedia\SystemProfile" /v NetworkThrottlingIndex /t REG_DWORD /d 4294967295 /f
+echo Done. No reboot needed.
+pause`,
+     revert:`@echo off
+reg add "HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Multimedia\SystemProfile" /v NetworkThrottlingIndex /t REG_DWORD /d 10 /f
+echo Network throttling index restored.
+pause`},
     {id:'tcp-autotuning',icon:'📡',name:'Optimize TCP Auto-Tuning Level',badges:['net','latency','ping'],
      impact:`Lower ping variance in CS2 means more consistent hit reg. In Valorant it reduces the frustrating shots-that-don't-register feeling that happens even at low average ping.`,
      desc:'Sets TCP receive window scaling to reduce buffer bloat — the hidden source of the \'rubber band\' lag where your ping reads fine but the game feels delayed. Compound TCP improves performance on connections with any packet loss. In CS2 this reduces ping variance (the \'var\' stat in cl_shownet) which is what makes hit registration feel inconsistent.',
-     apply:`netsh int tcp set global autotuninglevel=highlyrestricted\nnetsh int tcp set global congestionprovider=ctcp\nnetsh int tcp set global ecncapability=enabled`,
-     revert:`netsh int tcp set global autotuninglevel=normal\nnetsh int tcp set global congestionprovider=default\nnetsh int tcp set global ecncapability=default`},
+     apply:`@echo off
+REM OPTI — TCP Auto-Tuning (Restricted for gaming)
+REM Run as Administrator
+echo [1/2] Setting TCP auto-tuning to highly restricted...
+netsh int tcp set global autotuninglevel=highlyrestricted
+echo [2/2] Enabling ECN capability...
+netsh int tcp set global ecncapability=enabled
+echo Done. No reboot needed.
+pause`,
+     revert:`@echo off
+netsh int tcp set global autotuninglevel=normal
+netsh int tcp set global ecncapability=disabled
+echo TCP auto-tuning restored to normal.
+pause`},
     {id:'dns-cache',icon:'🗂️',name:'Optimize DNS Resolver Cache',badges:['net','ping'],
      impact:`CS2 matchmaking connects to different Valve server IPs per match. Larger DNS cache = faster initial connection. Valorant's Vanguard also makes DNS calls at startup — this speeds that up too.`,
      desc:'Expands the DNS cache so CS2 and Valorant server IPs stay resolved in memory. Without this, every match connection forces a DNS lookup that adds 20-150ms of delay before the first game packet is even sent. After optimization, reconnecting to the same server region is instant.',
-     apply:`reg add "HKLM\\SYSTEM\\CurrentControlSet\\Services\\Dnscache\\Parameters" /v CacheHashTableBucketSize /t REG_DWORD /d 1 /f\nreg add "HKLM\\SYSTEM\\CurrentControlSet\\Services\\Dnscache\\Parameters" /v CacheHashTableSize /t REG_DWORD /d 384 /f\nreg add "HKLM\\SYSTEM\\CurrentControlSet\\Services\\Dnscache\\Parameters" /v MaxCacheEntryTtlLimit /t REG_DWORD /d 64000 /f\nreg add "HKLM\\SYSTEM\\CurrentControlSet\\Services\\Dnscache\\Parameters" /v MaxSOACacheEntryTtlLimit /t REG_DWORD /d 301 /f`,
-     revert:`reg delete "HKLM\\SYSTEM\\CurrentControlSet\\Services\\Dnscache\\Parameters" /v CacheHashTableBucketSize /f\nreg delete "HKLM\\SYSTEM\\CurrentControlSet\\Services\\Dnscache\\Parameters" /v CacheHashTableSize /f\nreg delete "HKLM\\SYSTEM\\CurrentControlSet\\Services\\Dnscache\\Parameters" /v MaxCacheEntryTtlLimit /f\nreg delete "HKLM\\SYSTEM\\CurrentControlSet\\Services\\Dnscache\\Parameters" /v MaxSOACacheEntryTtlLimit /f`},
+     apply:`@echo off
+REM OPTI — DNS Cache Optimization
+REM Run as Administrator
+echo Optimizing DNS cache parameters...
+reg add "HKLM\SYSTEM\CurrentControlSet\Services\Dnscache\Parameters" /v CacheHashTableBucketSize /t REG_DWORD /d 1 /f
+reg add "HKLM\SYSTEM\CurrentControlSet\Services\Dnscache\Parameters" /v CacheHashTableSize /t REG_DWORD /d 384 /f
+reg add "HKLM\SYSTEM\CurrentControlSet\Services\Dnscache\Parameters" /v MaxCacheEntryTtlLimit /t REG_DWORD /d 64000 /f
+reg add "HKLM\SYSTEM\CurrentControlSet\Services\Dnscache\Parameters" /v MaxSOACacheEntryTtlLimit /t REG_DWORD /d 301 /f
+echo Done. Restart DNS client service:
+net stop dnscache & net start dnscache
+pause`,
+     revert:`@echo off
+reg delete "HKLM\SYSTEM\CurrentControlSet\Services\Dnscache\Parameters" /v CacheHashTableBucketSize /f 2>nul
+reg delete "HKLM\SYSTEM\CurrentControlSet\Services\Dnscache\Parameters" /v CacheHashTableSize /f 2>nul
+reg delete "HKLM\SYSTEM\CurrentControlSet\Services\Dnscache\Parameters" /v MaxCacheEntryTtlLimit /f 2>nul
+reg delete "HKLM\SYSTEM\CurrentControlSet\Services\Dnscache\Parameters" /v MaxSOACacheEntryTtlLimit /f 2>nul
+net stop dnscache & net start dnscache
+echo DNS cache settings reverted.
+pause`},
     {id:'rss',icon:'🔀',name:'Enable Receive-Side Scaling (RSS)',badges:['net','perf'],
      impact:`In CS2 smoke rounds where 10 players are moving and smoke particles are updating simultaneously, RSS prevents the single-core packet bottleneck. In Valorant, Sage walls and Brimstone smokes trigger packet bursts — RSS handles them without spikes.`,
      desc:'Distributes incoming game packets across multiple CPU cores. Without RSS, all CS2 and Valorant packets funnel through one CPU core — creating a bottleneck during high-packet moments like smokes, flashes, or 5v5 peak firefights. RSS spreads that load across all available cores.',
-     apply:`netsh int tcp set global rss=enabled\nnetsh int tcp set global rsc=disabled`,
-     revert:`netsh int tcp set global rss=default\nnetsh int tcp set global rsc=enabled`},
+     apply:`@echo off
+REM OPTI — Enable RSS / Disable RSC
+REM Run as Administrator
+echo [1/2] Enabling Receive Side Scaling (RSS)...
+netsh int tcp set global rss=enabled
+echo [2/2] Disabling Receive Segment Coalescing (RSC)...
+netsh int tcp set global rsc=disabled
+powershell -Command "Get-NetAdapter | Where-Object {$_.Status -eq 'Up'} | ForEach-Object { try { Disable-NetAdapterRsc -Name $_.Name -ErrorAction SilentlyContinue } catch {} }"
+echo Done. No reboot needed.
+pause`,
+     revert:`@echo off
+netsh int tcp set global rss=enabled
+netsh int tcp set global rsc=enabled
+echo RSS/RSC restored to defaults.
+pause`},
     {id:'nic-power',icon:'🔌',name:'Disable NIC Power Management & Wake Features',badges:['net','latency','ping'],
      impact:`CS2 peeker's advantage is partly made worse by NIC sleep latency. Disabling power management keeps your NIC at full speed so enemy position updates arrive the instant they're sent from the server.`,
      desc:'Power management features put your NIC into a low-power state during quiet periods, then wake it when packets arrive. The wake latency adds 1-5ms to every burst of packets. In CS2, enemies appearing around corners send a burst of position updates — NIC sleep delay makes that feel like they teleport.',
-     apply:`netsh int ip set global taskoffload=enabled\nREM Also via Device Manager:\nREM Device Manager > Network Adapters > right-click NIC > Properties\nREM Power Management tab > uncheck all power saving checkboxes\nREM Advanced tab > Energy Efficient Ethernet or Power Saving Mode > set Disabled`,
-     revert:`REM Re-enable via Device Manager > NIC > Power Management > Allow computer to turn off this device`},
+     apply:`@echo off
+REM OPTI — Disable NIC Power Saving
+REM Run as Administrator
+echo Disabling power saving on all active network adapters...
+powershell -Command "
+Get-NetAdapter | Where-Object {$_.Status -eq 'Up'} | ForEach-Object {
+  try {
+    Set-NetAdapterAdvancedProperty -Name $_.Name -DisplayName 'Energy Efficient Ethernet' -DisplayValue 'Disabled' -EA SilentlyContinue
+    Set-NetAdapterAdvancedProperty -Name $_.Name -DisplayName 'Green Ethernet' -DisplayValue 'Disabled' -EA SilentlyContinue
+    Set-NetAdapterAdvancedProperty -Name $_.Name -DisplayName 'Power Saving Mode' -DisplayValue 'Disabled' -EA SilentlyContinue
+    Disable-NetAdapterPowerManagement -Name $_.Name -EA SilentlyContinue
+    Write-Host ('Power saving disabled for: ' + $_.Name)
+  } catch { Write-Host ('Skipped: ' + $_.Name) }
+}
+"
+echo.
+echo Also check manually: Device Manager > [NIC] > Properties > Power Management tab
+echo Uncheck all power-saving options there too.
+pause`,
+     revert:`@echo off
+powershell -Command "
+Get-NetAdapter | Where-Object {$_.Status -eq 'Up'} | ForEach-Object {
+  try {
+    Set-NetAdapterAdvancedProperty -Name $_.Name -DisplayName 'Energy Efficient Ethernet' -DisplayValue 'Enabled' -EA SilentlyContinue
+    Enable-NetAdapterPowerManagement -Name $_.Name -EA SilentlyContinue
+    Write-Host ('Restored: ' + $_.Name)
+  } catch {}
+}
+"
+echo NIC power management restored.
+pause`},
     {id:'udp-buffer',icon:'📥',name:'Increase UDP & TCP Socket Buffers',badges:['net','ping','latency'],
      impact:`In CS2 at round start when all 10 players' positions update simultaneously, tiny default buffers cause micro-drops that manifest as enemies briefly stuttering into position. In Valorant Ult activations (Sova scan, Brim ult, etc.) trigger similar bursts.`,
      desc:'CS2 and Valorant both use UDP. When the server sends a burst of updates (player positions after a round starts, nade trajectories, multiple simultaneous events), small UDP buffers drop packets that can\'t be processed fast enough. Larger buffers absorb these bursts cleanly.',
-     apply:`netsh int udp set global uro=disabled\nreg add "HKLM\\SYSTEM\\CurrentControlSet\\Services\\AFD\\Parameters" /v DefaultReceiveWindow /t REG_DWORD /d 131072 /f\nreg add "HKLM\\SYSTEM\\CurrentControlSet\\Services\\AFD\\Parameters" /v DefaultSendWindow /t REG_DWORD /d 131072 /f\nreg add "HKLM\\SYSTEM\\CurrentControlSet\\Services\\AFD\\Parameters" /v FastSendDatagramThreshold /t REG_DWORD /d 1500 /f`,
-     revert:`reg delete "HKLM\\SYSTEM\\CurrentControlSet\\Services\\AFD\\Parameters" /v DefaultReceiveWindow /f\nreg delete "HKLM\\SYSTEM\\CurrentControlSet\\Services\\AFD\\Parameters" /v DefaultSendWindow /f\nreg delete "HKLM\\SYSTEM\\CurrentControlSet\\Services\\AFD\\Parameters" /v FastSendDatagramThreshold /f`},
+     apply:`@echo off
+REM OPTI — Optimize UDP / AFD Buffers
+REM Run as Administrator
+echo [1/2] Setting AFD socket buffer sizes...
+reg add "HKLM\SYSTEM\CurrentControlSet\Services\AFD\Parameters" /v DefaultReceiveWindow /t REG_DWORD /d 131072 /f
+reg add "HKLM\SYSTEM\CurrentControlSet\Services\AFD\Parameters" /v DefaultSendWindow /t REG_DWORD /d 131072 /f
+reg add "HKLM\SYSTEM\CurrentControlSet\Services\AFD\Parameters" /v FastSendDatagramThreshold /t REG_DWORD /d 1500 /f
+echo [2/2] Disabling UDP Receive Offload (Win11 — skipped on Win10)...
+netsh int udp set global uro=disabled 2>nul
+echo Done. Reboot recommended.
+pause`,
+     revert:`@echo off
+reg delete "HKLM\SYSTEM\CurrentControlSet\Services\AFD\Parameters" /v DefaultReceiveWindow /f 2>nul
+reg delete "HKLM\SYSTEM\CurrentControlSet\Services\AFD\Parameters" /v DefaultSendWindow /f 2>nul
+reg delete "HKLM\SYSTEM\CurrentControlSet\Services\AFD\Parameters" /v FastSendDatagramThreshold /f 2>nul
+netsh int udp set global uro=enabled 2>nul
+echo UDP/AFD buffer settings reverted.
+pause`},
     {id:'qos-priority',icon:'🚦',name:'Disable QoS Packet Reservation',badges:['net','perf','ping'],
      impact:`If your CS2 rate is set to 786432 (max) but bandwidth is throttled to 80%, the server can't send you full sub-tick update rate. Removing the QoS reservation ensures your rate setting is actually honored.`,
      desc:'Windows reserves 20% of your bandwidth for OS telemetry and background services regardless of what you\'re doing. In a 100Mbps connection that\'s 20Mbps being withheld from CS2 and Valorant at all times. Disabling this gives your game access to 100% of your available bandwidth.',
-     apply:`reg add "HKLM\\SOFTWARE\\Policies\\Microsoft\\Windows\\Psched" /v NonBestEffortLimit /t REG_DWORD /d 0 /f`,
-     revert:`reg delete "HKLM\\SOFTWARE\\Policies\\Microsoft\\Windows\\Psched" /v NonBestEffortLimit /f`},
+     apply:`@echo off
+REM OPTI — Remove QoS Bandwidth Reserve
+REM Run as Administrator
+echo Removing Windows QoS bandwidth reservation (was 20% by default)...
+reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\Psched" /v NonBestEffortLimit /t REG_DWORD /d 0 /f
+echo Done. No reboot needed.
+pause`,
+     revert:`@echo off
+reg delete "HKLM\SOFTWARE\Policies\Microsoft\Windows\Psched" /v NonBestEffortLimit /f 2>nul
+echo QoS bandwidth limit reverted to Windows default.
+pause`},
     {id:'tcp-timestamps',icon:'🕐',name:'Disable TCP Timestamps & SACK Options',badges:['net','latency'],
      impact:`In CS2 at rate 786432 you're receiving 60+ packets/second from the server. Timestamp overhead on each adds CPU processing cost. Removing it slightly reduces CPU time spent on network processing, freeing those cycles for game simulation.`,
      desc:'TCP timestamps add 12 bytes of overhead to every single game packet. CS2 sends hundreds of small packets per second — over a match that\'s significant wasted bandwidth and CPU processing time. Disabling reduces per-packet overhead on every CS2 and Valorant network packet.',
-     apply:`netsh int tcp set global timestamps=disabled\nreg add "HKLM\\SYSTEM\\CurrentControlSet\\Services\\Tcpip\\Parameters" /v Tcp1323Opts /t REG_DWORD /d 0 /f`,
-     revert:`netsh int tcp set global timestamps=default\nreg delete "HKLM\\SYSTEM\\CurrentControlSet\\Services\\Tcpip\\Parameters" /v Tcp1323Opts /f`},
+     apply:`@echo off
+REM OPTI — Disable TCP Timestamps
+REM Run as Administrator
+echo Disabling TCP timestamps...
+netsh int tcp set global timestamps=disabled
+reg add "HKLM\SYSTEM\CurrentControlSet\Services\Tcpip\Parameters" /v Tcp1323Opts /t REG_DWORD /d 0 /f
+echo Done. No reboot needed.
+pause`,
+     revert:`@echo off
+netsh int tcp set global timestamps=enabled
+reg add "HKLM\SYSTEM\CurrentControlSet\Services\Tcpip\Parameters" /v Tcp1323Opts /t REG_DWORD /d 1 /f
+echo TCP timestamps restored.
+pause`},
     {id:'nic-offload',icon:'🔧',name:'Enable NIC Hardware Offloading',badges:['net','perf','latency'],
      impact:`In Valorant during peak agent ability usage (multiple smokes, flashes, Omen teleports), the CPU is handling game logic AND network processing simultaneously. Hardware offloading removes the network processing portion, reducing CPU load during the most demanding moments.`,
      desc:'Moves TCP checksum calculation and packet segmentation from your CPU to the NIC hardware. Every CS2 and Valorant packet normally uses a few CPU cycles for checksum verification — offloading this to NIC hardware frees those CPU cycles for game physics, AI, and rendering.',
-     apply:`netsh int ip set global taskoffload=enabled\nnetsh int tcp set global chimney=enabled\nnetsh int tcp set global netdma=enabled`,
-     revert:`netsh int ip set global taskoffload=disabled\nnetsh int tcp set global chimney=disabled\nnetsh int tcp set global netdma=disabled`},
+     apply:`@echo off
+REM OPTI — Disable NIC Hardware Offloads (Reduce DPC latency)
+REM Run as Administrator
+echo Disabling checksum/LSO offloads on all active adapters...
+powershell -Command "
+Get-NetAdapter | Where-Object {$_.Status -eq 'Up'} | ForEach-Object {
+  $n = $_.Name
+  try {
+    Disable-NetAdapterChecksumOffload -Name $n -EA SilentlyContinue
+    Disable-NetAdapterLso -Name $n -EA SilentlyContinue
+    Write-Host ('Offloads disabled for: ' + $n)
+  } catch { Write-Host ('Skipped: ' + $n) }
+}
+"
+reg add "HKLM\SYSTEM\CurrentControlSet\Services\Tcpip\Parameters" /v DisableTaskOffload /t REG_DWORD /d 1 /f
+echo Done. Reboot recommended.
+pause`,
+     revert:`@echo off
+powershell -Command "
+Get-NetAdapter | Where-Object {$_.Status -eq 'Up'} | ForEach-Object {
+  try {
+    Enable-NetAdapterChecksumOffload -Name $_.Name -EA SilentlyContinue
+    Enable-NetAdapterLso -Name $_.Name -EA SilentlyContinue
+    Write-Host ('Offloads restored for: ' + $_.Name)
+  } catch {}
+}
+"
+reg delete "HKLM\SYSTEM\CurrentControlSet\Services\Tcpip\Parameters" /v DisableTaskOffload /f 2>nul
+echo NIC offloads restored.
+pause`},
     {id:'ipv6-disable',icon:'6️⃣',name:'Disable IPv6 (Force IPv4 Priority)',badges:['net','ping'],
      impact:`CS2 matchmaking and Valorant server connections both use IPv4. If your system is attempting IPv6 first and failing, you're adding a fixed delay to every connection attempt. Disabling IPv6 eliminates this hidden overhead.`,
      desc:'If your router or ISP has incomplete IPv6 support, Windows wastes 50-300ms on failed IPv6 connection attempts before falling back to IPv4 for every CS2 and Valorant server connection. This delay shows up as the \'connecting to server\' pause before matches start.',
-     apply:`reg add "HKLM\\SYSTEM\\CurrentControlSet\\Services\\Tcpip6\\Parameters" /v DisabledComponents /t REG_DWORD /d 255 /f`,
-     revert:`reg add "HKLM\\SYSTEM\\CurrentControlSet\\Services\\Tcpip6\\Parameters" /v DisabledComponents /t REG_DWORD /d 0 /f`},
+     apply:`@echo off
+REM OPTI — Disable IPv6
+REM Run as Administrator
+echo Disabling IPv6 on all adapters...
+reg add "HKLM\SYSTEM\CurrentControlSet\Services\Tcpip6\Parameters" /v DisabledComponents /t REG_DWORD /d 255 /f
+powershell -Command "Get-NetAdapter | Where-Object {$_.Status -eq 'Up'} | Disable-NetAdapterBinding -ComponentID ms_tcpip6 -EA SilentlyContinue"
+echo Done. Reboot required.
+pause`,
+     revert:`@echo off
+reg add "HKLM\SYSTEM\CurrentControlSet\Services\Tcpip6\Parameters" /v DisabledComponents /t REG_DWORD /d 0 /f
+powershell -Command "Get-NetAdapter | Enable-NetAdapterBinding -ComponentID ms_tcpip6 -EA SilentlyContinue"
+echo IPv6 re-enabled. Reboot required.
+pause`},
     {id:'arp-cache',icon:'📋',name:'Optimize ARP Cache Settings',badges:['net','ping'],
      impact:`In CS2 with 50+ packets/second going through your router, ARP re-resolution during cache expiry causes momentary routing delays. In Valorant, these micro-delays contribute to the 'var' metric in server diagnostics.`,
      desc:'ARP cache optimizations reduce the frequency of broadcast packets your PC sends to your router, which adds tiny but measurable LAN-side latency. On home networks shared with other devices, excessive ARP traffic from all devices creates micro-congestion that adds 0.1-0.5ms of jitter to your connection.',
-     apply:`netsh int ip set global neighborcachelimit=4096\nreg add "HKLM\\SYSTEM\\CurrentControlSet\\Services\\Tcpip\\Parameters" /v ArpCacheLife /t REG_DWORD /d 60 /f\nreg add "HKLM\\SYSTEM\\CurrentControlSet\\Services\\Tcpip\\Parameters" /v ArpCacheMinReferencedLife /t REG_DWORD /d 20 /f`,
-     revert:`reg delete "HKLM\\SYSTEM\\CurrentControlSet\\Services\\Tcpip\\Parameters" /v ArpCacheLife /f\nreg delete "HKLM\\SYSTEM\\CurrentControlSet\\Services\\Tcpip\\Parameters" /v ArpCacheMinReferencedLife /f`},
+     apply:`@echo off
+REM OPTI — Optimize ARP Cache
+REM Run as Administrator
+echo Optimizing ARP neighbor cache...
+netsh int ip set global neighborcachelimit=4096
+reg add "HKLM\SYSTEM\CurrentControlSet\Services\Tcpip\Parameters" /v ArpCacheLife /t REG_DWORD /d 60 /f
+reg add "HKLM\SYSTEM\CurrentControlSet\Services\Tcpip\Parameters" /v ArpCacheMinReferencedLife /t REG_DWORD /d 20 /f
+echo Done. No reboot needed.
+pause`,
+     revert:`@echo off
+netsh int ip set global neighborcachelimit=256
+reg delete "HKLM\SYSTEM\CurrentControlSet\Services\Tcpip\Parameters" /v ArpCacheLife /f 2>nul
+reg delete "HKLM\SYSTEM\CurrentControlSet\Services\Tcpip\Parameters" /v ArpCacheMinReferencedLife /f 2>nul
+echo ARP cache settings reverted.
+pause`},
     {id:'winsock-reset',icon:'🔄',name:'Optimize Winsock & LSP Stack',badges:['net','ping','latency'],
      impact:`If you've ever installed a VPN, Hamachi, or older antivirus — their LSPs might still be active even after uninstalling. These inspect every Valorant and CS2 packet. Removing them cuts per-packet processing overhead that builds up over many packets per second.`,
      desc:'Old VPN clients, antivirus software, and network drivers insert themselves into the Winsock stack as Layered Service Providers (LSPs). Each LSP inspects every game packet, adding processing delay. A clean Winsock stack means CS2 and Valorant packets go straight from your game to the NIC without inspectors.',
-     apply:`netsh winsock reset catalog\nnetsh int ip reset reset.log\nREM Restart required after this tweak`,
-     revert:`REM Winsock reset is permanent — Windows default is restored after running netsh winsock reset\nREM No specific revert needed — run again if issues arise`},
+     apply:`@echo off
+REM OPTI — Winsock & TCP Stack Reset
+REM Run as Administrator. REBOOT REQUIRED after this.
+echo [1/2] Resetting Winsock catalog...
+netsh winsock reset catalog
+echo [2/2] Resetting TCP/IP stack...
+netsh int ip reset reset.log
+echo.
+echo REBOOT REQUIRED for Winsock reset to take effect.
+pause`,
+     revert:`@echo off
+REM Winsock reset cannot be undone automatically.
+REM If you experience issues after rebooting, run:
+REM   netsh winsock reset
+REM and reboot again to restore to Windows defaults.
+echo Winsock reset has no automatic revert. Re-run winsock reset if needed.
+pause`},
     {id:'tcp-global',icon:'⚙️',name:'Apply Full TCP/IP Global Optimizations',badges:['net','latency','ping'],
      impact:`In CS2, when you 'Connect to match' and see a delay before joining, part of that is TCP handshake timing. Lower initialRTO means faster detection of failed first packets. For Valorant, MaxUserPort increase prevents port exhaustion during extended sessions.`,
      desc:'A suite of TCP/IP stack tweaks targeting connection setup speed and acknowledgement timing. Lower initial RTO means failed connection attempts are detected faster. Lower maxSYN retransmissions means the CS2 client retries server connections faster when the first attempt times out.',
-     apply:`netsh int tcp set global initialrto=2000\nnetsh int tcp set global minrto=300\nnetsh int tcp set global maxsynretransmissions=2\nreg add "HKLM\\SYSTEM\\CurrentControlSet\\Services\\Tcpip\\Parameters" /v TcpMaxDupAcks /t REG_DWORD /d 2 /f\nreg add "HKLM\\SYSTEM\\CurrentControlSet\\Services\\Tcpip\\Parameters" /v TcpTimedWaitDelay /t REG_DWORD /d 30 /f\nreg add "HKLM\\SYSTEM\\CurrentControlSet\\Services\\Tcpip\\Parameters" /v MaxUserPort /t REG_DWORD /d 65534 /f\nreg add "HKLM\\SYSTEM\\CurrentControlSet\\Services\\Tcpip\\Parameters" /v TcpNumConnections /t REG_DWORD /d 16777214 /f`,
-     revert:`reg delete "HKLM\\SYSTEM\\CurrentControlSet\\Services\\Tcpip\\Parameters" /v TcpMaxDupAcks /f\nreg delete "HKLM\\SYSTEM\\CurrentControlSet\\Services\\Tcpip\\Parameters" /v TcpTimedWaitDelay /f\nreg delete "HKLM\\SYSTEM\\CurrentControlSet\\Services\\Tcpip\\Parameters" /v MaxUserPort /f\nreg delete "HKLM\\SYSTEM\\CurrentControlSet\\Services\\Tcpip\\Parameters" /v TcpNumConnections /f`},
+     apply:`@echo off
+REM OPTI — TCP Global Parameter Tuning
+REM Run as Administrator
+echo [1/3] Setting TCP connection parameters...
+reg add "HKLM\SYSTEM\CurrentControlSet\Services\Tcpip\Parameters" /v TcpMaxDupAcks /t REG_DWORD /d 2 /f
+reg add "HKLM\SYSTEM\CurrentControlSet\Services\Tcpip\Parameters" /v TcpTimedWaitDelay /t REG_DWORD /d 30 /f
+reg add "HKLM\SYSTEM\CurrentControlSet\Services\Tcpip\Parameters" /v MaxUserPort /t REG_DWORD /d 65534 /f
+reg add "HKLM\SYSTEM\CurrentControlSet\Services\Tcpip\Parameters" /v TcpNumConnections /t REG_DWORD /d 16777214 /f
+echo [2/3] Setting initial retransmit timeout...
+netsh int tcp set global initialrto=2000
+echo [3/3] Setting max SYN retransmissions...
+netsh int tcp set global maxsynretransmissions=2
+echo Done. Reboot recommended.
+pause`,
+     revert:`@echo off
+reg delete "HKLM\SYSTEM\CurrentControlSet\Services\Tcpip\Parameters" /v TcpMaxDupAcks /f 2>nul
+reg delete "HKLM\SYSTEM\CurrentControlSet\Services\Tcpip\Parameters" /v TcpTimedWaitDelay /f 2>nul
+reg delete "HKLM\SYSTEM\CurrentControlSet\Services\Tcpip\Parameters" /v MaxUserPort /f 2>nul
+reg delete "HKLM\SYSTEM\CurrentControlSet\Services\Tcpip\Parameters" /v TcpNumConnections /f 2>nul
+netsh int tcp set global initialrto=3000
+netsh int tcp set global maxsynretransmissions=4
+echo TCP global parameters reverted.
+pause`},
     {id:'dns-over-https',icon:'🔒',name:'Configure Low-Latency DNS Servers',badges:['net','ping'],
      impact:`CS2 matchmaking calls DNS to resolve game server IPs in your region. Faster DNS = faster initial server connection. Valorant's client pings multiple server regions to find the best — faster DNS means this probe completes faster and you get matched to your true lowest-latency server.`,
      desc:'ISP DNS servers are often geographically distant with high resolution times. Cloudflare 1.1.1.1 is measured as the world\'s fastest DNS with average resolution times under 14ms globally. Switching to it reduces the time to resolve CS2 match server hostnames and Valorant\'s server-selection API calls.',
-     apply:`REM Set DNS to Cloudflare (fastest for gaming):\nnetsh interface ip set dns "Ethernet" static 1.1.1.1\nnetsh interface ip add dns "Ethernet" 1.0.0.1 index=2\nREM OR Google DNS:\nREM netsh interface ip set dns "Ethernet" static 8.8.8.8\nREM netsh interface ip add dns "Ethernet" 8.8.4.4 index=2\nREM Flush DNS cache after:\nipconfig /flushdns`,
-     revert:`REM Restore automatic DNS:\nnetsh interface ip set dns "Ethernet" dhcp\nipconfig /flushdns`},
+     apply:`@echo off
+REM OPTI — Set DNS to Cloudflare (Fastest Gaming DNS)
+REM Run as Administrator
+echo Setting DNS to Cloudflare 1.1.1.1 on all active adapters...
+powershell -Command "
+Get-NetAdapter | Where-Object {$_.Status -eq 'Up'} | ForEach-Object {
+  try {
+    Set-DnsClientServerAddress -InterfaceIndex $_.ifIndex -ServerAddresses ('1.1.1.1','1.0.0.1') -EA SilentlyContinue
+    Write-Host ('DNS set for: ' + $_.Name)
+  } catch { Write-Host ('Skipped: ' + $_.Name) }
+}
+"
+ipconfig /flushdns
+echo.
+echo DNS set to Cloudflare 1.1.1.1 / 1.0.0.1 on all active adapters.
+echo Run: nslookup google.com — should resolve under 5ms.
+pause`,
+     revert:`@echo off
+powershell -Command "
+Get-NetAdapter | Where-Object {$_.Status -eq 'Up'} | ForEach-Object {
+  try {
+    Set-DnsClientServerAddress -InterfaceIndex $_.ifIndex -ResetServerAddresses -EA SilentlyContinue
+    Write-Host ('DNS reset for: ' + $_.Name)
+  } catch {}
+}
+"
+ipconfig /flushdns
+echo DNS reverted to automatic (DHCP).
+pause`},
     {id:'tcp-chimney',icon:'🏗️',name:'Configure TCP Chimney & Large Send Offload',badges:['net','perf','latency'],
      impact:`In longer Valorant games (20+ rounds), CPU temperature builds up. TCP Chimney offloading reduces the thermal contribution from network processing, helping maintain sustained CPU boost clocks through the entire match.`,
      desc:'TCP Chimney offloads connection state management to the NIC. While primarily a CPU-saving feature, it also reduces the overhead path a packet takes from the NIC to your game application. For Valorant and CS2 which maintain persistent TCP connections to game servers, this reduces CPU time per received packet.',
-     apply:`netsh int tcp set global chimney=enabled\nnetsh int tcp set global lso=enabled\nreg add "HKLM\\SYSTEM\\CurrentControlSet\\Services\\Tcpip\\Parameters" /v DisableTaskOffload /t REG_DWORD /d 0 /f`,
-     revert:`netsh int tcp set global chimney=disabled\nnetsh int tcp set global lso=disabled\nreg delete "HKLM\\SYSTEM\\CurrentControlSet\\Services\\Tcpip\\Parameters" /v DisableTaskOffload /f`},
+     apply:`@echo off
+REM OPTI — TCP Task Offload (Enable hardware offloading)
+REM Run as Administrator
+echo Enabling TCP task offload...
+reg add "HKLM\SYSTEM\CurrentControlSet\Services\Tcpip\Parameters" /v DisableTaskOffload /t REG_DWORD /d 1 /f
+powershell -Command "
+Get-NetAdapter | Where-Object {$_.Status -eq 'Up'} | ForEach-Object {
+  try {
+    Enable-NetAdapterLso -Name $_.Name -EA SilentlyContinue
+    Enable-NetAdapterChecksumOffload -Name $_.Name -EA SilentlyContinue
+    Write-Host ('Task offload enabled for: ' + $_.Name)
+  } catch { Write-Host ('Skipped: ' + $_.Name) }
+}
+"
+echo Done. Reboot recommended.
+pause`,
+     revert:`@echo off
+reg delete "HKLM\SYSTEM\CurrentControlSet\Services\Tcpip\Parameters" /v DisableTaskOffload /f 2>nul
+echo TCP task offload settings reverted.
+pause`},
     {id:'binding-priority',icon:'📌',name:'Set Network Adapter Binding Priority',badges:['net','ping'],
      impact:`If you have both Ethernet and WiFi adapters active, Windows sometimes routes Valorant and CS2 packets through WiFi even when Ethernet is connected. This causes random 10-30ms ping spikes when packets take the slower path. Metric=1 on Ethernet guarantees all game traffic uses the wired connection.`,
      desc:'Windows can send traffic through any available network adapter simultaneously — including your WiFi adapter as a backup path. This causes route flapping where some packets take your Ethernet path and others take WiFi, creating inconsistent ping. Setting interface metric forces 100% of CS2/Valorant traffic through your primary Ethernet adapter.',
-     apply:`REM Set Ethernet as primary (lower metric = higher priority):\nnetsh int ip set interface "Ethernet" metric=1\nREM Disable unused adapters for cleanest routing:\nREM Device Manager > right-click unused adapters > Disable`,
-     revert:`netsh int ip set interface "Ethernet" metric=automatic`},
+     apply:`@echo off
+REM OPTI — Set Network Adapter Binding Priority
+REM Sets your primary adapter to lowest metric (highest route priority)
+REM Run as Administrator
+echo Setting primary adapter metric priority...
+powershell -Command "
+$adapters = Get-NetAdapter | Where-Object {$_.Status -eq 'Up'} | Sort-Object -Property LinkSpeed -Descending
+if ($adapters.Count -gt 0) {
+  $primary = $adapters[0]
+  Set-NetIPInterface -InterfaceIndex $primary.ifIndex -InterfaceMetric 1 -EA SilentlyContinue
+  Write-Host ('Primary adapter set to metric 1: ' + $primary.Name)
+  $others = $adapters | Select-Object -Skip 1
+  $metric = 50
+  foreach ($a in $others) {
+    Set-NetIPInterface -InterfaceIndex $a.ifIndex -InterfaceMetric $metric -EA SilentlyContinue
+    Write-Host ('Set metric ' + $metric + ': ' + $a.Name)
+    $metric += 50
+  }
+} else { Write-Host 'No active adapters found.' }
+"
+echo Done. No reboot needed.
+pause`,
+     revert:`@echo off
+powershell -Command "
+Get-NetAdapter | Where-Object {$_.Status -eq 'Up'} | ForEach-Object {
+  Set-NetIPInterface -InterfaceIndex $_.ifIndex -AutomaticMetric Enabled -EA SilentlyContinue
+  Write-Host ('Automatic metric restored for: ' + $_.Name)
+}
+"
+echo Adapter metrics reverted to automatic.
+pause`},
     {id:'tcp-delayed-ack',icon:'⏳',name:'Disable TCP Delayed ACK',badges:['net','latency','ping'],
      desc:"TCP Delayed ACK intentionally waits up to 200ms before sending acknowledgements, hoping to piggyback them on outgoing data. In games, almost every packet needs an immediate ACK. Disabling the delay makes your game's TCP traffic acknowledge packets instantly.",
      impact:`TCP Delayed ACK holds acknowledgement packets for up to 200ms waiting to bundle them with data. For game traffic this artificially inflates round-trip time. Disabling it forces immediate ACK responses. Combined with Nagle disabled, this gives you the minimum possible network round trip for CS2 matchmaking servers and Valorant's live service servers.`,
@@ -1939,38 +2357,153 @@ pause`,
     {id:'udp-offload',icon:'🔧',name:'Enable UDP Offload & Disable URO',badges:['net','latency','perf'],
      impact:`In CS2, delayed ACKs on server position update packets mean the server waits up to 200ms before sending the next update, thinking you haven't received the last one. At 128Hz that's missing 25 server updates. Disabling makes your client ACK instantly, keeping the full update rate flowing.`,
      desc:'URO batches multiple UDP packets into one large delivery to reduce CPU interrupts — great for file transfers, terrible for games. CS2 and Valorant send small, time-sensitive UDP packets that need to be delivered to the game engine individually and immediately. URO delays each packet by accumulating a batch first.\'t always combine them correctly. Disabling the delay forces instant ACKs on every game packet.',
-     apply:`netsh int udp set global uro=disabled\npowershell -Command "Set-NetAdapterAdvancedProperty -Name 'Ethernet' -DisplayName 'UDP Checksum Offload (IPv4)' -DisplayValue 'Rx & Tx Enabled'"`,
-     revert:`netsh int udp set global uro=enabled`},
+     apply:`@echo off
+REM OPTI — Disable UDP Offload / URO
+REM Run as Administrator
+echo [1/2] Disabling UDP Receive Offload (Win11)...
+netsh int udp set global uro=disabled 2>nul
+echo [2/2] Disabling UDP checksum offload on all adapters...
+powershell -Command "
+Get-NetAdapter | Where-Object {$_.Status -eq 'Up'} | ForEach-Object {
+  try {
+    Disable-NetAdapterChecksumOffload -Name $_.Name -EA SilentlyContinue
+    Write-Host ('UDP offload disabled for: ' + $_.Name)
+  } catch { Write-Host ('Skipped: ' + $_.Name) }
+}
+"
+echo Done. Reboot recommended.
+pause`,
+     revert:`@echo off
+netsh int udp set global uro=enabled 2>nul
+powershell -Command "
+Get-NetAdapter | Where-Object {$_.Status -eq 'Up'} | ForEach-Object {
+  try {
+    Enable-NetAdapterChecksumOffload -Name $_.Name -EA SilentlyContinue
+    Write-Host ('UDP offload restored for: ' + $_.Name)
+  } catch {}
+}
+"
+echo UDP offload restored.
+pause`},
     {id:'recv-segment-coalescing',icon:'📦',name:'Disable Receive Segment Coalescing (RSC)',badges:['net','latency'],
      impact:`In Valorant, RSC coalescing multiple position updates into one delivery causes enemies to appear to jump between positions rather than move in real-time. CS2's sub-tick system is designed to handle individual packets at exact timestamps — RSC undermines this by delivering batches with a single arrival time.`,
      desc:'RSC merges multiple incoming TCP/UDP segments before delivering them to your game, adding 1-5ms of coalescing wait time. For CS2 and Valorant packets — which are small, frequent, and time-critical — this wait is wasted latency. Disabling RSC delivers each segment to the game engine the moment it arrives.',
-     apply:`netsh int tcp set global rsc=disabled\npowershell -Command "Disable-NetAdapterRsc -Name 'Ethernet' -ErrorAction SilentlyContinue"`,
-     revert:`netsh int tcp set global rsc=enabled`},
+     apply:`@echo off
+REM OPTI — Disable Receive Segment Coalescing (RSC)
+REM Run as Administrator
+echo Disabling RSC globally and on all active adapters...
+netsh int tcp set global rsc=disabled
+powershell -Command "
+Get-NetAdapter | Where-Object {$_.Status -eq 'Up'} | ForEach-Object {
+  try {
+    Disable-NetAdapterRsc -Name $_.Name -EA SilentlyContinue
+    Write-Host ('RSC disabled for: ' + $_.Name)
+  } catch { Write-Host ('Skipped (RSC not supported): ' + $_.Name) }
+}
+"
+echo Done. No reboot needed.
+pause`,
+     revert:`@echo off
+netsh int tcp set global rsc=enabled
+powershell -Command "
+Get-NetAdapter | Where-Object {$_.Status -eq 'Up'} | ForEach-Object {
+  try {
+    Enable-NetAdapterRsc -Name $_.Name -EA SilentlyContinue
+    Write-Host ('RSC enabled for: ' + $_.Name)
+  } catch {}
+}
+"
+echo RSC restored.
+pause`},
     {id:'firewall-gaming',icon:'🔥',name:'Create Windows Firewall Gaming Rules',badges:['net','ping','latency'],
      impact:`CS2 processes 60+ packets per second from Valve servers. Each packet going through full firewall inspection adds a tiny CPU overhead that accumulates. Explicit allow rules skip this inspection. In Valorant, Vanguard makes frequent network calls that also benefit from bypassing firewall inspection.`,
      desc:'Windows Firewall inspects every game packet through its ruleset before delivery. Without explicit allow rules, CS2 and Valorant packets go through the full firewall inspection chain on every packet — hundreds per second. Explicit allow rules bypass inspection for those executables, reducing per-packet firewall overhead.',
-     apply:`REM Create allow rules for CS2:\nnetsh advfirewall firewall add rule name="CS2 Allow In"  dir=in  action=allow program="C:\\Program Files (x86)\\Steam\\steamapps\\common\\Counter-Strike Global Offensive\\game\\bin\\win64\\cs2.exe" enable=yes\nnetsh advfirewall firewall add rule name="CS2 Allow Out" dir=out action=allow program="C:\\Program Files (x86)\\Steam\\steamapps\\common\\Counter-Strike Global Offensive\\game\\bin\\win64\\cs2.exe" enable=yes\nREM Create allow rules for Valorant:\nnetsh advfirewall firewall add rule name="Valorant Allow In"  dir=in  action=allow program="C:\\Riot Games\\VALORANT\\live\\ShooterGame\\Binaries\\Win64\\VALORANT-Win64-Shipping.exe" enable=yes\nnetsh advfirewall firewall add rule name="Valorant Allow Out" dir=out action=allow program="C:\\Riot Games\\VALORANT\\live\\ShooterGame\\Binaries\\Win64\\VALORANT-Win64-Shipping.exe" enable=yes`,
-     revert:`netsh advfirewall firewall delete rule name="CS2 Allow In"\nnetsh advfirewall firewall delete rule name="CS2 Allow Out"\nnetsh advfirewall firewall delete rule name="Valorant Allow In"\nnetsh advfirewall firewall delete rule name="Valorant Allow Out"`},
+     apply:`@echo off
+REM OPTI — Firewall Allow Rules for CS2 and Valorant
+REM Run as Administrator
+echo [1/4] Adding CS2 inbound rule...
+netsh advfirewall firewall add rule name="CS2 Allow In" dir=in action=allow program="C:\Program Files (x86)\Steam\steamapps\common\Counter-Strike Global Offensive\game\bin\win64\cs2.exe" enable=yes profile=any
+echo [2/4] Adding CS2 outbound rule...
+netsh advfirewall firewall add rule name="CS2 Allow Out" dir=out action=allow program="C:\Program Files (x86)\Steam\steamapps\common\Counter-Strike Global Offensive\game\bin\win64\cs2.exe" enable=yes profile=any
+echo [3/4] Adding Valorant inbound rule...
+netsh advfirewall firewall add rule name="Valorant Allow In" dir=in action=allow program="C:\Riot Games\VALORANT\live\ShooterGame\Binaries\Win64\VALORANT-Win64-Shipping.exe" enable=yes profile=any
+echo [4/4] Adding Valorant outbound rule...
+netsh advfirewall firewall add rule name="Valorant Allow Out" dir=out action=allow program="C:\Riot Games\VALORANT\live\ShooterGame\Binaries\Win64\VALORANT-Win64-Shipping.exe" enable=yes profile=any
+echo Done.
+pause`,
+     revert:`@echo off
+netsh advfirewall firewall delete rule name="CS2 Allow In"
+netsh advfirewall firewall delete rule name="CS2 Allow Out"
+netsh advfirewall firewall delete rule name="Valorant Allow In"
+netsh advfirewall firewall delete rule name="Valorant Allow Out"
+echo Firewall rules removed.
+pause`},
     {id:'ecn-enable',icon:'🚦',name:'Enable Explicit Congestion Notification (ECN)',badges:['net','ping'],
      impact:`CS2 sub-tick hit registration requires consistent packet delivery. Without ECN, the first sign of congestion on any router between you and the Valve server is a dropped packet — potentially the packet containing your shot input. ECN lets that router signal 'slow down slightly' instead of dropping your shot entirely.`,
      desc:'ECN lets routers signal network congestion to endpoints without dropping packets — instead of the traditional \'drop a packet to signal congestion\'. For CS2 and Valorant UDP traffic, ECN prevents packet loss events that cause position update gaps and shot registration holes, replacing drops with rate reductions.',
-     apply:`netsh int tcp set global ecncapability=enabled\nreg add "HKLM\\SYSTEM\\CurrentControlSet\\Services\\Tcpip\\Parameters" /v ECNEnabled /t REG_DWORD /d 1 /f`,
-     revert:`netsh int tcp set global ecncapability=disabled\nreg delete "HKLM\\SYSTEM\\CurrentControlSet\\Services\\Tcpip\\Parameters" /v ECNEnabled /f`},
+     apply:`@echo off
+REM OPTI — Enable ECN (Explicit Congestion Notification)
+REM Run as Administrator
+echo Enabling ECN...
+netsh int tcp set global ecncapability=enabled
+reg add "HKLM\SYSTEM\CurrentControlSet\Services\Tcpip\Parameters" /v ECNEnabled /t REG_DWORD /d 1 /f
+echo Done. No reboot needed.
+pause`,
+     revert:`@echo off
+netsh int tcp set global ecncapability=disabled
+reg delete "HKLM\SYSTEM\CurrentControlSet\Services\Tcpip\Parameters" /v ECNEnabled /f 2>nul
+echo ECN disabled.
+pause`},
     {id:'bgp-disable',icon:'📡',name:'Disable Background Intelligent Transfer Service (BITS)',badges:['net','perf'],
      impact:`BITS actively downloading while you play CS2 can add 5-20% bandwidth overhead on your NIC, causing packet loss bursts. In Valorant, BITS transfers can interfere with the Riot client's background update checks, causing momentary bandwidth spikes that appear as ping jumps.`,
      desc:'BITS (Background Intelligent Transfer Service) downloads Windows Update packages and telemetry data using \'idle\' bandwidth. The problem: BITS doesn\'t properly detect gaming traffic as non-idle. During CS2 and Valorant matches it continues consuming bandwidth, competing with your game packets at the network adapter level.',
-     apply:`sc stop BITS\nsc config BITS start= manual`,
-     revert:`sc config BITS start= delayed-auto\nsc start BITS`},
+     apply:`@echo off
+REM OPTI — Set BITS to Manual (Prevent background bandwidth use)
+REM Run as Administrator
+echo Setting Background Intelligent Transfer Service to manual start...
+sc config BITS start= demand
+sc stop BITS
+echo Done. BITS will no longer run at startup.
+echo Windows Update still works — it starts BITS on demand when needed.
+pause`,
+     revert:`@echo off
+sc config BITS start= delayed-auto
+echo BITS restored to delayed-auto start.
+pause`},
     {id:'loopback-latency',icon:'🔁',name:'Optimize Loopback & Local Socket Performance',badges:['net','latency'],
      impact:`Vanguard makes constant loopback calls during Valorant matches to verify game integrity. Faster loopback processing means less CPU time spent on anti-cheat communication and more CPU time available for game logic. In CS2, the game's internal client-server model uses loopback — optimizing it reduces client tick processing overhead.`,
      desc:'CS2\'s anti-cheat, audio system, and overlay communicate via local loopback sockets. Valorant\'s Vanguard anti-cheat uses loopback IPC extensively between its kernel driver and user-space process. Optimizing the loopback path reduces CPU overhead from these local communications, freeing CPU cycles for game simulation.',
-     apply:`netsh int tcp set supplemental template=internet\nreg add "HKLM\\SYSTEM\\CurrentControlSet\\Services\\Tcpip\\Parameters" /v EnableFastRouteLookup /t REG_DWORD /d 1 /f`,
-     revert:`reg delete "HKLM\\SYSTEM\\CurrentControlSet\\Services\\Tcpip\\Parameters" /v EnableFastRouteLookup /f`},
+     apply:`@echo off
+REM OPTI — Optimize TCP Supplemental Template
+REM Run as Administrator
+echo Setting TCP supplemental template to Internet...
+netsh int tcp set supplemental template=internet
+echo Done. No reboot needed.
+pause`,
+     revert:`@echo off
+netsh int tcp set supplemental template=datacenter
+echo TCP supplemental template restored.
+pause`},
     {id:'hoplimit',icon:'🗺️',name:'Set Optimal IP TTL & Route Cache',badges:['net','ping'],
      impact:`Packet fragmentation on CS2 packets causes reassembly delays at Valve servers. A fragmented shot-input packet arrives in two pieces — the server must wait for both pieces before processing your shot. PMTU Discovery prevents this by ensuring your packets are never larger than the smallest MTU on your entire network path to the game server.`,
      desc:'Setting TTL=64 (Linux/router standard) vs Windows default 128 has no latency impact but prevents fingerprinting. Enabling PMTU Discovery is critical: without it, CS2 and Valorant packets that are too large get silently fragmented by intermediate routers, adding reassembly latency at the destination. PMTU Discovery automatically finds the maximum packet size that won\'t fragment on your specific path.',
-     apply:`reg add "HKLM\\SYSTEM\\CurrentControlSet\\Services\\Tcpip\\Parameters" /v DefaultTTL /t REG_DWORD /d 64 /f\nreg add "HKLM\\SYSTEM\\CurrentControlSet\\Services\\Tcpip\\Parameters" /v EnablePMTUDiscovery /t REG_DWORD /d 1 /f\nreg add "HKLM\\SYSTEM\\CurrentControlSet\\Services\\Tcpip\\Parameters" /v EnablePMTUBHDetect /t REG_DWORD /d 0 /f`,
-     revert:`reg delete "HKLM\\SYSTEM\\CurrentControlSet\\Services\\Tcpip\\Parameters" /v DefaultTTL /f\nreg delete "HKLM\\SYSTEM\\CurrentControlSet\\Services\\Tcpip\\Parameters" /v EnablePMTUDiscovery /f\nreg delete "HKLM\\SYSTEM\\CurrentControlSet\\Services\\Tcpip\\Parameters" /v EnablePMTUBHDetect /f`},
+     apply:`@echo off
+REM OPTI — Optimize TTL and PMTU Discovery
+REM Run as Administrator
+echo [1/3] Setting default TTL to 64...
+reg add "HKLM\SYSTEM\CurrentControlSet\Services\Tcpip\Parameters" /v DefaultTTL /t REG_DWORD /d 64 /f
+echo [2/3] Enabling PMTU discovery...
+reg add "HKLM\SYSTEM\CurrentControlSet\Services\Tcpip\Parameters" /v EnablePMTUDiscovery /t REG_DWORD /d 1 /f
+echo [3/3] Disabling PMTU black hole detection...
+reg add "HKLM\SYSTEM\CurrentControlSet\Services\Tcpip\Parameters" /v EnablePMTUBHDetect /t REG_DWORD /d 0 /f
+echo Done. No reboot needed.
+pause`,
+     revert:`@echo off
+reg delete "HKLM\SYSTEM\CurrentControlSet\Services\Tcpip\Parameters" /v DefaultTTL /f 2>nul
+reg delete "HKLM\SYSTEM\CurrentControlSet\Services\Tcpip\Parameters" /v EnablePMTUDiscovery /f 2>nul
+reg delete "HKLM\SYSTEM\CurrentControlSet\Services\Tcpip\Parameters" /v EnablePMTUBHDetect /f 2>nul
+echo TTL and PMTU settings reverted.
+pause`},
     {id:'route-optimizer',icon:'🗺️',name:'Game Traffic Route Optimizer (ExitLag-Style)',badges:['net','latency','ping'],
      impact:`Forces game traffic to use the lowest-latency path instead of your ISP\'s default routing. Direct equivalent of what ExitLag does for free, without the subscription.`,
      desc:'Your ISP routes traffic through whatever path is cheapest for them — not fastest for you. ExitLag and Mudfish charge $5-10/month to route around this. This script does the same thing for free: marks CS2 and Valorant UDP traffic with DSCP EF (highest priority), adds persistent static routes to Valve and Riot server IP ranges via your fastest gateway, and flushes DNS/ARP to start clean.',
@@ -2200,6 +2733,35 @@ Get-NetAdapter | Where-Object { \$_.Status -eq 'Up' } | ForEach-Object {
 "
 echo RSS core assignment restored to Windows default.
 pause`},
+    {id:'rss-queues',icon:'📡',name:'Enable Receive Side Scaling (RSS) — Multi-Core NIC',style:'nc',badges:['net','perf','latency'],
+     impact:`RSS distributes NIC interrupt processing across multiple CPU cores. Without RSS, all network interrupts are handled by a single core — on a busy server like CS2 or Valorant, this core can become a bottleneck causing packet processing delays even when other cores are idle.`,
+     desc:'Receive Side Scaling (RSS) allows your network adapter to distribute incoming packet processing across multiple CPU cores. In CS2 and Valorant, incoming game state updates arrive as a burst of UDP packets. With RSS disabled, all these packets queue on one core. With RSS enabled, they are distributed, reducing per-core load and packet processing latency.',
+     apply:`@echo off
+REM OPTI — Enable RSS (Receive Side Scaling) for Multi-Core NIC Processing
+REM Run as Administrator
+echo Enabling Receive Side Scaling...
+netsh int tcp set global rss=enabled
+powershell -Command "Get-NetAdapter | Where-Object {$_.Status -eq 'Up'} | ForEach-Object { Enable-NetAdapterRss -Name $_.Name -ErrorAction SilentlyContinue; Write-Host ('RSS enabled on: ' + $_.Name) }"
+echo RSS enabled. No reboot needed.
+pause`,
+     revert:`@echo off
+netsh int tcp set global rss=disabled
+echo RSS disabled.
+pause`},
+    {id:'udp-checksum-offload',icon:'🔌',name:'Optimize NIC Offload Settings for UDP Gaming',style:'nc',badges:['net','latency'],
+     impact:`Modern NICs can offload checksum calculation from the CPU to hardware. For UDP gaming traffic (CS2, Valorant), enabling UDP checksum offload reduces CPU overhead per packet. Combined with disabling large send offload (which adds latency), this gives the best balance of CPU efficiency and low latency.`,
+     desc:'NIC hardware offloads move packet processing work from the CPU to the network card. UDP Checksum Offload reduces CPU load per packet. Large Send Offload (LSO) batches packets to reduce CPU overhead but adds buffering latency — disabling LSO is recommended for gaming. This script enables beneficial offloads and disables latency-adding ones.',
+     apply:`@echo off
+REM OPTI — Optimize NIC Offload Settings for Gaming
+REM Run as Administrator
+echo Configuring NIC offload settings...
+powershell -Command "Get-NetAdapter | Where-Object {$_.Status -eq 'Up'} | ForEach-Object { $n=$_.Name; Disable-NetAdapterLso -Name $n -EA SilentlyContinue; Enable-NetAdapterChecksumOffload -Name $n -EA SilentlyContinue; Write-Host ('Configured: ' + $n) }"
+echo NIC offloads optimized. No reboot needed.
+pause`,
+     revert:`@echo off
+powershell -Command "Get-NetAdapter | Where-Object {$_.Status -eq 'Up'} | ForEach-Object { $n=$_.Name; Enable-NetAdapterLso -Name $n -EA SilentlyContinue; Write-Host ('LSO restored on: ' + $n) }"
+echo NIC offload settings restored.
+pause`}
   ],
   system: [
     {id:'fast-startup',presetExclude:true,risky:true,riskNote:'Do NOT apply together with Disable Hibernation. Fast Startup saves the kernel session to a hiberfile on Shutdown — if hibernation is then disabled that file is deleted and the next boot will enter recovery. Also: Fast Startup skips a full BIOS POST on every Restart. Use Shutdown then Power On (not Restart) after BIOS changes.',icon:'⚡',name:'Enable Fast Startup (Quick Boot)',badges:['perf'],
@@ -2314,7 +2876,7 @@ pause`},
      desc:'Games create thousands of kernel handles (file handles, sync objects, memory maps). The default handle table grows dynamically causing reallocation pauses. Pre-committing a larger table eliminates the dynamic growth overhead during active gameplay.',
      impact:`Games create thousands of kernel handles (file handles, sync objects, memory maps). By default Windows allows these handles to be inherited by child processes, requiring the kernel to walk the handle table on every process creation. Restricting inheritance reduces the per-process handle table overhead. In CS2 which spawns several sub-processes for audio and crash handling, this reduces the overhead of those process creation events.`,
      apply:`reg add "HKLM\\SYSTEM\\CurrentControlSet\\Control\\Session Manager" /v HeapDeCommitFreeBlockThreshold /t REG_DWORD /d 262144 /f\nreg add "HKLM\\SYSTEM\\CurrentControlSet\\Control\\Session Manager" /v HeapSegmentCommit /t REG_DWORD /d 131072 /f\nreg add "HKLM\\SYSTEM\\CurrentControlSet\\Control\\Session Manager" /v HeapSegmentReserve /t REG_DWORD /d 262144 /f`,
-     revert:`reg delete "HKLM\\SYSTEM\\CurrentControlSet\\Control\\Session Manager" /v HeapSegmentCommit /f\nreg delete "HKLM\\SYSTEM\\CurrentControlSet\\Control\\Session Manager" /v HeapSegmentReserve /f`},
+     revert:`@echo off\nreg delete "HKLM\\SYSTEM\\CurrentControlSet\\Control\\Session Manager" /v HeapDeCommitFreeBlockThreshold /f 2>nul\nreg delete "HKLM\\SYSTEM\\CurrentControlSet\\Control\\Session Manager" /v HeapSegmentCommit /f 2>nul\nreg delete "HKLM\\SYSTEM\\CurrentControlSet\\Control\\Session Manager" /v HeapSegmentReserve /f 2>nul\necho Heap settings reverted. Reboot recommended.\npause`},
   
     {id:'disable-vbs',icon:'🧱',name:'Disable Virtualization Based Security (VBS)',badges:['perf','latency'],risky:true,presetExclude:true,
      riskNote:'Disables VBS and Hyper-V. These protect the kernel from exploit-based attacks. On a dedicated gaming PC not used for sensitive work this is low risk. Re-enable before any financial/work use. Windows may re-enable VBS after major updates — re-run after each feature update.',
@@ -2394,9 +2956,8 @@ REM Run as Administrator
 echo [1/3] Disabling audio enhancements globally...
 reg add "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\MMDevices\Audio\Render" /v "DeviceProperty_FxProperties" /t REG_SZ /d "" /f 2>nul
 
-echo [2/3] Disabling Windows Sonic spatial audio...
-reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\CapabilityAccessManager\ConsentStore\microphone" /v "Value" /t REG_SZ /d "Allow" /f 2>nul
-reg add "HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Multimedia\SystemProfile" /v "SystemResponsiveness" /t REG_DWORD /d 10 /f
+echo [2/3] Setting MMCSS for minimum audio overhead...
+reg add "HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Multimedia\SystemProfile" /v "SystemResponsiveness" /t REG_DWORD /d 0 /f
 reg add "HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Multimedia\SystemProfile\Tasks\Games" /v "GPU Priority" /t REG_DWORD /d 8 /f
 reg add "HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Multimedia\SystemProfile\Tasks\Games" /v "Priority" /t REG_DWORD /d 6 /f
 reg add "HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Multimedia\SystemProfile\Tasks\Games" /v "Scheduling Category" /t REG_SZ /d "High" /f
@@ -2461,6 +3022,69 @@ reg delete "HKCU\Software\Microsoft\Windows NT\CurrentVersion\AppCompatFlags\Lay
 reg delete "HKCU\Software\Microsoft\Windows NT\CurrentVersion\AppCompatFlags\Layers" /v "C:\Riot Games\VALORANT\live\ShooterGame\Binaries\Win64\VALORANT-Win64-Shipping.exe" /f 2>nul
 echo Fullscreen optimizations restored for CS2 and Valorant.
 pause`},
+    {id:'ntfs-last-access',icon:'💾',name:'Disable NTFS Last Access Time Stamp',style:'sc',badges:['perf','disk'],
+     impact:`Every file read on NTFS updates a "last access" timestamp, causing a write operation for every read. On SSDs this doubles I/O operations for game asset loading — CS2 and Valorant load hundreds of files per map. Disabling this removes a hidden write-on-read penalty.`,
+     desc:'NTFS records the last access time for every file read. This means loading a texture in CS2 triggers both a read AND a write to update the timestamp. Disabling this halves disk I/O during game loading and reduces SSD wear. Windows 8+ already disables this on system volumes but it may be re-enabled by some tools.',
+     apply:`@echo off
+REM OPTI — Disable NTFS Last Access Time Stamp
+REM Run as Administrator
+echo Disabling NTFS last access time updates...
+fsutil behavior set disablelastaccess 1
+reg add "HKLM\SYSTEM\CurrentControlSet\Control\FileSystem" /v NtfsDisableLastAccessUpdate /t REG_DWORD /d 1 /f
+echo Done. No reboot needed.
+pause`,
+     revert:`@echo off
+fsutil behavior set disablelastaccess 0
+reg add "HKLM\SYSTEM\CurrentControlSet\Control\FileSystem" /v NtfsDisableLastAccessUpdate /t REG_DWORD /d 0 /f
+echo NTFS last access time restored.
+pause`},
+    {id:'svchost-split',icon:'⚙️',name:'Optimize SvcHost Process Splitting Threshold',style:'sc',badges:['perf','cpu'],
+     impact:`Windows splits services into separate svchost.exe processes based on available RAM. On systems with 8GB+ RAM, increasing the split threshold ensures each service runs in its own process — preventing a misbehaving background service from consuming CPU time that belongs to your game.`,
+     desc:'SvcHost splitting separates Windows services into individual processes. With the default threshold, many services share a single svchost.exe process, meaning one runaway service can spike CPU usage and steal time from your game thread. On 8GB+ systems, splitting all services ensures game CPU priority is respected.',
+     apply:`@echo off
+REM OPTI — Optimize SvcHost Split Threshold
+REM Splits all services into individual processes on 8GB+ RAM systems
+REM Run as Administrator
+for /f "tokens=2 delims==" %%a in ('wmic os get TotalVisibleMemorySize /value') do set TOTALMEM=%%a
+echo Total RAM: %TOTALMEM% KB
+REM Set split threshold to 0 = always split (recommended for 8GB+)
+reg add "HKLM\SYSTEM\CurrentControlSet\Control" /v SvcHostSplitThresholdInKB /t REG_DWORD /d 0 /f
+echo SvcHost split threshold set to 0 (always split). Reboot required.
+pause`,
+     revert:`@echo off
+REM Restore SvcHost split threshold to Windows default (3670016 KB = 3.5GB)
+reg add "HKLM\SYSTEM\CurrentControlSet\Control" /v SvcHostSplitThresholdInKB /t REG_DWORD /d 3670016 /f
+echo SvcHost split threshold restored. Reboot required.
+pause`},
+    {id:'search-indexer',icon:'🔍',name:'Disable Windows Search Indexer During Gaming',style:'sc',badges:['perf','cpu','disk'],
+     impact:`Windows Search Indexer (SearchIndexer.exe) runs in the background and can spike disk I/O and CPU usage during indexing cycles. During a CS2 or Valorant match, an indexer spike can cause a 1-3 frame stutter. Disabling it eliminates this unpredictable background load.`,
+     desc:'The Windows Search Indexer continuously monitors file changes and rebuilds its index database. While gaming, any file write (game saves, screenshots, logs) can trigger an indexing cycle that competes with your game for disk bandwidth and CPU time. Disabling the service removes this background noise entirely.',
+     apply:`@echo off
+REM OPTI — Disable Windows Search Indexer
+REM Run as Administrator
+echo Stopping Windows Search service...
+sc stop WSearch
+sc config WSearch start= disabled
+echo Windows Search Indexer disabled. No reboot needed.
+pause`,
+     revert:`@echo off
+sc config WSearch start= delayed-auto
+sc start WSearch
+echo Windows Search Indexer re-enabled.
+pause`},
+    {id:'power-throttling',icon:'⚡',name:'Disable Windows Power Throttling for Games',style:'sc',badges:['perf','cpu'],
+     impact:`Windows 10/11 Power Throttling silently reduces CPU performance for apps it classifies as background or low-priority. If Windows misclassifies your game (which happens with some anti-cheat wrappers), it can throttle CPU frequency mid-match causing sudden FPS drops.`,
+     desc:'Power Throttling is a Windows feature that reduces CPU power for apps deemed non-critical. While it usually targets background apps, some games with unusual process hierarchies (anti-cheat launchers, Vanguard, etc.) can be incorrectly throttled. Disabling it ensures your game always gets full CPU frequency.',
+     apply:`@echo off
+REM OPTI — Disable Windows Power Throttling
+REM Run as Administrator
+reg add "HKLM\SYSTEM\CurrentControlSet\Control\Power\PowerThrottling" /v PowerThrottlingOff /t REG_DWORD /d 1 /f
+echo Power throttling disabled. No reboot needed.
+pause`,
+     revert:`@echo off
+reg delete "HKLM\SYSTEM\CurrentControlSet\Control\Power\PowerThrottling" /v PowerThrottlingOff /f 2>nul
+echo Power throttling restored to default.
+pause`}
   ],
   memory: [
     {id:'page-combining',icon:'💾',name:'Disable Memory Page Combining',badges:['perf','mem'],
@@ -2470,10 +3094,10 @@ pause`},
      revert:`powershell -Command "Enable-MMAgent -mc"`},
     {id:'large-pages',icon:'📄',name:'Enable Large System Cache Pages',badges:['perf','mem'],
      impact:`Large pages (2MB) instead of small pages (4KB) reduce the number of TLB entries needed to map game memory. The TLB is a small fast cache for memory mappings — TLB misses require slow page table walks. CS2 and Valorant both access large amounts of memory quickly, benefiting from fewer TLB misses.`,
-     desc:'During intense CS2 moments (bombsite executes, smoke rounds) the game accesses many different memory regions rapidly. Large pages reduce TLB misses during these high-memory-access periods, keeping memory access latency low throughout the most demanding moments of a match.',
+     desc:'During intense CS2 moments (bombsite executes, smoke rounds) the game accesses many different memory regions rapidly. Large pages reduce TLB misses during these high-memory-access periods, keeping memory access latency low throughout the most demanding moments of a match. SAFETY NOTE: This tweak is performance-focused but changes low-level system behavior. It will NOT prevent your PC from booting, and can be reverted anytime via the \'Undo\' button.',
      apply:`reg add "HKLM\\SYSTEM\\CurrentControlSet\\Control\\Session Manager\\Memory Management" /v LargeSystemCache /t REG_DWORD /d 1 /f`,
      revert:`reg add "HKLM\\SYSTEM\\CurrentControlSet\\Control\\Session Manager\\Memory Management" /v LargeSystemCache /t REG_DWORD /d 0 /f`},
-    {id:'prefetch-off',icon:'🗃️',name:'Disable Prefetch & ReadyBoost',badges:['perf','mem'],
+    {id:'prefetch-off',icon:'🗃️',name:'Disable Prefetch & ReadyBoost',badges:['perf','mem','disk'],
      impact:`Prefetch and ReadyBoost maintain a cache of recently used application data on disk, performing background disk I/O to keep it ready. On SSDs this is completely pointless — SSD random access is already fast enough that the cache offers zero benefit, while the background I/O creates disk activity that competes with game asset streaming.`,
      desc:'CS2 map loading and Valorant texture streaming both involve disk I/O. Prefetch\'s background disk writes compete with this I/O during map loads and asset streaming. Disabling prefetch eliminates this competition, allowing CS2 and Valorant to use 100% of your SSD\'s bandwidth for actual game asset loading.',
      apply:`reg add "HKLM\\SYSTEM\\CurrentControlSet\\Control\\Session Manager\\Memory Management\\PrefetchParameters" /v EnablePrefetcher /t REG_DWORD /d 0 /f\nreg add "HKLM\\SYSTEM\\CurrentControlSet\\Control\\Session Manager\\Memory Management\\PrefetchParameters" /v EnableSuperfetch /t REG_DWORD /d 0 /f`,
@@ -2518,6 +3142,30 @@ pause`},
      desc:'If CS2 or Valorant ever presses against the physical RAM limit and Windows pages some game data, that page being on a slow HDD causes a multi-second stall while the data is read back. On the fastest NVMe, the same page-in takes ~1ms. Always put the pagefile on your fastest drive.',
      apply:`REM Move pagefile to fastest NVMe drive (change D: to your drive letter):\npowershell -Command \"$cs = Get-WmiObject Win32_ComputerSystem; $cs.AutomaticManagedPagefile = $false; $cs.Put()\"\nREM Remove pagefile from C: drive:\npowershell -Command \"Get-WmiObject Win32_PageFileSetting | Remove-WmiObject\"\nREM Create on NVMe D: drive:\npowershell -Command \"Set-WMIInstance -Class Win32_PageFileSetting -Arguments @{Name=\\\"D:\\\\pagefile.sys\\\"; InitialSize=16384; MaximumSize=16384}\"\nREM Restart required`,
      revert:`powershell -Command \"$cs = Get-WmiObject Win32_ComputerSystem; $cs.AutomaticManagedPagefile = $true; $cs.Put()\"\nREM Restart required`},
+    {id:'large-pages',icon:'📄',name:'Enable Large Pages for Game Memory',style:'mc',badges:['mem','perf'],
+     impact:`Large pages (2MB) reduce the number of TLB (Translation Lookaside Buffer) entries needed to map game memory. CS2 and Valorant allocate large contiguous memory regions for textures and game state. With 4KB pages, a 1GB texture region needs 262,144 TLB entries. With 2MB large pages, it needs only 512 — dramatically reducing TLB miss overhead.`,
+     desc:'The CPU TLB cache maps virtual memory addresses to physical RAM. With standard 4KB pages, large game allocations cause frequent TLB misses — each miss stalls the CPU while it walks the page table. Large pages (2MB) reduce TLB pressure by covering 512x more memory per entry. CS2 and Valorant both benefit from reduced TLB miss rates during texture streaming.',
+     apply:`@echo off
+REM OPTI — Enable Large Pages (requires Local Security Policy)
+REM Run as Administrator
+REM Step 1: Grant Lock Pages in Memory privilege
+echo Enabling Large Pages support...
+reg add "HKLM\SYSTEM\CurrentControlSet\Control\Session Manager\Memory Management" /v LargeSystemCache /t REG_DWORD /d 1 /f
+REM Step 2: Grant privilege via ntrights or secpol.msc
+echo.
+echo MANUAL STEP REQUIRED:
+echo 1. Open: secpol.msc (Local Security Policy)
+echo 2. Navigate to: Local Policies > User Rights Assignment
+echo 3. Double-click: Lock pages in memory
+echo 4. Add your user account
+echo 5. Reboot
+echo.
+echo Some games (CS2, DX12 titles) will automatically use large pages when available.
+pause`,
+     revert:`@echo off
+reg add "HKLM\SYSTEM\CurrentControlSet\Control\Session Manager\Memory Management" /v LargeSystemCache /t REG_DWORD /d 0 /f
+echo Large System Cache disabled. Reboot recommended.
+pause`}
   ],
   input: [
     {id:'mouse-accel',icon:'🖱️',name:'Disable Mouse Acceleration',badges:['latency'],
@@ -2568,6 +3216,19 @@ powercfg /setdcvalueindex scheme_current 2a737441-1930-4402-8d77-b2bebba308a3 48
 powercfg /setactive scheme_current
 echo USB selective suspend restored.
 pause`},
+    {id:'raw-input-buffer',icon:'🖱️',name:'Enable Raw Input Buffer (CS2 / Source Engine)',style:'ic',badges:['input','latency'],
+     impact:`CS2's raw input buffer collects all mouse events since the last frame and processes them together, reducing the number of Windows message queue reads. This reduces input processing overhead and ensures no mouse movement is lost between frames at high polling rates (1000-8000Hz mice).`,
+     desc:'CS2 supports a raw input buffer mode that bypasses the Windows message queue for mouse input. At high polling rates (1000Hz+), the message queue can become a bottleneck as the game reads it once per frame. Raw input buffer mode reads all accumulated events in a single batch, reducing latency and ensuring all micro-movements are captured.',
+     apply:`REM CS2 Launch Option — add to Steam:
+REM Right-click CS2 > Properties > Launch Options:
+REM -rawinput
+REM
+REM Also enable in CS2 console:
+REM m_rawinput 1
+REM
+REM Verify with: m_rawinput (should show 1)`,
+     revert:`REM Remove -rawinput from CS2 Launch Options
+REM Or in console: m_rawinput 0`}
   ],
   general: [
 
@@ -2986,14 +3647,14 @@ pause`},
      revert:`REM Valorant > Settings > Video > Frame Rate Limit > Uncapped`},
   ],
 };
-const TOTALS={cpu:22,intel:5,amd:6,nvidia:5,gpu:10,network:30,system:23,memory:11,input:5,general:7,apps:4,cs2:13,valorant:6};
+const TOTALS={cpu:22,intel:5,amd:6,nvidia:5,gpu:11,network:32,system:27,memory:12,input:6,general:7,apps:4,cs2:13,valorant:6};
 const TOTAL_ALL=Object.values(TOTALS).reduce((a,b)=>a+b,0);
 
 // appliedState = permanent progress (persists via localStorage, drives dashboard)
 // selection    = tweaks queued for download (cleared after download)
 const appliedState = {};
 const selection = {};
-const STORAGE_KEY = 'JSP_v6';
+const STORAGE_KEY = 'JSP_v7'; // Updated: registry fixes + new tweaks v6.2
 let activeTab = 'selected';
 
 // RAM profile — single source of truth, read by renderSuggestions + saveHW
@@ -3183,7 +3844,7 @@ function card(t, cat) {
   const shortDesc=TWEAK_SHORT[t.id]||(t.impact||'').split('.')[0]+'.';
 
   // Collapsed card face only — no expand panel here
-  return `<div class="tweak-card${sc}${isApplied?' applied':''}${inSel?' selected':''}" id="card-${t.id}" data-cat="${cat}"${t.hw?` data-hw="${t.hw}"`:''}">
+  return `<div class="tweak-card${sc}${isApplied?' applied':''}${inSel?' selected':''}" id="card-${t.id}" data-cat="${cat}"${t.hw?` data-hw="${t.hw}"`:''}>
   ${hwBadge}
   <div class="tweak-top">
     <div class="t-icon">${t.icon}</div>
@@ -3231,17 +3892,13 @@ function toggleExp(id){
   const btn  = document.getElementById('eb-'+id);
   const list = card && card.closest('.tweaks-list');
   if(!card||!list) return;
-
-  // Find this card's row index and its pre-rendered row drawer
   const cards = Array.from(list.children).filter(c=>c.classList.contains('tweak-card'));
   const cardIdx = cards.indexOf(card);
   const rowIdx  = Math.floor(cardIdx/3);
-  // Identify which list this is
   const cat = list.id ? list.id.replace('tl-','') : card.dataset.cat;
   const drawer = document.getElementById('rd-'+cat+'-'+rowIdx);
   if(!drawer) return;
-
-  // If this drawer is open for a DIFFERENT card, close that card's button state first
+  
   const prevId = drawer.dataset.for;
   if(prevId && prevId !== id && drawer.dataset.open==='1'){
     const pb = document.getElementById('eb-'+prevId);
@@ -3250,12 +3907,14 @@ function toggleExp(id){
     if(pc){ pc.style.borderTopColor=''; pc.style.boxShadow=''; }
   }
 
-  // Close any OTHER row's open drawer in this list
   list.querySelectorAll('.expand-drawer[data-open="1"]').forEach(d=>{
     if(d===drawer) return;
     const oid = d.dataset.for;
-    const from = d.getBoundingClientRect().height;
-    animateHeight(d, from, 0, ()=>{ d.dataset.open='0'; d.classList.remove('is-open'); });
+    animateHeight(d, d.offsetHeight, 0, ()=>{ 
+      d.dataset.open='0'; 
+      d.classList.remove('is-open'); 
+      d.style.display='none';
+    });
     if(oid){
       const ob = document.getElementById('eb-'+oid);
       const oc = document.getElementById('card-'+oid);
@@ -3265,47 +3924,36 @@ function toggleExp(id){
   });
 
   const isOpenForMe = drawer.dataset.open==='1' && drawer.dataset.for===id;
-
   if(isOpenForMe){
-    // CLOSE
-    animateHeight(drawer, drawer.getBoundingClientRect().height, 0, ()=>{
+    animateHeight(drawer, drawer.offsetHeight, 0, ()=>{
       drawer.dataset.open='0';
       drawer.dataset.for='';
       drawer.classList.remove('is-open');
+      drawer.style.display='none';
     });
     btn.textContent='▼ Details'; btn.classList.remove('is-open'); btn.style.color='';
     card.style.borderTopColor=''; card.style.boxShadow='';
   } else {
-    // OPEN — update drawer content for this card
     let tweak=null;
     for(const[,arr] of Object.entries(TWEAKS)){ tweak=arr.find(t=>t.id===id); if(tweak) break; }
     if(!tweak) return;
-
+    
     drawer.innerHTML = buildDrawer(tweak);
     drawer.dataset.for = id;
-
-    // Measure natural height
-    drawer.style.transition='none';
-    drawer.style.visibility='hidden';
-    drawer.style.height='auto';
+    drawer.style.display = 'block';
+    drawer.style.height = 'auto';
     const natural = drawer.scrollHeight;
-    drawer.style.height='0px';
-    drawer.style.visibility='';
-    drawer.offsetHeight;
-
+    drawer.style.height = '0px';
+    drawer.offsetHeight; // force reflow
     drawer.classList.add('is-open');
-    drawer.dataset.open='1';
+    drawer.dataset.open = '1';
     animateHeight(drawer, 0, natural);
-
     btn.textContent='▲ Close'; btn.classList.add('is-open'); btn.style.color='var(--accent)';
-    card.style.borderTopColor='rgba(96,184,255,0.5)';
-    card.style.boxShadow='0 2px 18px rgba(96,184,255,0.1)';
+    card.style.borderTopColor='var(--accent)';
+    card.style.boxShadow='0 8px 32px rgba(0, 242, 255, 0.15)';
+    setTimeout(() => card.scrollIntoView({ behavior: 'smooth', block: 'nearest' }), 100);
   }
 }
-
-
-// Animate an element's height between two px values using rAF
-// Uses a single cubic-bezier ease — no CSS transition involvement
 function animateHeight(el, from, to, onDone){
   const dur  = 380; // ms
   const start = performance.now();
@@ -4055,10 +4703,10 @@ function updateNvidiaTweakText(){
 
   patchCardScript('nvcp-latency-profile',
     `@echo off\nREM ${g.name} — NVIDIA Low Latency Profile\nREM ${g.gen} | ${vram}GB VRAM | ${tdp}W TDP\nREM Run as Administrator\n\n`+
-    `REM Low Latency Mode = Ultra\nReg add "HKLM\\SYSTEM\\CurrentControlSet\\Services\\nvlddmkm\\Global\\NVTweak" /v "NV_REG_STR_RM_CLIENT_RM_CTRL_CMD_LATENCY_ENABLED" /t REG_DWORD /d 1 /f\n\n`+
-    `REM Max Pre-Rendered Frames = 1\nReg add "HKLM\\SOFTWARE\\NVIDIA Corporation\\NvControlPanel2\\Client" /v "MaxPreRenderedFrames" /t REG_DWORD /d 1 /f\n\n`+
+    `REM Low Latency Mode = Ultra (pipeline depth = 1)\nReg add "HKLM\\SYSTEM\\CurrentControlSet\\Services\\nvlddmkm\\Global\\NVTweak" /v "MaxPreRenderedFrames" /t REG_DWORD /d 1 /f\nReg add "HKLM\\SYSTEM\\CurrentControlSet\\Services\\nvlddmkm\\Global\\NVTweak" /v "PerfLevelSrc" /t REG_DWORD /d 8738 /f\n\n`+
+    `REM Max Pre-Rendered Frames = 1 (Low Latency)\nReg add "HKLM\\SYSTEM\\CurrentControlSet\\Services\\nvlddmkm\\Global\\NVTweak" /v "MaxPreRenderedFrames" /t REG_DWORD /d 1 /f\n\n`+
     `REM Prefer Maximum Performance\nReg add "HKLM\\SYSTEM\\CurrentControlSet\\Services\\nvlddmkm\\Global\\NVTweak" /v "PowerMizerEnable" /t REG_DWORD /d 1 /f\nReg add "HKLM\\SYSTEM\\CurrentControlSet\\Services\\nvlddmkm\\Global\\NVTweak" /v "PowerMizerLevel" /t REG_DWORD /d 1 /f\nReg add "HKLM\\SYSTEM\\CurrentControlSet\\Services\\nvlddmkm\\Global\\NVTweak" /v "PowerMizerLevelAC" /t REG_DWORD /d 1 /f\n\n`+
-    `REM Disable VSync\nReg add "HKLM\\SOFTWARE\\NVIDIA Corporation\\NvControlPanel2\\Client" /v "ForceVSync" /t REG_DWORD /d 0 /f\n\n`+
+    `REM Disable VSync\nReg add "HKLM\\SYSTEM\\CurrentControlSet\\Services\\nvlddmkm\\Global\\NVTweak" /v "VSyncMode" /t REG_DWORD /d 0 /f\n\n`+
     `REM Threaded Optimization = On\nReg add "HKLM\\SOFTWARE\\NVIDIA Corporation\\Global\\NVTweak" /v "ThreadedOptimization" /t REG_DWORD /d 1 /f\n\n`+
     (hasReflex?`REM ${g.name} supports NVIDIA Reflex\nREM Enable in-game: Low Latency = Enabled + Boost\n\n`:'')+
     `echo ${g.name} Low Latency Profile Applied\npause`,
@@ -4080,8 +4728,8 @@ function updateNvidiaTweakText(){
     `@echo off\nREM ${g.name} — Balanced Performance Profile\nREM ${g.gen} | ${vram}GB | ${tdp}W\nREM Run as Administrator\n\n`+
     `REM Texture Filtering = High Quality\nReg add "HKLM\\SOFTWARE\\NVIDIA Corporation\\Global\\NVTweak" /v "TextureFilteringQuality" /t REG_DWORD /d 2 /f\n\n`+
     `REM Anisotropic Filtering = 16x\nReg add "HKLM\\SOFTWARE\\NVIDIA Corporation\\Global\\NVTweak" /v "AnisotropicFilteringMode" /t REG_DWORD /d 16 /f\n\n`+
-    `REM VSync = Adaptive\nReg add "HKLM\\SOFTWARE\\NVIDIA Corporation\\NvControlPanel2\\Client" /v "ForceVSync" /t REG_DWORD /d 2 /f\n\n`+
-    `REM Low Latency = On (not Ultra)\nReg add "HKLM\\SOFTWARE\\NVIDIA Corporation\\NvControlPanel2\\Client" /v "MaxPreRenderedFrames" /t REG_DWORD /d 2 /f\n\n`+
+    `REM VSync = Adaptive\nReg add "HKLM\\SYSTEM\\CurrentControlSet\\Services\\nvlddmkm\\Global\\NVTweak" /v "VSyncMode" /t REG_DWORD /d 3 /f\n\n`+
+    `REM Low Latency = On (not Ultra)\nReg add "HKLM\\SYSTEM\\CurrentControlSet\\Services\\nvlddmkm\\Global\\NVTweak" /v "MaxPreRenderedFrames" /t REG_DWORD /d 2 /f\n\n`+
     `REM Shader Cache = ${shaderLabel}\nReg add "HKLM\\SOFTWARE\\NVIDIA Corporation\\Global\\NVTweak" /v "GLShaderDiskCacheMaxSize" /t REG_DWORD /d ${shaderSize} /f\n\n`+
     `REM Threaded Optimization = On\nReg add "HKLM\\SOFTWARE\\NVIDIA Corporation\\Global\\NVTweak" /v "ThreadedOptimization" /t REG_DWORD /d 1 /f\n\n`+
     (hasDLSS3?`REM ${g.name}: DLSS ${hasDLSS4?'4':'3'} supported — enable in-game for quality/perf balance\n\n`:'')+
@@ -4473,7 +5121,7 @@ const SUGGESTION_DEFS = [
 
 function restoreScanResultUI(scan) {
   if (!scan) return;
-  const grid = document.getElementById('scan-result-grid');
+  const grid = document.getElementById('scan-results-grid');
   const applyRow = document.getElementById('scan-apply-row');
   if (!grid) return;
 
