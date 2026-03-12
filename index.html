@@ -3655,7 +3655,7 @@ function HWDrop({ type }) {
         if (!q)
             return db.slice(0, 18);
         const lq = q.toLowerCase();
-        return db.filter(x => x.name.toLowerCase().includes(lq) || x.id.toLowerCase().includes(lq)).slice(0, 18);
+        return db.filter(x => (x.name||'').toLowerCase().includes(lq) || (x.id||'').toLowerCase().includes(lq)).slice(0, 18);
     }, [q, db]);
     useEffect(() => {
         function h(e) { if (ref.current && !ref.current.contains(e.target))
@@ -3703,22 +3703,7 @@ function ForMyBuildSection() {
     const [scanText, sst] = useState('');
     const [scanResult, ssr] = useState(null);
     const [cpCmd, sCpCmd] = useState(false);
-    function copyToClipboard(text, onSuccess) {
-        if (navigator.clipboard && window.isSecureContext) {
-            navigator.clipboard.writeText(text).then(onSuccess).catch(() => fallbackCopy(text, onSuccess));
-        } else {
-            fallbackCopy(text, onSuccess);
-        }
-    }
-    function fallbackCopy(text, onSuccess) {
-        const ta = document.createElement('textarea');
-        ta.value = text;
-        ta.style.cssText = 'position:fixed;top:-9999px;left:-9999px;opacity:0';
-        document.body.appendChild(ta);
-        ta.focus(); ta.select();
-        try { document.execCommand('copy'); onSuccess(); } catch(e) {}
-        document.body.removeChild(ta);
-    }
+
     const CMD = `Write-Output "=CPU="; Get-CimInstance Win32_Processor | Select-Object Name,NumberOfCores | Format-List; Write-Output "=GPU="; Get-CimInstance Win32_VideoController | Select-Object Name,AdapterRAM | Format-List; Write-Output "=RAM="; Get-CimInstance Win32_PhysicalMemory | Select-Object Capacity,Speed,SMBIOSMemoryType | Format-List`;
     function doScan() {
         if (!scanText.trim()) { toast('Paste PowerShell output first', 'warn'); return; }
@@ -3774,7 +3759,7 @@ function ForMyBuildSection() {
                     { k: 'channels', l: 'CHANNELS', opts: ['single','dual','quad'] },
                 ].map(f => (React.createElement("div", { key: f.k },
                     React.createElement("div", { style: { fontFamily: 'var(--mono)', fontSize: 'var(--f2xs)', color: T.t3, letterSpacing: '.12em', textTransform: 'uppercase', marginBottom: 5 } }, f.l),
-                    React.createElement("select", { value: ram[f.k] || '', onChange: e => setRam(p => Object.assign({}, p, { [f.k]: e.target.value || null })), style: { width: '100%', padding: '8px 10px', fontSize: 'var(--fxs)', color: T.t1 } },
+                    React.createElement("select", { value: ram[f.k] || '', onChange: e => setRam(p => Object.assign({}, p, { [f.k]: e.target.value || null })), style: { width: '100%', padding: '8px 10px', fontSize: 'var(--fxs)', color: T.t1, background: T.bg0, border: `1px solid ${T.bd}`, outline: 'none', cursor: 'pointer' } },
                         React.createElement("option", { value: "" }, "\u2014"),
                         f.opts.map(o => React.createElement("option", { key: o, value: o }, o)))))))),
         React.createElement("div", { style: { background: T.bg1, border: `1px solid ${T.bd}`, padding: 'clamp(14px,1.5vw,20px)', marginBottom: 'clamp(16px,1.8vw,24px)' } },
@@ -4064,7 +4049,7 @@ function Sidebar() {
     const { section, setSection, applied, darkMode, setDarkMode } = useApp();
     function cnt(cat) { return (TWEAKS[cat] || []).filter(t => applied[t.id]).length; }
     return (React.createElement("div", { style: {
-            background: 'transparent',
+            background: T.bg0,
             borderRight: `1px solid ${T.bd}`,
             display: 'flex', flexDirection: 'column',
             overflowY: 'auto', overflowX: 'hidden',
@@ -4220,7 +4205,7 @@ function RightPanel() {
         toast(`⬇ JSP_revert_ALL.bat (${appE.length})`, 'success');
     }
     return (React.createElement("div", { style: {
-            background: 'transparent',
+            background: T.bg0,
             borderLeft: `1px solid ${T.bd}`,
             display: 'flex', flexDirection: 'column', overflow: 'hidden',
         } },
@@ -4354,6 +4339,20 @@ function RightPanel() {
    APP
 ═══════════════════════════════════════════════════════════════════════ */
 const SK = typeof STORAGE_KEY !== 'undefined' ? STORAGE_KEY : 'JSP_v7';
+class ErrorBoundary extends React.Component {
+    constructor(p) { super(p); this.state = { err: null }; }
+    static getDerivedStateFromError(e) { return { err: e }; }
+    componentDidCatch(e, info) { console.error('OPTI Error:', e, info); }
+    render() {
+        if (this.state.err) {
+            return React.createElement('div', { style: { padding: 32, color: '#ff4466', fontFamily: 'monospace' } },
+                React.createElement('div', { style: { fontSize: 18, marginBottom: 8 } }, '⚠ Render Error'),
+                React.createElement('pre', { style: { fontSize: 12, opacity: .8, whiteSpace: 'pre-wrap' } }, String(this.state.err))
+            );
+        }
+        return this.props.children;
+    }
+}
 function App() {
     const [section, ss] = useState('dashboard');
     const [applied, sa] = useState({});
@@ -4413,11 +4412,11 @@ function App() {
                     padding: 'clamp(22px,2.5vw,40px) clamp(22px,2.5vw,40px)',
                     background: 'transparent',
                 } },
-                React.createElement(Content, null)),
+                React.createElement(ErrorBoundary, null, React.createElement(Content, null))),
             React.createElement(RightPanel, null)),
         toasts.map(t => (React.createElement(Toast, { key: t.key, msg: t.msg, type: t.type, done: () => stq(q => q.filter(x => x.key !== t.key)) })))));
 }
-ReactDOM.createRoot(document.getElementById('root')).render(React.createElement(App, null));
+ReactDOM.createRoot(document.getElementById('root')).render(React.createElement(ErrorBoundary, null, React.createElement(App, null)));
 
   
   
