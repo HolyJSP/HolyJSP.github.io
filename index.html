@@ -501,7 +501,7 @@ pause`},
      impact:`Your monitor refresh rate must match your game's maximum FPS cap for optimal performance. Running a 144Hz monitor at 60Hz (common after driver updates reset the setting) means CS2 and Valorant render at the right FPS but only 60 frames per second reach your eyes. Always verify your monitor is running at its maximum advertised refresh rate.`,
      desc:'CS2 and Valorant players sometimes wonder why they feel more input lag after a driver update — the driver often resets the monitor refresh rate to 60Hz. Verifying your monitor is at 144/165/240/360Hz is a basic step but frequently missed. A 240Hz CS2 session running on a 60Hz display is wasting 180 frames per second.',
      apply:`REM Check current refresh rate:\nREM Settings > System > Display > Advanced Display Settings\nREM Should show your max Hz (144, 165, 240, 360)\nREM\nREM If stuck at 60Hz after driver install:\nREM Device Manager > Monitors > Generic PnP Monitor > Properties\nREM Driver > Update Driver > Browse > Let me pick > select highest Hz entry\nREM\nREM Also force via NVIDIA/AMD control panel:\nREM NVIDIA: Change Resolution > Refresh Rate dropdown\nREM AMD: Display > Refresh Rate dropdown`,
-     revert:`REM No revert needed — verify in Settings > Display`},,
+     revert:`REM No revert needed — verify in Settings > Display`},
     {id:'gpu-interrupt-moderation',icon:'🎮',name:'Disable GPU Interrupt Moderation',style:'gc',badges:['gpu','latency'],
      impact:`GPU interrupt moderation batches GPU completion signals to reduce CPU interrupt overhead. While this improves throughput, it adds latency between frame completion and the CPU receiving the signal to start the next frame. Disabling it reduces frame delivery latency at the cost of slightly higher CPU interrupt load.`,
      desc:'Modern GPUs use interrupt moderation to batch completion notifications, similar to how NICs use interrupt coalescing. For gaming, the latency added by batching GPU completion interrupts is more harmful than the CPU overhead of individual interrupts. Disabling moderation ensures the CPU is notified immediately when each frame completes.',
@@ -1298,7 +1298,7 @@ Get-NetAdapter | Where-Object { \$_.Status -eq 'Up' } | ForEach-Object {
 }
 "
 echo RSS core assignment restored to Windows default.
-pause`},,
+pause`},
     {id:'rss-queues',icon:'📡',name:'Enable Receive Side Scaling (RSS) — Multi-Core NIC',style:'nc',badges:['net','perf','latency'],
      impact:`RSS distributes NIC interrupt processing across multiple CPU cores. Without RSS, all network interrupts are handled by a single core — on a busy server like CS2 or Valorant, this core can become a bottleneck causing packet processing delays even when other cores are idle.`,
      desc:'Receive Side Scaling (RSS) allows your network adapter to distribute incoming packet processing across multiple CPU cores. In CS2 and Valorant, incoming game state updates arrive as a burst of UDP packets. With RSS disabled, all these packets queue on one core. With RSS enabled, they are distributed, reducing per-core load and packet processing latency.',
@@ -1587,7 +1587,7 @@ pause`,
 reg delete "HKCU\Software\Microsoft\Windows NT\CurrentVersion\AppCompatFlags\Layers" /v "C:\Program Files (x86)\Steam\steamapps\common\Counter-Strike Global Offensive\game\bin\win64\cs2.exe" /f 2>nul
 reg delete "HKCU\Software\Microsoft\Windows NT\CurrentVersion\AppCompatFlags\Layers" /v "C:\Riot Games\VALORANT\live\ShooterGame\Binaries\Win64\VALORANT-Win64-Shipping.exe" /f 2>nul
 echo Fullscreen optimizations restored for CS2 and Valorant.
-pause`},,
+pause`},
     {id:'ntfs-last-access',icon:'💾',name:'Disable NTFS Last Access Time Stamp',style:'sc',badges:['perf','disk'],
      impact:`Every file read on NTFS updates a "last access" timestamp, causing a write operation for every read. On SSDs this doubles I/O operations for game asset loading — CS2 and Valorant load hundreds of files per map. Disabling this removes a hidden write-on-read penalty.`,
      desc:'NTFS records the last access time for every file read. This means loading a texture in CS2 triggers both a read AND a write to update the timestamp. Disabling this halves disk I/O during game loading and reduces SSD wear. Windows 8+ already disables this on system volumes but it may be re-enabled by some tools.',
@@ -1707,7 +1707,7 @@ pause`}
      impact:`The pagefile (virtual memory) should be on your fastest drive. When Windows pages memory out — even rarely — accessing it on a slow drive adds hundreds of milliseconds of stall time. On systems with multiple drives, moving the pagefile to the NVMe ensures that the rare pagefile access is as fast as possible.`,
      desc:'If CS2 or Valorant ever presses against the physical RAM limit and Windows pages some game data, that page being on a slow HDD causes a multi-second stall while the data is read back. On the fastest NVMe, the same page-in takes ~1ms. Always put the pagefile on your fastest drive.',
      apply:`REM Move pagefile to fastest NVMe drive (change D: to your drive letter):\npowershell -Command \"$cs = Get-WmiObject Win32_ComputerSystem; $cs.AutomaticManagedPagefile = $false; $cs.Put()\"\nREM Remove pagefile from C: drive:\npowershell -Command \"Get-WmiObject Win32_PageFileSetting | Remove-WmiObject\"\nREM Create on NVMe D: drive:\npowershell -Command \"Set-WMIInstance -Class Win32_PageFileSetting -Arguments @{Name=\\\"D:\\\\pagefile.sys\\\"; InitialSize=16384; MaximumSize=16384}\"\nREM Restart required`,
-     revert:`powershell -Command \"$cs = Get-WmiObject Win32_ComputerSystem; $cs.AutomaticManagedPagefile = $true; $cs.Put()\"\nREM Restart required`},,
+     revert:`powershell -Command \"$cs = Get-WmiObject Win32_ComputerSystem; $cs.AutomaticManagedPagefile = $true; $cs.Put()\"\nREM Restart required`},
     {id:'large-pages',icon:'📄',name:'Enable Large Pages for Game Memory',style:'mc',badges:['mem','perf'],
      impact:`Large pages (2MB) reduce the number of TLB (Translation Lookaside Buffer) entries needed to map game memory. CS2 and Valorant allocate large contiguous memory regions for textures and game state. With 4KB pages, a 1GB texture region needs 262,144 TLB entries. With 2MB large pages, it needs only 512 — dramatically reducing TLB miss overhead.`,
      desc:'The CPU TLB cache maps virtual memory addresses to physical RAM. With standard 4KB pages, large game allocations cause frequent TLB misses — each miss stalls the CPU while it walks the page table. Large pages (2MB) reduce TLB pressure by covering 512x more memory per entry. CS2 and Valorant both benefit from reduced TLB miss rates during texture streaming.',
@@ -1781,7 +1781,7 @@ powercfg /setacvalueindex scheme_current 2a737441-1930-4402-8d77-b2bebba308a3 48
 powercfg /setdcvalueindex scheme_current 2a737441-1930-4402-8d77-b2bebba308a3 48e6b7a6-50f5-4782-a5d4-53bb8f07e226 1
 powercfg /setactive scheme_current
 echo USB selective suspend restored.
-pause`},,
+pause`},
     {id:'raw-input-buffer',icon:'🖱️',name:'Enable Raw Input Buffer (CS2 / Source Engine)',style:'ic',badges:['input','latency'],
      impact:`CS2's raw input buffer collects all mouse events since the last frame and processes them together, reducing the number of Windows message queue reads. This reduces input processing overhead and ensures no mouse movement is lost between frames at high polling rates (1000-8000Hz mice).`,
      desc:'CS2 supports a raw input buffer mode that bypasses the Windows message queue for mouse input. At high polling rates (1000Hz+), the message queue can become a bottleneck as the game reads it once per frame. Raw input buffer mode reads all accumulated events in a single batch, reducing latency and ensuring all micro-movements are captured.',
@@ -2497,7 +2497,7 @@ const GPU_DB = [
   {id:'rx-6700xt',  name:'Radeon RX 6700 XT',     brand:'amd-gpu', gen:'RX 6000', tier:'mid',    vram:12, tdp:230},
   {id:'rx-6700',    name:'Radeon RX 6700',         brand:'amd-gpu', gen:'RX 6000', tier:'mid',    vram:10, tdp:175},
   {id:'rx-6600xt',  name:'Radeon RX 6600 XT',     brand:'amd-gpu', gen:'RX 6000', tier:'mid',    vram:8,  tdp:160},
-  {id:'rx-6600',    name:'Radeon RX 6600',         brand:'amd-gpu', gen:'RX 6000', tier:'mid',    vram:8,  tdp:132},,
+  {id:'rx-6600',    name:'Radeon RX 6600',         brand:'amd-gpu', gen:'RX 6000', tier:'mid',    vram:8,  tdp:132},
   {id:'rx-6500xt',  name:'Radeon RX 6500 XT',  brand:'amd',    gen:'RX 6000', tier:'entry',    vram:4,  tdp:107},
   {id:'rx-6400',    name:'Radeon RX 6400',     brand:'amd',    gen:'RX 6000', tier:'entry',    vram:4,  tdp:53}
 ];
@@ -3075,7 +3075,7 @@ const GUIDES_DATA = [
   },
 ];
 
-const STORAGE_KEY = 'JSP_v7';
+const STORAGE_KEY = 'OPTI_v7';
 
 function download(content, filename){
   const a = Object.assign(document.createElement('a'),{
@@ -4173,12 +4173,12 @@ function RightPanel() {
             return;
         }
         const s = buildBat('APPLY SELECTED', selE, false);
-        download(s, 'JSP_apply.bat');
+        download(s, 'OPTI_apply.bat');
         const na = Object.assign({}, applied);
         selE.forEach(([id, cat]) => { na[id] = cat; });
         setApplied(na);
         setSel({});
-        toast(`⬇ JSP_apply.bat (${selE.length})`, 'success');
+        toast(`⬇ OPTI_apply.bat (${selE.length})`, 'success');
     }
     function exportRevert() {
         if (!selE.length) {
@@ -4186,12 +4186,12 @@ function RightPanel() {
             return;
         }
         const s = buildBat('REVERT SELECTED', selE, true);
-        download(s, 'JSP_revert.bat');
+        download(s, 'OPTI_revert.bat');
         const na = Object.assign({}, applied);
         selE.forEach(([id]) => { delete na[id]; });
         setApplied(na);
         setSel({});
-        toast(`⬇ JSP_revert.bat (${selE.length})`, 'success');
+        toast(`⬇ OPTI_revert.bat (${selE.length})`, 'success');
     }
     function exportRevertAll() {
         if (!appE.length) {
@@ -4199,10 +4199,10 @@ function RightPanel() {
             return;
         }
         const s = buildBat('REVERT ALL', appE, true, 'Reverts every applied tweak.');
-        download(s, 'JSP_revert_ALL.bat');
+        download(s, 'OPTI_revert_ALL.bat');
         setApplied({});
         setSel({});
-        toast(`⬇ JSP_revert_ALL.bat (${appE.length})`, 'success');
+        toast(`⬇ OPTI_revert_ALL.bat (${appE.length})`, 'success');
     }
     return (React.createElement("div", { style: {
             background: T.bg0,
@@ -4338,7 +4338,7 @@ function RightPanel() {
 /* ═══════════════════════════════════════════════════════════════════════
    APP
 ═══════════════════════════════════════════════════════════════════════ */
-const SK = typeof STORAGE_KEY !== 'undefined' ? STORAGE_KEY : 'JSP_v7';
+const SK = typeof STORAGE_KEY !== 'undefined' ? STORAGE_KEY : 'OPTI_v7';
 class ErrorBoundary extends React.Component {
     constructor(p) { super(p); this.state = { err: null }; }
     static getDerivedStateFromError(e) { return { err: e }; }
