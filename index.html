@@ -1328,6 +1328,24 @@ pause`,
 powershell -Command "Get-NetAdapter | Where-Object {$_.Status -eq 'Up'} | ForEach-Object { $n=$_.Name; Enable-NetAdapterLso -Name $n -EA SilentlyContinue; Write-Host ('LSO restored on: ' + $n) }"
 echo NIC offload settings restored.
 pause`}
+    ,{id:'disable-teredo',icon:'🌐',name:'Disable Teredo IPv6 Tunneling',style:'gc',badges:['network','latency'],
+     impact:`Teredo creates virtual IPv6 tunnel adapters that add overhead to every network stack routing decision. Even when idle, these adapters force the IP stack to evaluate tunnel routes, adding 5-20ms to connection establishment.`,
+     desc:'Disables Teredo, ISATAP, and 6to4 IPv6 tunneling adapters. Safe unless you specifically need IPv6 via tunneling (very rare). Winutil Advanced Tweak.',
+     apply:`@echo off
+REM Disable Teredo and IPv6 Tunneling
+netsh interface teredo set state disabled
+netsh interface isatap set state disabled
+netsh interface 6to4 set state disabled
+reg add "HKLM\\SYSTEM\\CurrentControlSet\\Services\\Tcpip6\\Parameters" /v DisabledComponents /t REG_DWORD /d 32 /f
+echo Done.
+pause`,
+     revert:`@echo off
+netsh interface teredo set state default
+netsh interface isatap set state default
+netsh interface 6to4 set state default
+reg delete "HKLM\\SYSTEM\\CurrentControlSet\\Services\\Tcpip6\\Parameters" /v DisabledComponents /f 2>nul
+echo Done.
+pause`}
   ],
   system: [
     {id:'fast-startup',presetExclude:true,risky:true,riskNote:'Do NOT apply together with Disable Hibernation. Fast Startup saves the kernel session to a hiberfile on Shutdown — if hibernation is then disabled that file is deleted and the next boot will enter recovery. Also: Fast Startup skips a full BIOS POST on every Restart. Use Shutdown then Power On (not Restart) after BIOS changes.',icon:'⚡',name:'Enable Fast Startup (Quick Boot)',badges:['perf'],
@@ -1651,6 +1669,243 @@ pause`,
 reg delete "HKLM\SYSTEM\CurrentControlSet\Control\Power\PowerThrottling" /v PowerThrottlingOff /f 2>nul
 echo Power throttling restored to default.
 pause`}
+    ,{id:'services-manual',icon:'⚙️',name:'Set Non-Essential Services to Manual',style:'gp',badges:['perf','system'],
+     impact:`Stops ~25 rarely-used Windows services from auto-starting. Each idle service wastes RAM and CPU. Switching to Manual means they only start when needed — most users never trigger them. Frees 150-300MB RAM.`,
+     desc:'Targets: MapsBroker, RetailDemo, Fax, WMPNetworkSvc, WbioSrvc, WalletService, PhoneSvc, WpcMonSvc, wisvc, WpnService, SEMgrSvc, MessagingService, PimIndexMaintenanceSvc, UserDataSvc, UnistoreSvc, SharedAccess, lfsvc, DiagTrack, dmwappushservice, XblGameSave, XboxNetApiSvc. Services start on demand if needed.',
+     apply:`@echo off
+REM Set non-essential services to Manual
+sc config MapsBroker start= disabled
+sc config RetailDemo start= disabled
+sc config WMPNetworkSvc start= demand
+sc config Fax start= disabled
+sc config WbioSrvc start= demand
+sc config WalletService start= demand
+sc config PhoneSvc start= demand
+sc config WpcMonSvc start= demand
+sc config wisvc start= demand
+sc config WpnService start= demand
+sc config SEMgrSvc start= demand
+sc config MessagingService start= demand
+sc config PimIndexMaintenanceSvc start= demand
+sc config UserDataSvc start= demand
+sc config UnistoreSvc start= demand
+sc config SharedAccess start= demand
+sc config lfsvc start= demand
+sc config DiagTrack start= demand
+sc config dmwappushservice start= disabled
+sc config XblGameSave start= demand
+sc config XboxNetApiSvc start= demand
+echo Done. Restart to apply.
+pause`,
+     revert:`@echo off
+sc config MapsBroker start= auto
+sc config WMPNetworkSvc start= auto
+sc config WbioSrvc start= auto
+sc config WalletService start= auto
+sc config WpnService start= auto
+sc config OneSyncSvc start= auto
+sc config lfsvc start= auto
+sc config DiagTrack start= auto
+sc config XblGameSave start= auto
+sc config XboxNetApiSvc start= auto
+echo Done. Restart to apply.
+pause`}
+    ,{id:'disable-activity-history',icon:'📋',name:'Disable Activity History & Timeline',style:'gc',badges:['privacy','system'],
+     impact:`Windows logs every app you open and file you view in an Activity History database, writing to disk continuously and syncing to Microsoft servers. Disabling frees that I/O overhead and stops the privacy leak.`,
+     desc:'Disables Timeline (Win+Tab history), Cortana activity sync, and Microsoft account activity feed. No gaming functionality is affected.',
+     apply:`@echo off
+REM Disable Activity History
+reg add "HKLM\\SOFTWARE\\Policies\\Microsoft\\Windows\\System" /v EnableActivityFeed /t REG_DWORD /d 0 /f
+reg add "HKLM\\SOFTWARE\\Policies\\Microsoft\\Windows\\System" /v PublishUserActivities /t REG_DWORD /d 0 /f
+reg add "HKLM\\SOFTWARE\\Policies\\Microsoft\\Windows\\System" /v UploadUserActivities /t REG_DWORD /d 0 /f
+reg add "HKCU\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Privacy" /v ActivityHistoryEnabled /t REG_DWORD /d 0 /f
+echo Done.
+pause`,
+     revert:`@echo off
+reg delete "HKLM\\SOFTWARE\\Policies\\Microsoft\\Windows\\System" /v EnableActivityFeed /f 2>nul
+reg delete "HKLM\\SOFTWARE\\Policies\\Microsoft\\Windows\\System" /v PublishUserActivities /f 2>nul
+reg add "HKCU\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Privacy" /v ActivityHistoryEnabled /t REG_DWORD /d 1 /f
+echo Done.
+pause`}
+    ,{id:'disable-consumer-features',icon:'🛒',name:'Disable Consumer Features & Win Ads',style:'gc',badges:['privacy','system'],
+     impact:`Stops Windows from silently installing suggested apps, showing Start menu ads, and pushing Microsoft 365 trials. These background installs consume bandwidth and can cause brief CPU/disk spikes during gaming.`,
+     desc:'Disables ContentDeliveryManager: Start menu suggestions, lock screen ads, tips notifications, OneDrive push, and unsolicited Store installs. Fully reversible.',
+     apply:`@echo off
+REM Disable Consumer Features
+reg add "HKLM\\SOFTWARE\\Policies\\Microsoft\\Windows\\CloudContent" /v DisableWindowsConsumerFeatures /t REG_DWORD /d 1 /f
+reg add "HKCU\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\ContentDeliveryManager" /v OemPreInstalledAppsEnabled /t REG_DWORD /d 0 /f
+reg add "HKCU\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\ContentDeliveryManager" /v PreInstalledAppsEnabled /t REG_DWORD /d 0 /f
+reg add "HKCU\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\ContentDeliveryManager" /v SilentInstalledAppsEnabled /t REG_DWORD /d 0 /f
+reg add "HKCU\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\ContentDeliveryManager" /v SystemPaneSuggestionsEnabled /t REG_DWORD /d 0 /f
+echo Done. Restart Explorer.
+pause`,
+     revert:`@echo off
+reg delete "HKLM\\SOFTWARE\\Policies\\Microsoft\\Windows\\CloudContent" /v DisableWindowsConsumerFeatures /f 2>nul
+reg add "HKCU\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\ContentDeliveryManager" /v SilentInstalledAppsEnabled /t REG_DWORD /d 1 /f
+reg add "HKCU\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\ContentDeliveryManager" /v SystemPaneSuggestionsEnabled /t REG_DWORD /d 1 /f
+echo Done.
+pause`}
+    ,{id:'disable-location-tracking',icon:'📍',name:'Disable Location Tracking',style:'gc',badges:['privacy','system'],
+     impact:`Windows location services poll GPS/Wi-Fi data for apps and telemetry. The lfsvc service runs continuously adding background overhead and disk writes. Disabling saves ~15-30MB RAM and stops all location logging.`,
+     desc:'Disables the Windows Location Platform via policy. Breaks Maps, Find My Device, and weather apps needing location. Recommended for dedicated gaming PCs.',
+     apply:`@echo off
+REM Disable Location Tracking
+reg add "HKLM\\SOFTWARE\\Policies\\Microsoft\\Windows\\LocationAndSensors" /v DisableLocation /t REG_DWORD /d 1 /f
+reg add "HKLM\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\CapabilityAccessManager\\ConsentStore\\location" /v Value /t REG_SZ /d Deny /f
+sc config lfsvc start= disabled
+net stop lfsvc 2>nul
+echo Done.
+pause`,
+     revert:`@echo off
+reg delete "HKLM\\SOFTWARE\\Policies\\Microsoft\\Windows\\LocationAndSensors" /v DisableLocation /f 2>nul
+reg add "HKLM\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\CapabilityAccessManager\\ConsentStore\\location" /v Value /t REG_SZ /d Allow /f
+sc config lfsvc start= auto
+net start lfsvc 2>nul
+echo Done.
+pause`}
+    ,{id:'remove-widgets',icon:'🪟',name:'Remove Windows 11 Widgets Panel',style:'gc',badges:['system','perf'],
+     impact:`The Win11 Widgets panel runs WebView2 and a persistent Edge renderer process at all times, consuming 80-150MB RAM even when closed. The WidgetService polls Microsoft news on a background thread. Removing it permanently reclaims that RAM.`,
+     desc:'Removes the Widgets taskbar button and disables WidgetService. Windows 11 only. Does not affect gaming.',
+     apply:`@echo off
+REM Remove Windows 11 Widgets
+reg add "HKLM\\SOFTWARE\\Policies\\Microsoft\\Dsh" /v AllowNewsAndInterests /t REG_DWORD /d 0 /f
+reg add "HKCU\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Advanced" /v TaskbarDa /t REG_DWORD /d 0 /f
+echo Done. Restart Explorer.
+pause`,
+     revert:`@echo off
+reg delete "HKLM\\SOFTWARE\\Policies\\Microsoft\\Dsh" /v AllowNewsAndInterests /f 2>nul
+reg add "HKCU\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Advanced" /v TaskbarDa /t REG_DWORD /d 1 /f
+echo Done.
+pause`}
+    ,{id:'disable-storage-sense',icon:'💾',name:'Disable Storage Sense Auto-Cleanup',style:'gc',badges:['system','perf'],
+     impact:`Storage Sense runs periodic disk scans to delete temp files. These scans can overlap with gaming sessions causing sudden I/O spikes and stutter. Disable it and run cleanup manually instead.`,
+     desc:'Turns off Storage Sense automatic disk cleanup. Use the Delete Temp Files tweak manually when needed. No gameplay functionality is affected.',
+     apply:`@echo off
+REM Disable Storage Sense
+reg add "HKCU\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\StorageSense\\Parameters\\StoragePolicy" /v 01 /t REG_DWORD /d 0 /f
+reg add "HKLM\\SOFTWARE\\Policies\\Microsoft\\Windows\\StorageSense" /v AllowStorageSenseGlobal /t REG_DWORD /d 0 /f
+echo Done.
+pause`,
+     revert:`@echo off
+reg add "HKCU\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\StorageSense\\Parameters\\StoragePolicy" /v 01 /t REG_DWORD /d 1 /f
+reg delete "HKLM\\SOFTWARE\\Policies\\Microsoft\\Windows\\StorageSense" /v AllowStorageSenseGlobal /f 2>nul
+echo Done.
+pause`}
+    ,{id:'disable-copilot',icon:'🤖',name:'Disable Microsoft Copilot',style:'gc',badges:['system','perf'],
+     impact:`Microsoft Copilot runs a persistent background process with context indexing and server connections adding 50-150MB RAM overhead. Disabling removes the taskbar button and stops the background AI thread entirely.`,
+     desc:'Disables Windows Copilot via Group Policy. Windows 11 only. Does not affect Bing Chat in browser.',
+     apply:`@echo off
+REM Disable Microsoft Copilot
+reg add "HKLM\\SOFTWARE\\Policies\\Microsoft\\Windows\\WindowsCopilot" /v TurnOffWindowsCopilot /t REG_DWORD /d 1 /f
+reg add "HKCU\\SOFTWARE\\Policies\\Microsoft\\Windows\\WindowsCopilot" /v TurnOffWindowsCopilot /t REG_DWORD /d 1 /f
+reg add "HKCU\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Advanced" /v ShowCopilotButton /t REG_DWORD /d 0 /f
+taskkill /f /im copilot.exe 2>nul
+echo Done. Restart Explorer.
+pause`,
+     revert:`@echo off
+reg delete "HKLM\\SOFTWARE\\Policies\\Microsoft\\Windows\\WindowsCopilot" /v TurnOffWindowsCopilot /f 2>nul
+reg delete "HKCU\\SOFTWARE\\Policies\\Microsoft\\Windows\\WindowsCopilot" /v TurnOffWindowsCopilot /f 2>nul
+reg add "HKCU\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Advanced" /v ShowCopilotButton /t REG_DWORD /d 1 /f
+echo Done.
+pause`}
+    ,{id:'classic-right-click',icon:'🖱️',name:'Restore Classic Right-Click Menu (Win11)',style:'gc',badges:['system'],
+     impact:`Win11 hides most right-click options behind More Options. Restoring the classic menu brings back 7-Zip, Git, game mod tools, and shell extensions in one click instead of two — essential for power users and modding workflows.`,
+     desc:'Registers a CLSID InprocServer32 override to restore Win10-style context menu. Fully reversible by deleting the registry key. Windows 11 only.',
+     apply:`@echo off
+REM Restore Classic Right-Click Menu
+reg add "HKCU\\Software\\Classes\\CLSID\\{86ca1aa0-34aa-4e8b-a509-50c905bae2a2}\\InprocServer32" /f /ve
+taskkill /f /im explorer.exe && start explorer.exe
+echo Done.
+pause`,
+     revert:`@echo off
+reg delete "HKCU\\Software\\Classes\\CLSID\\{86ca1aa0-34aa-4e8b-a509-50c905bae2a2}" /f 2>nul
+taskkill /f /im explorer.exe && start explorer.exe
+echo Done.
+pause`}
+    ,{id:'show-file-extensions',icon:'📄',name:'Show File Extensions in Explorer',style:'gc',badges:['system'],
+     impact:`Hidden file extensions are a security risk and make game modding tedious. Enabling them costs nothing and makes every file immediately identifiable — essential for editing .cfg/.ini files, installing mods, and spotting disguised executables.`,
+     desc:'Enables file extension visibility in Windows Explorer for all file types. Fully reversible.',
+     apply:`@echo off
+REM Show file extensions
+reg add "HKCU\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Advanced" /v HideFileExt /t REG_DWORD /d 0 /f
+taskkill /f /im explorer.exe && start explorer.exe
+echo Done.
+pause`,
+     revert:`@echo off
+reg add "HKCU\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Advanced" /v HideFileExt /t REG_DWORD /d 1 /f
+taskkill /f /im explorer.exe && start explorer.exe
+echo Done.
+pause`}
+    ,{id:'show-hidden-files',icon:'👁️',name:'Show Hidden Files & Folders',style:'gc',badges:['system'],
+     impact:`AppData, ProgramData, and protected OS paths are hidden by default but required for CS2 cfg editing, Valorant config, shader cache clearing, and most modding workflows. Essential for any serious gamer.`,
+     desc:'Shows hidden files, folders, and system files in Windows Explorer. Fully reversible.',
+     apply:`@echo off
+REM Show hidden files
+reg add "HKCU\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Advanced" /v Hidden /t REG_DWORD /d 1 /f
+reg add "HKCU\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Advanced" /v ShowSuperHidden /t REG_DWORD /d 1 /f
+taskkill /f /im explorer.exe && start explorer.exe
+echo Done.
+pause`,
+     revert:`@echo off
+reg add "HKCU\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Advanced" /v Hidden /t REG_DWORD /d 2 /f
+reg add "HKCU\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Advanced" /v ShowSuperHidden /t REG_DWORD /d 0 /f
+taskkill /f /im explorer.exe && start explorer.exe
+echo Done.
+pause`}
+    ,{id:'end-task-right-click',icon:'❌',name:'Enable End Task in Taskbar Right-Click',style:'gc',badges:['system'],
+     impact:`Adds End Task directly to the Win11 taskbar right-click menu so you can kill a frozen game instantly without opening Task Manager. Saves 3-5 seconds when a game hangs mid-session.`,
+     desc:'Enables End Task shortcut via DeveloperSettings registry. Windows 11 22H2+ only.',
+     apply:`@echo off
+REM Enable End Task in taskbar right-click
+reg add "HKCU\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Advanced\\TaskbarDeveloperSettings" /v TaskbarEndTask /t REG_DWORD /d 1 /f
+echo Done.
+pause`,
+     revert:`@echo off
+reg add "HKCU\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Advanced\\TaskbarDeveloperSettings" /v TaskbarEndTask /t REG_DWORD /d 0 /f
+echo Done.
+pause`}
+    ,{id:'delete-temp-files',icon:'🧹',name:'Delete Temporary Files',style:'gc',badges:['system','perf'],
+     impact:`Temp folders accumulate gigabytes of crash dumps, update leftovers, and app caches over time. Large temp directories slow antivirus scans, inflate search indexes, and cause disk stutter. Cleaning them reclaims space and reduces background I/O.`,
+     desc:'Deletes %TEMP%, Windows\\Temp, and SoftwareDistribution download cache. Safe to run anytime — nothing in active use is deleted. One-way cleanup operation.',
+     apply:`@echo off
+REM Delete Temporary Files
+del /s /f /q %TEMP%\\* 2>nul
+del /s /f /q C:\\Windows\\Temp\\* 2>nul
+del /s /f /q "C:\\Windows\\SoftwareDistribution\\Download\\*" 2>nul
+for /d %%i in (%TEMP%\\*) do rd /s /q "%%i" 2>nul
+for /d %%i in (C:\\Windows\\Temp\\*) do rd /s /q "%%i" 2>nul
+echo Done. Temp files cleared.
+pause`,
+     revert:`@echo off
+echo Temp files cannot be restored. This is a one-way cleanup.
+pause`}
+    ,{id:'disable-bing-search',icon:'🔍',name:'Disable Bing Search in Start Menu',style:'gc',badges:['system','perf'],
+     impact:`Every Start menu keystroke sends a query to Bing servers adding 100-500ms latency. Disabling makes Start search instant and local-only while keeping app and file search fully functional.`,
+     desc:'Disables Bing web integration in Start Menu via policy. Local file/application search still works normally.',
+     apply:`@echo off
+REM Disable Bing in Start Menu
+reg add "HKCU\\SOFTWARE\\Policies\\Microsoft\\Windows\\Explorer" /v DisableSearchBoxSuggestions /t REG_DWORD /d 1 /f
+reg add "HKCU\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Search" /v BingSearchEnabled /t REG_DWORD /d 0 /f
+reg add "HKCU\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Search" /v CortanaConsent /t REG_DWORD /d 0 /f
+echo Done. Restart to apply.
+pause`,
+     revert:`@echo off
+reg delete "HKCU\\SOFTWARE\\Policies\\Microsoft\\Windows\\Explorer" /v DisableSearchBoxSuggestions /f 2>nul
+reg add "HKCU\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Search" /v BingSearchEnabled /t REG_DWORD /d 1 /f
+echo Done.
+pause`}
+    ,{id:'disable-multiplane-overlay',icon:'🖥️',name:'Disable Multiplane Overlay (MPO)',style:'gc',badges:['gpu','system'],
+     impact:`MPO causes frame drops, black screens, and stutters on many NVIDIA/AMD cards — especially during alt-tab or with multi-monitor setups. Disabling resolves these issues with zero visual quality loss.`,
+     desc:'Disables MPO via OverlayTestMode=5 registry key. Recommended if you experience frame pacing issues, flickering on alt-tab, or random black screens. Requires restart.',
+     apply:`@echo off
+REM Disable Multiplane Overlay (MPO)
+reg add "HKLM\\SOFTWARE\\Microsoft\\Windows\\Dwm" /v OverlayTestMode /t REG_DWORD /d 5 /f
+echo Done. Restart required.
+pause`,
+     revert:`@echo off
+reg delete "HKLM\\SOFTWARE\\Microsoft\\Windows\\Dwm" /v OverlayTestMode /f 2>nul
+echo Done. Restart required.
+pause`}
   ],
   memory: [
     {id:'page-combining',icon:'💾',name:'Disable Memory Page Combining',badges:['perf','mem'],
@@ -1707,31 +1962,7 @@ pause`}
      impact:`The pagefile (virtual memory) should be on your fastest drive. When Windows pages memory out — even rarely — accessing it on a slow drive adds hundreds of milliseconds of stall time. On systems with multiple drives, moving the pagefile to the NVMe ensures that the rare pagefile access is as fast as possible.`,
      desc:'If CS2 or Valorant ever presses against the physical RAM limit and Windows pages some game data, that page being on a slow HDD causes a multi-second stall while the data is read back. On the fastest NVMe, the same page-in takes ~1ms. Always put the pagefile on your fastest drive.',
      apply:`REM Move pagefile to fastest NVMe drive (change D: to your drive letter):\npowershell -Command \"$cs = Get-WmiObject Win32_ComputerSystem; $cs.AutomaticManagedPagefile = $false; $cs.Put()\"\nREM Remove pagefile from C: drive:\npowershell -Command \"Get-WmiObject Win32_PageFileSetting | Remove-WmiObject\"\nREM Create on NVMe D: drive:\npowershell -Command \"Set-WMIInstance -Class Win32_PageFileSetting -Arguments @{Name=\\\"D:\\\\pagefile.sys\\\"; InitialSize=16384; MaximumSize=16384}\"\nREM Restart required`,
-     revert:`powershell -Command \"$cs = Get-WmiObject Win32_ComputerSystem; $cs.AutomaticManagedPagefile = $true; $cs.Put()\"\nREM Restart required`},
-    {id:'large-pages',icon:'📄',name:'Enable Large Pages for Game Memory',style:'mc',badges:['mem','perf'],
-     impact:`Large pages (2MB) reduce the number of TLB (Translation Lookaside Buffer) entries needed to map game memory. CS2 and Valorant allocate large contiguous memory regions for textures and game state. With 4KB pages, a 1GB texture region needs 262,144 TLB entries. With 2MB large pages, it needs only 512 — dramatically reducing TLB miss overhead.`,
-     desc:'The CPU TLB cache maps virtual memory addresses to physical RAM. With standard 4KB pages, large game allocations cause frequent TLB misses — each miss stalls the CPU while it walks the page table. Large pages (2MB) reduce TLB pressure by covering 512x more memory per entry. CS2 and Valorant both benefit from reduced TLB miss rates during texture streaming.',
-     apply:`@echo off
-REM OPTI — Enable Large Pages (requires Local Security Policy)
-REM Run as Administrator
-REM Step 1: Grant Lock Pages in Memory privilege
-echo Enabling Large Pages support...
-reg add "HKLM\SYSTEM\CurrentControlSet\Control\Session Manager\Memory Management" /v LargeSystemCache /t REG_DWORD /d 1 /f
-REM Step 2: Grant privilege via ntrights or secpol.msc
-echo.
-echo MANUAL STEP REQUIRED:
-echo 1. Open: secpol.msc (Local Security Policy)
-echo 2. Navigate to: Local Policies > User Rights Assignment
-echo 3. Double-click: Lock pages in memory
-echo 4. Add your user account
-echo 5. Reboot
-echo.
-echo Some games (CS2, DX12 titles) will automatically use large pages when available.
-pause`,
-     revert:`@echo off
-reg add "HKLM\SYSTEM\CurrentControlSet\Control\Session Manager\Memory Management" /v LargeSystemCache /t REG_DWORD /d 0 /f
-echo Large System Cache disabled. Reboot recommended.
-pause`}
+     revert:`powershell -Command \"$cs = Get-WmiObject Win32_ComputerSystem; $cs.AutomaticManagedPagefile = $true; $cs.Put()\"\nREM Restart required`}
   ],
   input: [
     {id:'mouse-accel',icon:'🖱️',name:'Disable Mouse Acceleration',badges:['latency'],
@@ -1977,6 +2208,27 @@ echo    (Prevents background patch downloads mid-session)
 echo.
 pause`,
      revert:`REM Re-enable Steam overlay: Library > CS2 > Properties > General > Enable Steam Overlay = ON`},
+    {id:'edge-debloat',icon:'🌐',name:'Debloat Microsoft Edge',style:'gc',badges:['perf','apps'],
+     impact:`Edge runs startup boost (pre-loads at login), background update tasks, sidebar panels, and telemetry services continuously — wasting 100-250MB RAM. Disabling these features frees that overhead without removing Edge.`,
+     desc:'Disables Edge Startup Boost, Background Running, Sidebar, Shopping Assistant, and telemetry via Group Policy. Edge still works normally for browsing.',
+     apply:`@echo off
+REM Debloat Microsoft Edge
+reg add "HKLM\\SOFTWARE\\Policies\\Microsoft\\Edge" /v StartupBoostEnabled /t REG_DWORD /d 0 /f
+reg add "HKLM\\SOFTWARE\\Policies\\Microsoft\\Edge" /v BackgroundModeEnabled /t REG_DWORD /d 0 /f
+reg add "HKLM\\SOFTWARE\\Policies\\Microsoft\\Edge" /v HubsSidebarEnabled /t REG_DWORD /d 0 /f
+reg add "HKLM\\SOFTWARE\\Policies\\Microsoft\\Edge" /v EdgeShoppingAssistantEnabled /t REG_DWORD /d 0 /f
+reg add "HKLM\\SOFTWARE\\Policies\\Microsoft\\Edge" /v DiagnosticData /t REG_DWORD /d 0 /f
+reg add "HKLM\\SOFTWARE\\Policies\\Microsoft\\Edge" /v PersonalizationReportingEnabled /t REG_DWORD /d 0 /f
+echo Done.
+pause`,
+     revert:`@echo off
+reg delete "HKLM\\SOFTWARE\\Policies\\Microsoft\\Edge" /v StartupBoostEnabled /f 2>nul
+reg delete "HKLM\\SOFTWARE\\Policies\\Microsoft\\Edge" /v BackgroundModeEnabled /f 2>nul
+reg delete "HKLM\\SOFTWARE\\Policies\\Microsoft\\Edge" /v HubsSidebarEnabled /f 2>nul
+reg delete "HKLM\\SOFTWARE\\Policies\\Microsoft\\Edge" /v EdgeShoppingAssistantEnabled /f 2>nul
+reg delete "HKLM\\SOFTWARE\\Policies\\Microsoft\\Edge" /v DiagnosticData /f 2>nul
+echo Done.
+pause`}
   ],
   cs2: [
     {id:'cs2-launch',icon:'🚀',name:'CS2 Launch Options (2024 Verified)',style:'cc',badges:['cs2','fps','latency'],
@@ -2213,7 +2465,7 @@ pause`},
      revert:`REM Valorant > Settings > Video > Frame Rate Limit > Uncapped`},
   ],
 };
-const TOTALS={cpu:22,intel:5,amd:6,nvidia:5,gpu:11,network:32,system:27,memory:12,input:6,general:7,apps:4,cs2:13,valorant:6};
+const TOTALS={cpu:22,intel:5,amd:6,nvidia:5,gpu:11,network:33,system:41,memory:11,input:6,general:7,apps:5,cs2:13,valorant:6};
 const TOTAL_ALL=Object.values(TOTALS).reduce((a,b)=>a+b,0);
 
 const GUIDE_IDS = new Set();
@@ -2357,6 +2609,22 @@ const TWEAK_SHORT = {
   'rss-cpu-bind':`Moves network DPC processing off core 0 onto a dedicated last core. Stops NIC interrupts stealing time from your game thread.`,
   'usb-suspend':`Prevents Windows sleeping USB ports. Eliminates 1–5ms mouse wake latency after moments of stillness in-game.`,
   'game-process-priority':`Permanently sets CS2/Valorant to High scheduling priority via IFEO. Game threads beat all background processes for CPU time.`,
+  'services-manual':`~25 idle services set to on-demand. Frees 150-300MB RAM without breaking anything.`,
+  'disable-activity-history':`Stops Windows logging every file/app you open to disk and Microsoft servers.`,
+  'disable-consumer-features':`Kills Windows background app installs, Start menu ads, and OEM bloat pushes.`,
+  'disable-location-tracking':`Disables lfsvc and GPS/Wi-Fi location polling. Frees ~20MB RAM continuously.`,
+  'remove-widgets':`Kills WebView2/Edge renderer for Win11 news panel. Frees 80-150MB RAM.`,
+  'disable-storage-sense':`Stops automated disk scans that spike I/O mid-session. Run cleanup manually instead.`,
+  'disable-copilot':`Removes Copilot taskbar button and kills background AI indexing thread. Frees 50-150MB.`,
+  'classic-right-click':`Restores full Win10 context menu — all shell extensions in one click.`,
+  'show-file-extensions':`Shows .exe .cfg .dll in Explorer. Essential for modding and config editing.`,
+  'show-hidden-files':`Reveals AppData, ProgramData, and OS paths needed for game configs and mods.`,
+  'end-task-right-click':`Adds End Task to Win11 taskbar right-click. Kill frozen games in 1 click.`,
+  'delete-temp-files':`Clears TEMP and Windows update download cache. One-time space reclaim.`,
+  'disable-bing-search':`Makes Start menu search instant and local-only. No Bing queries on keystrokes.`,
+  'disable-multiplane-overlay':`Fixes black screens and frame pacing on NVIDIA/AMD with multi-monitor.`,
+  'disable-teredo':`Removes IPv6 tunnel adapters that add overhead to every routing decision.`,
+  'edge-debloat':`Kills Edge Startup Boost, sidebar, shopping, and telemetry. Frees 100-250MB RAM.`
 };
 
 const CPU_DB = [
@@ -3075,7 +3343,7 @@ const GUIDES_DATA = [
   },
 ];
 
-const STORAGE_KEY = 'OPTI_v7';
+const STORAGE_KEY = 'JSP_v7';
 
 function download(content, filename){
   const a = Object.assign(document.createElement('a'),{
@@ -3698,6 +3966,137 @@ function HWDrop({ type }) {
 /* ═══════════════════════════════════════════════════════════════════════
    HW SECTION
 ═══════════════════════════════════════════════════════════════════════ */
+
+/* ═══════════════════════════════════════════════════════════════════════
+   SUG ROW — single recommendation row with inline details expand
+═══════════════════════════════════════════════════════════════════════ */
+function SugRow({ t, applied, sel, setSel, toast }) {
+    const [open, setOpen] = React.useState(false);
+    const [h, setH] = React.useState(0);
+    const [vis, setVis] = React.useState(false);
+    const [tab, setTab] = React.useState('apply');
+    const [cp, setCp] = React.useState(false);
+    const ref = React.useRef(null);
+    const timerRef = React.useRef(null);
+
+    React.useEffect(function() {
+        if (open) {
+            clearTimeout(timerRef.current);
+            setVis(true);
+        } else {
+            setH(0);
+            timerRef.current = setTimeout(function() { setVis(false); }, 240);
+        }
+        return function() { clearTimeout(timerRef.current); };
+    }, [open]);
+
+    React.useEffect(function() {
+        if (vis && open && ref.current) {
+            requestAnimationFrame(function() { if (ref.current) setH(ref.current.scrollHeight); });
+        }
+    }, [vis, open]);
+
+    function copyScript() {
+        const src = (tab === 'apply' ? t.apply : t.revert) || '';
+        fallbackCopy(src, function() { setCp(true); setTimeout(function() { setCp(false); }, 1400); });
+    }
+
+    const isApplied = !!applied[t.id];
+    const isSel = !!sel[t.id];
+    const lc = isApplied ? T.g : isSel ? T.y : t.priority === 1 ? T.b : t.priority === 2 ? '#a78bfa' : T.bd2;
+    const short = ((TWEAK_SHORT || {})[t.id] || '').replace(/\*\*([^*]+)\*\*/g, '$1');
+
+    return React.createElement('div', { key: t.id },
+        React.createElement('div', {
+            style: {
+                background: T.bg1,
+                border: '1px solid ' + (isApplied ? T.gb : isSel ? T.yb : open ? T.yb : T.bd),
+                borderLeft: '3px solid ' + lc,
+                borderBottom: open ? '0' : undefined,
+                padding: 'clamp(8px,.9vw,12px)',
+                display: 'flex', alignItems: 'center', gap: 10,
+                opacity: isApplied ? 0.55 : 1,
+                transition: 'border-color .15s'
+            }
+        },
+            React.createElement('span', { style: { fontSize: 'clamp(14px,1.3vw,17px)', flexShrink: 0 } }, t.icon),
+            React.createElement('div', { style: { flex: 1, minWidth: 0 } },
+                React.createElement('div', { style: { fontSize: 'var(--fsm)', fontWeight: 600, color: isApplied ? T.g : T.t1, marginBottom: 1 } }, t.name),
+                React.createElement('div', { style: { fontSize: 'var(--f2xs)', color: T.t3, fontFamily: 'var(--mono)', letterSpacing: '.08em' } }, t.reason)
+            ),
+            React.createElement('button', {
+                onClick: function() { setOpen(function(o) { return !o; }); },
+                title: open ? 'Hide details' : 'Show details',
+                style: {
+                    background: open ? T.yb : 'transparent',
+                    border: '1px solid ' + (open ? T.y + '50' : T.bd),
+                    color: open ? T.y : T.t3,
+                    fontFamily: 'var(--mono)', fontSize: 'var(--f2xs)', fontWeight: 700,
+                    padding: '4px 10px', cursor: 'pointer', letterSpacing: '.1em',
+                    transition: '.12s', flexShrink: 0, marginRight: 4
+                }
+            }, open ? '\u25b2 INFO' : '\u25bc INFO'),
+            isApplied
+                ? React.createElement('span', { style: { fontFamily: 'var(--mono)', fontSize: 'var(--f2xs)', color: T.g, fontWeight: 700, flexShrink: 0 } }, '\u2713 APPLIED')
+                : isSel
+                    ? React.createElement(Pill, { accent: T.y, onClick: function() { setSel(function(p) { const n = Object.assign({}, p); delete n[t.id]; return n; }); } }, 'QUEUED')
+                    : React.createElement(Pill, { accent: '#a78bfa', onClick: function() { setSel(function(p) { return Object.assign({}, p, { [t.id]: t.cat }); }); toast('+ ' + t.name, 'info'); } }, 'ADD')
+        ),
+        React.createElement('div', {
+            style: {
+                height: h + 'px', overflow: 'hidden',
+                display: vis ? 'block' : 'none',
+                transition: 'height .24s cubic-bezier(.4,0,.2,1)',
+                background: T.bg0,
+                borderLeft: '3px solid ' + T.y,
+                borderRight: '1px solid ' + T.bd,
+                borderBottom: open ? '1px solid ' + T.bd : 'none',
+                boxShadow: open ? 'inset 0 0 36px ' + T.y + '07' : 'none',
+            }
+        },
+            React.createElement('div', { ref: ref },
+                React.createElement('div', {
+                    style: { padding: 'clamp(14px,1.6vw,22px)', display: 'grid', gridTemplateColumns: 'minmax(0,1fr) minmax(0,1.2fr)', gap: 'clamp(16px,2vw,28px)', alignItems: 'start' }
+                },
+                    React.createElement('div', { style: { minWidth: 0 } },
+                        React.createElement('div', { style: { fontFamily: 'var(--mono)', fontSize: 'var(--f2xs)', fontWeight: 700, letterSpacing: '.18em', color: T.y, marginBottom: 6 } }, '// TWEAK_INFO'),
+                        React.createElement('div', { style: { fontSize: 'var(--fsm)', fontWeight: 700, color: T.t1, marginBottom: 8, lineHeight: 1.3 } }, t.icon + ' ' + t.name),
+                        short && React.createElement('div', { style: { fontSize: 'var(--fsm)', color: T.t2, lineHeight: 1.75, marginBottom: 10 } }, short),
+                        t.risky && t.riskNote && React.createElement('div', {
+                            style: { fontSize: 'var(--fxs)', color: T.o, lineHeight: 1.6, background: T.o + '0a', border: '1px solid ' + T.o + '28', padding: '7px 11px', marginBottom: 10, borderLeft: '2px solid ' + T.o + '60' }
+                        }, '\u26a0 ' + t.riskNote),
+                        React.createElement('div', { style: { display: 'flex', flexWrap: 'wrap', gap: 4 } },
+                            (t.badges || []).map(function(b) { return React.createElement(Chip, { key: b, label: b }); }),
+                            t.risky && React.createElement(Chip, { key: 'risk', label: 'risk' })
+                        )
+                    ),
+                    React.createElement('div', { style: { display: 'flex', flexDirection: 'column', minWidth: 0 } },
+                        React.createElement('div', { style: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 } },
+                            React.createElement('div', { style: { display: 'flex', gap: 3 } },
+                                ['apply', 'revert'].map(function(v) {
+                                    return React.createElement(Pill, { key: v, accent: tab === v ? T.y : undefined, onClick: function() { setTab(v); }, style: { padding: '4px 14px', background: tab === v ? T.y + '12' : 'transparent' } }, v);
+                                })
+                            ),
+                            React.createElement(Pill, { accent: cp ? T.g : T.t2, onClick: copyScript }, cp ? '\u2713 COPIED' : 'COPY')
+                        ),
+                        React.createElement('pre', {
+                            style: {
+                                background: T.bg1, border: '1px solid ' + T.bd, borderLeft: '2px solid ' + T.y,
+                                padding: 'clamp(10px,1.2vw,16px)',
+                                fontFamily: 'var(--mono)', fontSize: 'var(--f2xs)',
+                                color: T.t1, lineHeight: 1.85,
+                                textShadow: '0 0 8px ' + T.y + '18',
+                                maxHeight: 'clamp(130px,15vh,200px)', overflowY: 'auto', overflowX: 'auto',
+                                margin: 0, whiteSpace: 'pre', wordBreak: 'normal'
+                            }
+                        }, (tab === 'apply' ? t.apply : t.revert) || '// No script')
+                    )
+                )
+            )
+        )
+    );
+}
+
 function ForMyBuildSection() {
     const { hw, setHw, ram, setRam, toast, applied, sel, setSel } = useApp();
     const [scanText, sst] = useState('');
@@ -3752,19 +4151,116 @@ function ForMyBuildSection() {
     }
     const sugs = useMemo(() => {
         if (!hw.cpu && !hw.gpu) return [];
-        const out = [];
-        for (const [cat, tweaks] of Object.entries(TWEAKS)) {
-            for (const t of tweaks) {
-                if (applied[t.id] || sel[t.id]) continue;
-                if (typeof GUIDE_IDS !== 'undefined' && GUIDE_IDS.has(t.id)) continue;
-                if (t.hw === 'intel' && hw.cpu?.brand === 'intel') out.push(Object.assign({}, t, { cat, reason: `Intel · ${hw.cpu.name}` }));
-                else if (t.hw === 'amd' && hw.cpu?.brand === 'amd') out.push(Object.assign({}, t, { cat, reason: `AMD · ${hw.cpu.name}` }));
-                else if ((t.hw === 'nvidia' || t.hw === 'gpu') && hw.gpu?.brand === 'nvidia') out.push(Object.assign({}, t, { cat, reason: `NVIDIA · ${hw.gpu.name}` }));
-                else if (t.hw === 'amd-gpu' && hw.gpu?.brand === 'amd-gpu') out.push(Object.assign({}, t, { cat, reason: `AMD GPU · ${hw.gpu.name}` }));
-            }
+        const skip = (t) => applied[t.id] || sel[t.id] || (typeof GUIDE_IDS !== 'undefined' && GUIDE_IDS.has(t.id));
+        const byId = {};
+        for (const [cat, arr] of Object.entries(TWEAKS)) {
+            for (const t of arr) byId[t.id] = { ...t, cat };
         }
-        return out.slice(0, 12);
-    }, [hw, applied, sel]);
+        const add = (id, reason, priority) => {
+            const t = byId[id];
+            if (!t || skip(t)) return;
+            return { ...t, reason, priority: priority || 5 };
+        };
+        const results = [];
+        const push = (id, reason, pri) => { const r = add(id, reason, pri); if (r) results.push(r); };
+
+        // ── CPU brand specifics ──
+        if (hw.cpu?.brand === 'intel') {
+            const lbl = `Intel ${hw.cpu.name || ''}`.trim();
+            push('intel-speed-shift', lbl + ' · Speed Shift', 1);
+            push('intel-power-limit', lbl + ' · Power Limits', 1);
+            push('intel-ring-cache', lbl + ' · Ring/Cache', 1);
+            push('intel-e-core', lbl + ' · E-Core Tuning', 2);
+            push('intel-imc', lbl + ' · Memory Controller', 2);
+            push('smt-heterogeneous', lbl + ' · Hybrid Core Scheduling', 2);
+        }
+        if (hw.cpu?.brand === 'amd') {
+            const lbl = `AMD ${hw.cpu.name || ''}`.trim();
+            push('amd-pbo', lbl + ' · Precision Boost', 1);
+            push('amd-power-plan', lbl + ' · Power Plan', 1);
+            push('amd-curve-optimizer', lbl + ' · Curve Optimizer', 2);
+            push('amd-fclk', lbl + ' · FCLK / Infinity Fabric', 2);
+            if (hw.cpu.x3d) push('amd-x3d-latency', lbl + ' · 3D V-Cache Latency', 1);
+            push('amd-expo-xmp', lbl + ' · EXPO/XMP Profile', 2);
+        }
+
+        // ── GPU brand specifics ──
+        if (hw.gpu?.brand === 'nvidia') {
+            const lbl = `NVIDIA ${hw.gpu.name || ''}`.trim();
+            push('nvcp-low-latency', lbl + ' · Ultra Low Latency', 1);
+            push('nvcp-shader-cache', lbl + ' · Shader Cache', 1);
+            push('nvcp-power-mode', lbl + ' · Max Performance Mode', 1);
+            push('nvcp-g-sync', lbl + ' · G-Sync/VRR', 2);
+            push('nvcp-digital-vibrance', lbl + ' · Digital Vibrance', 3);
+        }
+
+        // ── Universal high-impact CPU/system tweaks ──
+        const sysLbl = 'System · High Impact';
+        push('ult-power', sysLbl + ' · Ultimate Power Plan', 1);
+        push('disable-vbs', sysLbl + ' · Disable VBS', 1);
+        push('gpu-msi-mode', sysLbl + ' · GPU MSI Interrupts', 1);
+        push('power-throttling', sysLbl + ' · Disable Power Throttling', 1);
+        push('flip-model', sysLbl + ' · Win11 Flip Model', 2);
+        push('disable-fso', sysLbl + ' · Fullscreen Optimizations', 2);
+        push('audio-latency', sysLbl + ' · Audio DPC Latency', 2);
+        push('process-isolate', 'System · Foreground App Priority', 2);
+        push('no-ecoqos', 'System · Disable EcoQoS Throttle', 2);
+        push('irq-priority-g', 'System · GPU IRQ Priority', 2);
+
+        // ── Privacy / bloat tweaks ──
+        push('telemetry', 'Privacy · Telemetry & DVR', 2);
+        push('disable-copilot', 'Privacy · Copilot Background', 3);
+        push('disable-consumer-features', 'Privacy · Windows Ads', 3);
+        push('disable-activity-history', 'Privacy · Activity History', 3);
+        push('disable-location-tracking', 'Privacy · Location Tracking', 3);
+        push('disable-bing-search', 'Privacy · Bing in Start Menu', 4);
+
+        // ── System housekeeping ──
+        push('sysmain', 'System · SysMain / Superfetch', 2);
+        push('services-manual', 'System · Services on Demand', 2);
+        push('remove-widgets', 'System · Win11 Widgets RAM', 3);
+        push('disable-storage-sense', 'System · Storage Sense I/O', 3);
+        push('ntfs-last-access', 'System · NTFS Timestamps', 3);
+        push('svchost-split', 'System · SvcHost Splitting', 3);
+        push('visual-fx', 'System · Visual Effects', 3);
+        push('disable-multiplane-overlay', 'System · MPO (multi-monitor)', 3);
+        push('background-apps', 'System · Background Apps', 3);
+
+        // ── Network ──
+        push('net-throttle', 'Network · Throttle Index', 2);
+        push('tcp-autotuning', 'Network · TCP Auto-Tuning', 2);
+        push('dns-cache', 'Network · DNS Cache', 2);
+        push('qos-priority', 'Network · QoS Reservation', 2);
+        push('udp-buffer', 'Network · UDP/TCP Buffers', 3);
+        push('rss', 'Network · Receive Side Scaling', 3);
+        push('ipv6-disable', 'Network · IPv6 (if unused)', 3);
+        push('disable-teredo', 'Network · Teredo Tunneling', 3);
+
+        // ── RAM-specific ──
+        if (ram.type === 'DDR5') {
+            push('ram-timing', 'Memory · DDR5 Timing', 1);
+            push('large-pages', 'Memory · Large Pages (DDR5)', 2);
+        } else if (ram.capacity && parseInt(ram.capacity) <= 16) {
+            push('working-set', 'Memory · Low RAM Optimization', 1);
+            push('memory-compression', 'Memory · Compression', 2);
+        } else {
+            push('ram-timing', 'Memory · RAM Timings', 2);
+            push('large-pages', 'Memory · Large Pages', 3);
+        }
+        push('prefetch-off', 'Memory · Prefetch (SSD)', 3);
+        push('heap-opt', 'Memory · Heap Fragmentation', 3);
+
+        // ── App tweaks ──
+        push('xbox-game-bar', 'Apps · Xbox Game Bar', 2);
+        push('edge-debloat', 'Apps · Edge Background', 3);
+        push('discord-hw-accel', 'Apps · Discord HW Accel', 3);
+        push('steam-overlay', 'Apps · Steam Overlay', 3);
+
+        // Sort by priority then filter dups
+        results.sort((a, b) => (a.priority || 5) - (b.priority || 5));
+        return results;
+    }, [hw, ram, applied, sel]);
+
     return (React.createElement("div", null,
         React.createElement(Hdr, { eyebrow: "PERSONALIZED", title: "FOR MY BUILD", sub: "HARDWARE PROFILE · TARGETED TWEAKS" }),
         React.createElement("div", { style: { marginBottom: 'clamp(6px,.6vw,10px)' } },
@@ -3824,21 +4320,48 @@ function ForMyBuildSection() {
                     s.v ? React.createElement("div", { style: { fontSize: 'var(--fsm)', fontWeight: 700, color: s.c } }, s.v)
                          : React.createElement("div", { style: { fontSize: 'var(--fxs)', color: T.o } }, "Not detected"),
                     s.sub && React.createElement("div", { style: { fontFamily: 'var(--mono)', fontSize: 'var(--f2xs)', color: T.t3, marginTop: 2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' } }, s.sub))))))),
-        !hw.cpu && !hw.gpu ? (React.createElement("div", { style: { padding: 'clamp(24px,3vw,48px)', textAlign: 'center', background: T.bg1, border: `1px solid ${T.bd}` } },
+        !hw.cpu && !hw.gpu ? React.createElement("div", { style: { padding: 'clamp(24px,3vw,48px)', textAlign: 'center', background: T.bg1, border: `1px solid ${T.bd}` } },
             React.createElement("div", { style: { fontSize: 'clamp(28px,3.5vw,44px)', marginBottom: 10, opacity: .1 } }, "\u2B21"),
             React.createElement("div", { style: { fontFamily: 'var(--display)', fontSize: 'var(--flg)', fontWeight: 700, color: T.t3, textTransform: 'uppercase', marginBottom: 6 } }, "Detect hardware above"),
-            React.createElement("div", { style: { fontSize: 'var(--fxs)', color: T.t3 } }, "Run the PowerShell scan or select your CPU/GPU manually"))) : sugs.length === 0 ? null : (React.createElement("div", null,
+            React.createElement("div", { style: { fontSize: 'var(--fxs)', color: T.t3 } }, "Run the PowerShell scan or select your CPU/GPU manually"))
+        : sugs.length === 0 ? null
+        : React.createElement("div", null,
             React.createElement("div", { style: { marginBottom: 'clamp(8px,.8vw,12px)', display: 'flex', alignItems: 'center', gap: 8 } },
                 React.createElement("div", { style: { flex: 1, height: 1, background: T.bd } }),
-                React.createElement("div", { style: { fontFamily: 'var(--mono)', fontSize: 'var(--f2xs)', fontWeight: 700, letterSpacing: '.16em', color: T.t3 } }, "RECOMMENDED FOR YOUR BUILD"),
+                React.createElement("div", { style: { fontFamily: 'var(--mono)', fontSize: 'var(--f2xs)', fontWeight: 700, letterSpacing: '.16em', color: T.t3 } },
+                    'RECOMMENDED FOR YOUR BUILD (' + sugs.length + ' tweaks)'),
                 React.createElement("div", { style: { flex: 1, height: 1, background: T.bd } })),
-            React.createElement("div", { style: { display: 'flex', flexDirection: 'column', gap: 'clamp(4px,.4vw,6px)' } }, sugs.map(t => (React.createElement("div", { key: t.id, style: { background: T.bg1, border: `1px solid ${T.bd}`, borderLeft: `3px solid #c084fc40`, padding: 'clamp(10px,1.1vw,14px)', display: 'flex', alignItems: 'center', gap: 12 } },
-                React.createElement("span", { style: { fontSize: 'clamp(16px,1.5vw,20px)', flexShrink: 0 } }, t.icon),
-                React.createElement("div", { style: { flex: 1, minWidth: 0 } },
-                    React.createElement("div", { style: { fontSize: 'var(--fsm)', fontWeight: 600, color: T.t1, marginBottom: 2 } }, t.name),
-                    React.createElement("div", { style: { fontSize: 'var(--fxs)', color: T.t2, fontFamily: 'var(--mono)' } }, t.reason)),
-                React.createElement(Pill, { accent: "#c084fc", onClick: () => { setSel(p => Object.assign({}, p, { [t.id]: t.cat })); toast(`+ ${t.name}`, 'info'); } }, "ADD")))))))));
+            React.createElement("div", { style: { display: 'flex', gap: 8, marginBottom: 'clamp(8px,.8vw,12px)' } },
+                React.createElement("button", {
+                    onClick: function() {
+                        const ns = Object.assign({}, sel);
+                        sugs.forEach(function(t) { if (!applied[t.id]) ns[t.id] = t.cat; });
+                        setSel(ns);
+                        toast('+ ' + sugs.filter(function(t){return !applied[t.id];}).length + ' build tweaks queued', 'success');
+                    },
+                    style: { flex: 1, padding: '9px 16px', fontFamily: 'var(--mono)', fontSize: 'var(--f2xs)', fontWeight: 700, letterSpacing: '.12em', cursor: 'pointer', background: `${T.b}18`, color: T.b, border: `1px solid ${T.b}50`, transition: '.12s' }
+                }, "\u2713 QUEUE ALL FOR MY BUILD"),
+                React.createElement("button", {
+                    onClick: function() {
+                        const entries = sugs.filter(function(t){return !applied[t.id];}).map(function(t){return [t.id, t.cat];});
+                        if (!entries.length) { toast('Nothing to download', 'warn'); return; }
+                        const label = (hw.cpu ? hw.cpu.name : '') + (hw.gpu ? ' + ' + hw.gpu.name : '') + (ram.capacity ? ' ' + ram.capacity : '') + (ram.type ? ' ' + ram.type : '');
+                        const s = buildBat('FOR MY BUILD', entries, false, 'Tweaks optimized for: ' + label.trim());
+                        download(s, 'JSP_my_build.bat');
+                        toast('\u2193 JSP_my_build.bat downloaded', 'success');
+                    },
+                    style: { padding: '9px 16px', fontFamily: 'var(--mono)', fontSize: 'var(--f2xs)', fontWeight: 700, letterSpacing: '.12em', cursor: 'pointer', background: `${T.g}18`, color: T.g, border: `1px solid ${T.g}50`, transition: '.12s' }
+                }, "\u2193 DOWNLOAD BUILD SCRIPT")),
+            React.createElement("div", { style: { display: 'flex', flexDirection: 'column', gap: 'clamp(3px,.3vw,5px)' } }, sugs.map(function(t) {
+                return React.createElement(SugRow, {
+                    key: t.id, t: t,
+                    applied: applied, sel: sel,
+                    setSel: setSel, toast: toast
+                });
+            }))
+        )));;
 }
+
 
 
 function PresetsSection() {
@@ -4197,18 +4720,46 @@ function RightPanel() {
     const pct = Math.round(appE.length / TOTAL_ALL * 100);
     function getName(id, cat) { var _a, _b; return ((_b = (_a = TWEAKS[cat]) === null || _a === void 0 ? void 0 : _a.find(x => x.id === id)) === null || _b === void 0 ? void 0 : _b.name) || id; }
     function getIcon(id, cat) { var _a, _b; return ((_b = (_a = TWEAKS[cat]) === null || _a === void 0 ? void 0 : _a.find(x => x.id === id)) === null || _b === void 0 ? void 0 : _b.icon) || '⚡'; }
-    function exportApply() {
+    
+function buildBat(title, entries, isRevert, desc) {
+    const lines = [
+        '@echo off',
+        'REM ============================================================',
+        'REM OPTI ' + title,
+        'REM Generated by OPTI Gaming Optimizer',
+        'REM Run as Administrator',
+        'REM ============================================================',
+        ''
+    ];
+    if (desc) { lines.push('REM ' + desc); lines.push(''); }
+    entries.forEach(function(entry) {
+        var id = entry[0], cat = entry[1];
+        var tw = (TWEAKS[cat] || []).find(function(t) { return t.id === id; });
+        if (!tw) return;
+        var script = isRevert ? (tw.revert || '') : (tw.apply || '');
+        if (!script.trim()) return;
+        lines.push('REM --- ' + tw.name + ' ---');
+        lines.push(script.trim());
+        lines.push('');
+    });
+    lines.push('echo.');
+    lines.push('echo All done. You may close this window.');
+    lines.push('pause');
+    return lines.join('\r\n');
+}
+
+function exportApply() {
         if (!selE.length) {
             toast('Nothing queued', 'warn');
             return;
         }
         const s = buildBat('APPLY SELECTED', selE, false);
-        download(s, 'OPTI_apply.bat');
+        download(s, 'JSP_apply.bat');
         const na = Object.assign({}, applied);
         selE.forEach(([id, cat]) => { na[id] = cat; });
         setApplied(na);
         setSel({});
-        toast(`⬇ OPTI_apply.bat (${selE.length})`, 'success');
+        toast(`⬇ JSP_apply.bat (${selE.length})`, 'success');
     }
     function exportRevert() {
         if (!selE.length) {
@@ -4216,12 +4767,12 @@ function RightPanel() {
             return;
         }
         const s = buildBat('REVERT SELECTED', selE, true);
-        download(s, 'OPTI_revert.bat');
+        download(s, 'JSP_revert.bat');
         const na = Object.assign({}, applied);
         selE.forEach(([id]) => { delete na[id]; });
         setApplied(na);
         setSel({});
-        toast(`⬇ OPTI_revert.bat (${selE.length})`, 'success');
+        toast(`⬇ JSP_revert.bat (${selE.length})`, 'success');
     }
     function exportRevertAll() {
         if (!appE.length) {
@@ -4229,10 +4780,10 @@ function RightPanel() {
             return;
         }
         const s = buildBat('REVERT ALL', appE, true, 'Reverts every applied tweak.');
-        download(s, 'OPTI_revert_ALL.bat');
+        download(s, 'JSP_revert_ALL.bat');
         setApplied({});
         setSel({});
-        toast(`⬇ OPTI_revert_ALL.bat (${appE.length})`, 'success');
+        toast(`⬇ JSP_revert_ALL.bat (${appE.length})`, 'success');
     }
     return (React.createElement("div", { style: {
             background: T.bg0,
@@ -4368,7 +4919,7 @@ function RightPanel() {
 /* ═══════════════════════════════════════════════════════════════════════
    APP
 ═══════════════════════════════════════════════════════════════════════ */
-const SK = typeof STORAGE_KEY !== 'undefined' ? STORAGE_KEY : 'OPTI_v7';
+const SK = typeof STORAGE_KEY !== 'undefined' ? STORAGE_KEY : 'JSP_v7';
 class ErrorBoundary extends React.Component {
     constructor(p) { super(p); this.state = { err: null }; }
     static getDerivedStateFromError(e) { return { err: e }; }
