@@ -3719,9 +3719,35 @@ function ForMyBuildSection() {
             for (const n of gpuNames) { if (/nvidia|geforce|rtx|gtx|amd|radeon/i.test(n) && !/remote|basic|virtual/i.test(n)) { gpuRaw = n; break; } }
             const mc = matchCPUFromString(cpuRaw);
             const mg = matchGPUFromString(gpuRaw);
-            ssr({ cpuRaw, gpuRaw, mc, mg });
+
+            // ── RAM parsing ──
+            const ramCapacities = gaf('ram', 'Capacity').map(v => parseInt(v, 10)).filter(n => !isNaN(n) && n > 0);
+            const ramSpeeds = gaf('ram', 'Speed').map(v => parseInt(v, 10)).filter(n => !isNaN(n) && n > 0);
+            const ramTypes = gaf('ram', 'SMBIOSMemoryType').map(v => parseInt(v, 10)).filter(n => !isNaN(n));
+            const ramSticks = ramCapacities.length;
+            const totalBytes = ramCapacities.reduce((a, b) => a + b, 0);
+            const totalGB = totalBytes > 0 ? Math.round(totalBytes / (1024 ** 3)) : null;
+            const speedMHz = ramSpeeds.length > 0 ? Math.max(...ramSpeeds) : null;
+            const memTypeNum = ramTypes.length > 0 ? ramTypes[0] : null;
+            const memTypeStr = memTypeNum === 34 ? 'DDR5' : memTypeNum === 26 ? 'DDR4' : memTypeNum === 24 ? 'DDR3' : null;
+            const channelStr = ramSticks >= 4 ? 'quad' : ramSticks >= 2 ? 'dual' : ramSticks === 1 ? 'single' : null;
+
+            const capOpts = ['8GB','16GB','32GB','48GB','64GB','96GB','128GB'];
+            const spdOpts = ['2133','2400','2666','3000','3200','3600','4000','4800','5200','5600','6000','6400'];
+            const detectedCap = totalGB ? (capOpts.find(o => parseInt(o) === totalGB) || null) : null;
+            const detectedSpd = speedMHz ? snapRAMSpeed(speedMHz) : null;
+
+            const newRam = {};
+            if (detectedCap) newRam.capacity = detectedCap;
+            if (detectedSpd) newRam.speed = String(detectedSpd);
+            if (memTypeStr) newRam.type = memTypeStr;
+            if (channelStr) newRam.channels = channelStr;
+            if (Object.keys(newRam).length > 0) setRam(prev => ({ ...prev, ...newRam }));
+
+            ssr({ cpuRaw, gpuRaw, mc, mg, ramRaw: { totalGB, speedMHz, memTypeStr, sticks: ramSticks } });
             setHw({ cpu: mc || hw.cpu, gpu: mg || hw.gpu });
-            toast(mc || mg ? `✓ ${mc?.name || '?'} + ${mg?.name || '?'}` : '⚠ Not detected', mc || mg ? 'success' : 'warn');
+            const ramMsg = detectedCap || detectedSpd ? ` · ${detectedCap || '?'} ${memTypeStr || ''} ${detectedSpd ? detectedSpd+'MHz' : ''}`.trim() : '';
+            toast(mc || mg ? `✓ ${mc?.name || '?'} + ${mg?.name || '?'}${ramMsg}` : '⚠ Not detected', mc || mg ? 'success' : 'warn');
         } catch (e) { toast('Error: ' + e.message, 'error'); }
     }
     const sugs = useMemo(() => {
@@ -3788,12 +3814,16 @@ function ForMyBuildSection() {
             React.createElement("div", { style: { fontFamily: 'var(--mono)', fontSize: 'var(--f2xs)', color: T.t3, letterSpacing: '.12em', marginBottom: 5 } }, "PASTE OUTPUT HERE"),
             React.createElement("textarea", { value: scanText, onChange: e => sst(e.target.value), placeholder: "Paste the PowerShell output here then click Scan...", style: { width: '100%', minHeight: 'clamp(80px,9vh,110px)', background: T.bg0, border: `1px solid ${T.bd}`, color: T.t1, fontFamily: 'var(--mono)', fontSize: 'var(--f2xs)', padding: '10px 12px', outline: 'none', resize: 'vertical', lineHeight: 1.7, boxSizing: 'border-box', display: 'block', marginBottom: 8 } }),
             React.createElement("button", { onClick: doScan, style: { width: '100%', padding: 'clamp(8px,.9vw,12px)', cursor: 'pointer', fontFamily: 'var(--mono)', fontSize: 'var(--fsm)', fontWeight: 700, letterSpacing: '.14em', textTransform: 'uppercase', background: T.yd, color: T.y, border: `1px solid ${T.yb}`, transition: '.12s' } }, "\u26A1 SCAN & AUTO-DETECT"),
-            scanResult && (React.createElement("div", { style: { marginTop: 10, display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 } },
-                [{ l: 'CPU', r: scanResult.cpuRaw, m: scanResult.mc, c: T.b }, { l: 'GPU', r: scanResult.gpuRaw, m: scanResult.mg, c: T.g }].map(s => (React.createElement("div", { key: s.l, style: { background: T.bg0, border: `1px solid ${T.bd}`, padding: '10px 12px', borderLeft: `2px solid ${s.c}40` } },
+            scanResult && (React.createElement("div", { style: { marginTop: 10, display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 8 } },
+                [
+                    { l: 'CPU', v: scanResult.mc?.name, sub: scanResult.cpuRaw, c: T.b },
+                    { l: 'GPU', v: scanResult.mg?.name, sub: scanResult.gpuRaw, c: T.g },
+                    { l: 'RAM', v: scanResult.ramRaw ? [scanResult.ramRaw.totalGB ? scanResult.ramRaw.totalGB+'GB' : '', scanResult.ramRaw.memTypeStr||'', scanResult.ramRaw.speedMHz ? scanResult.ramRaw.speedMHz+'MHz' : ''].filter(Boolean).join(' ') || null : null, sub: scanResult.ramRaw?.sticks ? `${scanResult.ramRaw.sticks} module${scanResult.ramRaw.sticks!==1?'s':''}` : null, c: T.y },
+                ].map(s => (React.createElement("div", { key: s.l, style: { background: T.bg0, border: `1px solid ${T.bd}`, padding: '10px 12px', borderLeft: `2px solid ${s.c}40` } },
                     React.createElement("div", { style: { fontFamily: 'var(--mono)', fontSize: 'var(--f2xs)', color: T.t3, letterSpacing: '.14em', marginBottom: 4 } }, s.l),
-                    s.m ? React.createElement("div", { style: { fontSize: 'var(--fsm)', fontWeight: 700, color: s.c } }, s.m.name)
+                    s.v ? React.createElement("div", { style: { fontSize: 'var(--fsm)', fontWeight: 700, color: s.c } }, s.v)
                          : React.createElement("div", { style: { fontSize: 'var(--fxs)', color: T.o } }, "Not detected"),
-                    s.r && React.createElement("div", { style: { fontFamily: 'var(--mono)', fontSize: 'var(--f2xs)', color: T.t3, marginTop: 2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' } }, s.r))))))),
+                    s.sub && React.createElement("div", { style: { fontFamily: 'var(--mono)', fontSize: 'var(--f2xs)', color: T.t3, marginTop: 2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' } }, s.sub))))))),
         !hw.cpu && !hw.gpu ? (React.createElement("div", { style: { padding: 'clamp(24px,3vw,48px)', textAlign: 'center', background: T.bg1, border: `1px solid ${T.bd}` } },
             React.createElement("div", { style: { fontSize: 'clamp(28px,3.5vw,44px)', marginBottom: 10, opacity: .1 } }, "\u2B21"),
             React.createElement("div", { style: { fontFamily: 'var(--display)', fontSize: 'var(--flg)', fontWeight: 700, color: T.t3, textTransform: 'uppercase', marginBottom: 6 } }, "Detect hardware above"),
