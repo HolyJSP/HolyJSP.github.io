@@ -290,7 +290,7 @@ REM Run as Administrator. Reboot recommended.
 
 echo Locating NVIDIA GPU registry key...
 for /f "delims=" %%P in ('powershell -NoProfile -Command "^
-(Get-ChildItem 'HKLM:\SYSTEM\CurrentControlSet\Control\Video' -Recurse -EA SilentlyContinue ^| ^
+(Get-ChildItem 'HKLM:\\SYSTEM\\CurrentControlSet\\Control\\Video' -Recurse -EA SilentlyContinue ^| ^
  Where-Object { try{(Get-ItemProperty $_.PSPath -EA SilentlyContinue).'Device Description' -like '*NVIDIA*'}catch{$false} } ^| ^
  Where-Object { $_.PSChildName -eq '0000' } ^| Select-Object -First 1 -ExpandProperty PSPath) -replace 'Microsoft.PowerShell.Core\\\\Registry::',''
 "') do set GPU_KEY=%%P
@@ -308,7 +308,7 @@ reg add "%GPU_KEY%" /v "PowerMizerLevelAC" /t REG_DWORD /d 1 /f
 reg add "%GPU_KEY%" /v "PerfLevelSrc" /t REG_DWORD /d 8738 /f
 
 echo [2/2] Reducing flip queue depth...
-reg add "HKLM\SYSTEM\CurrentControlSet\Control\GraphicsDrivers" /v "HwFlipQueueLength" /t REG_DWORD /d 1 /f
+reg add "HKLM\\SYSTEM\\CurrentControlSet\\Control\\GraphicsDrivers" /v "HwFlipQueueLength" /t REG_DWORD /d 1 /f
 
 echo.
 echo Registry done. Also set these in NVIDIA Control Panel manually:
@@ -323,7 +323,7 @@ pause`,
      revert:`@echo off
 REM OPTI — Revert NVIDIA Low Latency Profile
 for /f "delims=" %%P in ('powershell -NoProfile -Command "^
-(Get-ChildItem 'HKLM:\SYSTEM\CurrentControlSet\Control\Video' -Recurse -EA SilentlyContinue ^| ^
+(Get-ChildItem 'HKLM:\\SYSTEM\\CurrentControlSet\\Control\\Video' -Recurse -EA SilentlyContinue ^| ^
  Where-Object { try{(Get-ItemProperty $_.PSPath -EA SilentlyContinue).'Device Description' -like '*NVIDIA*'}catch{$false} } ^| ^
  Where-Object { $_.PSChildName -eq '0000' } ^| Select-Object -First 1 -ExpandProperty PSPath) -replace 'Microsoft.PowerShell.Core\\\\Registry::',''
 "') do set GPU_KEY=%%P
@@ -334,7 +334,7 @@ reg delete "%GPU_KEY%" /v "PowerMizerEnable" /f 2>nul
 reg delete "%GPU_KEY%" /v "PowerMizerLevel" /f 2>nul
 reg delete "%GPU_KEY%" /v "PowerMizerLevelAC" /f 2>nul
 reg delete "%GPU_KEY%" /v "PerfLevelSrc" /f 2>nul
-reg delete "HKLM\SYSTEM\CurrentControlSet\Control\GraphicsDrivers" /v "HwFlipQueueLength" /f 2>nul
+reg delete "HKLM\\SYSTEM\\CurrentControlSet\\Control\\GraphicsDrivers" /v "HwFlipQueueLength" /f 2>nul
 echo NVIDIA Low Latency profile reverted. Reboot recommended.
 pause`},
     {id:'nvcp-fps-profile',icon:'🟢',name:'NVIDIA Control Panel — Max FPS Profile',badges:['fps','gpu'],
@@ -346,7 +346,7 @@ REM Run as Administrator. Reboot recommended.
 
 echo Locating NVIDIA GPU registry key...
 for /f "delims=" %%P in ('powershell -NoProfile -Command "^
-(Get-ChildItem 'HKLM:\SYSTEM\CurrentControlSet\Control\Video' -Recurse -EA SilentlyContinue ^| ^
+(Get-ChildItem 'HKLM:\\SYSTEM\\CurrentControlSet\\Control\\Video' -Recurse -EA SilentlyContinue ^| ^
  Where-Object { try{(Get-ItemProperty $_.PSPath -EA SilentlyContinue).'Device Description' -like '*NVIDIA*'}catch{$false} } ^| ^
  Where-Object { $_.PSChildName -eq '0000' } ^| Select-Object -First 1 -ExpandProperty PSPath) -replace 'Microsoft.PowerShell.Core\\\\Registry::',''
 "') do set GPU_KEY=%%P
@@ -361,8 +361,8 @@ reg add "%GPU_KEY%" /v "PowerMizerLevelAC" /t REG_DWORD /d 1 /f
 reg add "%GPU_KEY%" /v "PerfLevelSrc" /t REG_DWORD /d 8738 /f
 
 echo [2/3] Setting unlimited shader cache...
-reg add "HKLM\SOFTWARE\NVIDIA Corporation\Global\NVTweak" /v "GLShaderDiskCache" /t REG_DWORD /d 1 /f
-reg add "HKLM\SOFTWARE\NVIDIA Corporation\Global\NVTweak" /v "GLShaderDiskCacheMaxSize" /t REG_DWORD /d 102400 /f
+reg add "HKLM\\SOFTWARE\\NVIDIA Corporation\\Global\\NVTweak" /v "GLShaderDiskCache" /t REG_DWORD /d 1 /f
+reg add "HKLM\\SOFTWARE\\NVIDIA Corporation\\Global\\NVTweak" /v "GLShaderDiskCacheMaxSize" /t REG_DWORD /d 102400 /f
 
 echo [3/3] Disabling Dynamic P-State (prevents mid-game clock drops)...
 reg add "%GPU_KEY%" /v "DisableDynamicPstate" /t REG_DWORD /d 1 /f
@@ -380,7 +380,7 @@ echo Reboot for full effect.
 pause`,
      revert:`@echo off
 for /f "delims=" %%P in ('powershell -NoProfile -Command "^
-(Get-ChildItem 'HKLM:\SYSTEM\CurrentControlSet\Control\Video' -Recurse -EA SilentlyContinue ^| ^
+(Get-ChildItem 'HKLM:\\SYSTEM\\CurrentControlSet\\Control\\Video' -Recurse -EA SilentlyContinue ^| ^
  Where-Object { try{(Get-ItemProperty $_.PSPath -EA SilentlyContinue).'Device Description' -like '*NVIDIA*'}catch{$false} } ^| ^
  Where-Object { $_.PSChildName -eq '0000' } ^| Select-Object -First 1 -ExpandProperty PSPath) -replace 'Microsoft.PowerShell.Core\\\\Registry::',''
 "') do set GPU_KEY=%%P
@@ -391,8 +391,8 @@ reg delete "%GPU_KEY%" /v "PowerMizerLevel" /f 2>nul
 reg delete "%GPU_KEY%" /v "PowerMizerLevelAC" /f 2>nul
 reg delete "%GPU_KEY%" /v "PerfLevelSrc" /f 2>nul
 reg delete "%GPU_KEY%" /v "DisableDynamicPstate" /f 2>nul
-reg delete "HKLM\SOFTWARE\NVIDIA Corporation\Global\NVTweak" /v "GLShaderDiskCache" /f 2>nul
-reg delete "HKLM\SOFTWARE\NVIDIA Corporation\Global\NVTweak" /v "GLShaderDiskCacheMaxSize" /f 2>nul
+reg delete "HKLM\\SOFTWARE\\NVIDIA Corporation\\Global\\NVTweak" /v "GLShaderDiskCache" /f 2>nul
+reg delete "HKLM\\SOFTWARE\\NVIDIA Corporation\\Global\\NVTweak" /v "GLShaderDiskCacheMaxSize" /f 2>nul
 echo NVIDIA Max FPS profile reverted. Reboot recommended.
 pause`},
     {id:'nvcp-performance-profile',icon:'🟢',name:'NVIDIA Control Panel — Balanced Performance Profile',badges:['perf','fps','gpu'],
@@ -404,7 +404,7 @@ REM Run as Administrator. Reboot recommended.
 
 echo Locating NVIDIA GPU registry key...
 for /f "delims=" %%P in ('powershell -NoProfile -Command "^
-(Get-ChildItem 'HKLM:\SYSTEM\CurrentControlSet\Control\Video' -Recurse -EA SilentlyContinue ^| ^
+(Get-ChildItem 'HKLM:\\SYSTEM\\CurrentControlSet\\Control\\Video' -Recurse -EA SilentlyContinue ^| ^
  Where-Object { try{(Get-ItemProperty $_.PSPath -EA SilentlyContinue).'Device Description' -like '*NVIDIA*'}catch{$false} } ^| ^
  Where-Object { $_.PSChildName -eq '0000' } ^| Select-Object -First 1 -ExpandProperty PSPath) -replace 'Microsoft.PowerShell.Core\\\\Registry::',''
 "') do set GPU_KEY=%%P
@@ -418,8 +418,8 @@ reg delete "%GPU_KEY%" /v "PowerMizerLevel" /f 2>nul
 reg delete "%GPU_KEY%" /v "PowerMizerLevelAC" /f 2>nul
 
 echo [2/2] Setting unlimited shader cache...
-reg add "HKLM\SOFTWARE\NVIDIA Corporation\Global\NVTweak" /v "GLShaderDiskCacheMaxSize" /t REG_DWORD /d 102400 /f
-reg add "HKLM\SOFTWARE\NVIDIA Corporation\Global\NVTweak" /v "GLShaderDiskCache" /t REG_DWORD /d 1 /f
+reg add "HKLM\\SOFTWARE\\NVIDIA Corporation\\Global\\NVTweak" /v "GLShaderDiskCacheMaxSize" /t REG_DWORD /d 102400 /f
+reg add "HKLM\\SOFTWARE\\NVIDIA Corporation\\Global\\NVTweak" /v "GLShaderDiskCache" /t REG_DWORD /d 1 /f
 
 echo.
 echo Also set in NVIDIA Control Panel ^> Manage 3D Settings:
@@ -433,8 +433,8 @@ echo.
 echo Reboot for full effect.
 pause`,
      revert:`@echo off
-reg delete "HKLM\SOFTWARE\NVIDIA Corporation\Global\NVTweak" /v "GLShaderDiskCache" /f 2>nul
-reg delete "HKLM\SOFTWARE\NVIDIA Corporation\Global\NVTweak" /v "GLShaderDiskCacheMaxSize" /f 2>nul
+reg delete "HKLM\\SOFTWARE\\NVIDIA Corporation\\Global\\NVTweak" /v "GLShaderDiskCache" /f 2>nul
+reg delete "HKLM\\SOFTWARE\\NVIDIA Corporation\\Global\\NVTweak" /v "GLShaderDiskCacheMaxSize" /f 2>nul
 echo NVIDIA Balanced profile reverted. Reboot recommended.
 pause`},
     {id:'nvcp-g-sync',icon:'🖥️',name:'NVIDIA G-Sync / DLSS / Reflex Setup',badges:['latency','gpu'],
@@ -508,13 +508,13 @@ pause`},
      apply:`@echo off
 REM OPTI — Disable GPU Interrupt Moderation
 REM Run as Administrator
-reg add "HKLM\SYSTEM\CurrentControlSet\Control\GraphicsDrivers" /v TdrLevel /t REG_DWORD /d 0 /f
-reg add "HKLM\SYSTEM\CurrentControlSet\Control\GraphicsDrivers" /v TdrDelay /t REG_DWORD /d 60 /f
+reg add "HKLM\\SYSTEM\\CurrentControlSet\\Control\\GraphicsDrivers" /v TdrLevel /t REG_DWORD /d 0 /f
+reg add "HKLM\\SYSTEM\\CurrentControlSet\\Control\\GraphicsDrivers" /v TdrDelay /t REG_DWORD /d 60 /f
 echo GPU interrupt settings optimized. Reboot recommended.
 pause`,
      revert:`@echo off
-reg add "HKLM\SYSTEM\CurrentControlSet\Control\GraphicsDrivers" /v TdrLevel /t REG_DWORD /d 3 /f
-reg add "HKLM\SYSTEM\CurrentControlSet\Control\GraphicsDrivers" /v TdrDelay /t REG_DWORD /d 2 /f
+reg add "HKLM\\SYSTEM\\CurrentControlSet\\Control\\GraphicsDrivers" /v TdrLevel /t REG_DWORD /d 3 /f
+reg add "HKLM\\SYSTEM\\CurrentControlSet\\Control\\GraphicsDrivers" /v TdrDelay /t REG_DWORD /d 2 /f
 echo GPU TDR settings restored.
 pause`}
   ],
@@ -530,20 +530,20 @@ REM Disable Nagle Algorithm on ALL active NIC adapters automatically
 REM Run as Administrator
 REM
 REM Apply global TCP parameters:
-reg add "HKLM\SYSTEM\CurrentControlSet\Services\Tcpip\Parameters" /v TCPNoDelay /t REG_DWORD /d 1 /f
-reg add "HKLM\SYSTEM\CurrentControlSet\Services\Tcpip\Parameters" /v TcpAckFrequency /t REG_DWORD /d 1 /f
-reg add "HKLM\SYSTEM\CurrentControlSet\Services\Tcpip\Parameters" /v TcpDelAckTicks /t REG_DWORD /d 0 /f
+reg add "HKLM\\SYSTEM\\CurrentControlSet\\Services\\Tcpip\\Parameters" /v TCPNoDelay /t REG_DWORD /d 1 /f
+reg add "HKLM\\SYSTEM\\CurrentControlSet\\Services\\Tcpip\\Parameters" /v TcpAckFrequency /t REG_DWORD /d 1 /f
+reg add "HKLM\\SYSTEM\\CurrentControlSet\\Services\\Tcpip\\Parameters" /v TcpDelAckTicks /t REG_DWORD /d 0 /f
 REM
 REM Apply to all NIC interfaces (no GUID needed):
-powershell -Command "Get-ChildItem 'HKLM:\SYSTEM\CurrentControlSet\Services\Tcpip\Parameters\Interfaces' | ForEach-Object { Set-ItemProperty -Path $_.PSPath -Name 'TCPNoDelay' -Value 1 -Type DWord -Force; Set-ItemProperty -Path $_.PSPath -Name 'TcpAckFrequency' -Value 1 -Type DWord -Force; Set-ItemProperty -Path $_.PSPath -Name 'TcpDelAckTicks' -Value 0 -Type DWord -Force } 2>$null"
+powershell -Command "Get-ChildItem 'HKLM:\\SYSTEM\\CurrentControlSet\\Services\\Tcpip\\Parameters\\Interfaces' | ForEach-Object { Set-ItemProperty -Path $_.PSPath -Name 'TCPNoDelay' -Value 1 -Type DWord -Force; Set-ItemProperty -Path $_.PSPath -Name 'TcpAckFrequency' -Value 1 -Type DWord -Force; Set-ItemProperty -Path $_.PSPath -Name 'TcpDelAckTicks' -Value 0 -Type DWord -Force } 2>$null"
 echo Nagle disabled on all adapters.
 pause`,
      revert:`@echo off
 REM Restore Nagle Algorithm defaults
-reg delete "HKLM\SYSTEM\CurrentControlSet\Services\Tcpip\Parameters" /v TCPNoDelay /f 2>nul
-reg delete "HKLM\SYSTEM\CurrentControlSet\Services\Tcpip\Parameters" /v TcpAckFrequency /f 2>nul
-reg delete "HKLM\SYSTEM\CurrentControlSet\Services\Tcpip\Parameters" /v TcpDelAckTicks /f 2>nul
-powershell -Command "Get-ChildItem 'HKLM:\SYSTEM\CurrentControlSet\Services\Tcpip\Parameters\Interfaces' | ForEach-Object { Remove-ItemProperty -Path $_.PSPath -Name 'TCPNoDelay' -Force -ErrorAction SilentlyContinue; Remove-ItemProperty -Path $_.PSPath -Name 'TcpAckFrequency' -Force -ErrorAction SilentlyContinue; Remove-ItemProperty -Path $_.PSPath -Name 'TcpDelAckTicks' -Force -ErrorAction SilentlyContinue }"
+reg delete "HKLM\\SYSTEM\\CurrentControlSet\\Services\\Tcpip\\Parameters" /v TCPNoDelay /f 2>nul
+reg delete "HKLM\\SYSTEM\\CurrentControlSet\\Services\\Tcpip\\Parameters" /v TcpAckFrequency /f 2>nul
+reg delete "HKLM\\SYSTEM\\CurrentControlSet\\Services\\Tcpip\\Parameters" /v TcpDelAckTicks /f 2>nul
+powershell -Command "Get-ChildItem 'HKLM:\\SYSTEM\\CurrentControlSet\\Services\\Tcpip\\Parameters\\Interfaces' | ForEach-Object { Remove-ItemProperty -Path $_.PSPath -Name 'TCPNoDelay' -Force -ErrorAction SilentlyContinue; Remove-ItemProperty -Path $_.PSPath -Name 'TcpAckFrequency' -Force -ErrorAction SilentlyContinue; Remove-ItemProperty -Path $_.PSPath -Name 'TcpDelAckTicks' -Force -ErrorAction SilentlyContinue }"
 echo Nagle restored.
 pause`},
     {id:'net-throttle',icon:'📶',name:'Disable Network Throttling Index',badges:['net','perf'],
@@ -553,11 +553,11 @@ pause`},
 REM OPTI — Disable Network Throttling Index
 REM Run as Administrator
 echo Disabling network throttling...
-reg add "HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Multimedia\SystemProfile" /v NetworkThrottlingIndex /t REG_DWORD /d 4294967295 /f
+reg add "HKLM\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Multimedia\\SystemProfile" /v NetworkThrottlingIndex /t REG_DWORD /d 4294967295 /f
 echo Done. No reboot needed.
 pause`,
      revert:`@echo off
-reg add "HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Multimedia\SystemProfile" /v NetworkThrottlingIndex /t REG_DWORD /d 10 /f
+reg add "HKLM\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Multimedia\\SystemProfile" /v NetworkThrottlingIndex /t REG_DWORD /d 10 /f
 echo Network throttling index restored.
 pause`},
     {id:'tcp-autotuning',icon:'📡',name:'Optimize TCP Auto-Tuning Level',badges:['net','latency','ping'],
@@ -584,18 +584,18 @@ pause`},
 REM OPTI — DNS Cache Optimization
 REM Run as Administrator
 echo Optimizing DNS cache parameters...
-reg add "HKLM\SYSTEM\CurrentControlSet\Services\Dnscache\Parameters" /v CacheHashTableBucketSize /t REG_DWORD /d 1 /f
-reg add "HKLM\SYSTEM\CurrentControlSet\Services\Dnscache\Parameters" /v CacheHashTableSize /t REG_DWORD /d 384 /f
-reg add "HKLM\SYSTEM\CurrentControlSet\Services\Dnscache\Parameters" /v MaxCacheEntryTtlLimit /t REG_DWORD /d 64000 /f
-reg add "HKLM\SYSTEM\CurrentControlSet\Services\Dnscache\Parameters" /v MaxSOACacheEntryTtlLimit /t REG_DWORD /d 301 /f
+reg add "HKLM\\SYSTEM\\CurrentControlSet\\Services\\Dnscache\\Parameters" /v CacheHashTableBucketSize /t REG_DWORD /d 1 /f
+reg add "HKLM\\SYSTEM\\CurrentControlSet\\Services\\Dnscache\\Parameters" /v CacheHashTableSize /t REG_DWORD /d 384 /f
+reg add "HKLM\\SYSTEM\\CurrentControlSet\\Services\\Dnscache\\Parameters" /v MaxCacheEntryTtlLimit /t REG_DWORD /d 64000 /f
+reg add "HKLM\\SYSTEM\\CurrentControlSet\\Services\\Dnscache\\Parameters" /v MaxSOACacheEntryTtlLimit /t REG_DWORD /d 301 /f
 echo Done. Restart DNS client service:
 net stop dnscache & net start dnscache
 pause`,
      revert:`@echo off
-reg delete "HKLM\SYSTEM\CurrentControlSet\Services\Dnscache\Parameters" /v CacheHashTableBucketSize /f 2>nul
-reg delete "HKLM\SYSTEM\CurrentControlSet\Services\Dnscache\Parameters" /v CacheHashTableSize /f 2>nul
-reg delete "HKLM\SYSTEM\CurrentControlSet\Services\Dnscache\Parameters" /v MaxCacheEntryTtlLimit /f 2>nul
-reg delete "HKLM\SYSTEM\CurrentControlSet\Services\Dnscache\Parameters" /v MaxSOACacheEntryTtlLimit /f 2>nul
+reg delete "HKLM\\SYSTEM\\CurrentControlSet\\Services\\Dnscache\\Parameters" /v CacheHashTableBucketSize /f 2>nul
+reg delete "HKLM\\SYSTEM\\CurrentControlSet\\Services\\Dnscache\\Parameters" /v CacheHashTableSize /f 2>nul
+reg delete "HKLM\\SYSTEM\\CurrentControlSet\\Services\\Dnscache\\Parameters" /v MaxCacheEntryTtlLimit /f 2>nul
+reg delete "HKLM\\SYSTEM\\CurrentControlSet\\Services\\Dnscache\\Parameters" /v MaxSOACacheEntryTtlLimit /f 2>nul
 net stop dnscache & net start dnscache
 echo DNS cache settings reverted.
 pause`},
@@ -658,17 +658,17 @@ pause`},
 REM OPTI — Optimize UDP / AFD Buffers
 REM Run as Administrator
 echo [1/2] Setting AFD socket buffer sizes...
-reg add "HKLM\SYSTEM\CurrentControlSet\Services\AFD\Parameters" /v DefaultReceiveWindow /t REG_DWORD /d 131072 /f
-reg add "HKLM\SYSTEM\CurrentControlSet\Services\AFD\Parameters" /v DefaultSendWindow /t REG_DWORD /d 131072 /f
-reg add "HKLM\SYSTEM\CurrentControlSet\Services\AFD\Parameters" /v FastSendDatagramThreshold /t REG_DWORD /d 1500 /f
+reg add "HKLM\\SYSTEM\\CurrentControlSet\\Services\\AFD\\Parameters" /v DefaultReceiveWindow /t REG_DWORD /d 131072 /f
+reg add "HKLM\\SYSTEM\\CurrentControlSet\\Services\\AFD\\Parameters" /v DefaultSendWindow /t REG_DWORD /d 131072 /f
+reg add "HKLM\\SYSTEM\\CurrentControlSet\\Services\\AFD\\Parameters" /v FastSendDatagramThreshold /t REG_DWORD /d 1500 /f
 echo [2/2] Disabling UDP Receive Offload (Win11 — skipped on Win10)...
 netsh int udp set global uro=disabled 2>nul
 echo Done. Reboot recommended.
 pause`,
      revert:`@echo off
-reg delete "HKLM\SYSTEM\CurrentControlSet\Services\AFD\Parameters" /v DefaultReceiveWindow /f 2>nul
-reg delete "HKLM\SYSTEM\CurrentControlSet\Services\AFD\Parameters" /v DefaultSendWindow /f 2>nul
-reg delete "HKLM\SYSTEM\CurrentControlSet\Services\AFD\Parameters" /v FastSendDatagramThreshold /f 2>nul
+reg delete "HKLM\\SYSTEM\\CurrentControlSet\\Services\\AFD\\Parameters" /v DefaultReceiveWindow /f 2>nul
+reg delete "HKLM\\SYSTEM\\CurrentControlSet\\Services\\AFD\\Parameters" /v DefaultSendWindow /f 2>nul
+reg delete "HKLM\\SYSTEM\\CurrentControlSet\\Services\\AFD\\Parameters" /v FastSendDatagramThreshold /f 2>nul
 netsh int udp set global uro=enabled 2>nul
 echo UDP/AFD buffer settings reverted.
 pause`},
@@ -679,11 +679,11 @@ pause`},
 REM OPTI — Remove QoS Bandwidth Reserve
 REM Run as Administrator
 echo Removing Windows QoS bandwidth reservation (was 20% by default)...
-reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\Psched" /v NonBestEffortLimit /t REG_DWORD /d 0 /f
+reg add "HKLM\\SOFTWARE\\Policies\\Microsoft\\Windows\\Psched" /v NonBestEffortLimit /t REG_DWORD /d 0 /f
 echo Done. No reboot needed.
 pause`,
      revert:`@echo off
-reg delete "HKLM\SOFTWARE\Policies\Microsoft\Windows\Psched" /v NonBestEffortLimit /f 2>nul
+reg delete "HKLM\\SOFTWARE\\Policies\\Microsoft\\Windows\\Psched" /v NonBestEffortLimit /f 2>nul
 echo QoS bandwidth limit reverted to Windows default.
 pause`},
     {id:'tcp-timestamps',icon:'🕐',name:'Disable TCP Timestamps & SACK Options',badges:['net','latency'],
@@ -694,12 +694,12 @@ REM OPTI — Disable TCP Timestamps
 REM Run as Administrator
 echo Disabling TCP timestamps...
 netsh int tcp set global timestamps=disabled
-reg add "HKLM\SYSTEM\CurrentControlSet\Services\Tcpip\Parameters" /v Tcp1323Opts /t REG_DWORD /d 0 /f
+reg add "HKLM\\SYSTEM\\CurrentControlSet\\Services\\Tcpip\\Parameters" /v Tcp1323Opts /t REG_DWORD /d 0 /f
 echo Done. No reboot needed.
 pause`,
      revert:`@echo off
 netsh int tcp set global timestamps=enabled
-reg add "HKLM\SYSTEM\CurrentControlSet\Services\Tcpip\Parameters" /v Tcp1323Opts /t REG_DWORD /d 1 /f
+reg add "HKLM\\SYSTEM\\CurrentControlSet\\Services\\Tcpip\\Parameters" /v Tcp1323Opts /t REG_DWORD /d 1 /f
 echo TCP timestamps restored.
 pause`},
     {id:'nic-offload',icon:'🔧',name:'Enable NIC Hardware Offloading',badges:['net','perf','latency'],
@@ -719,7 +719,7 @@ Get-NetAdapter | Where-Object {$_.Status -eq 'Up'} | ForEach-Object {
   } catch { Write-Host ('Skipped: ' + $n) }
 }
 "
-reg add "HKLM\SYSTEM\CurrentControlSet\Services\Tcpip\Parameters" /v DisableTaskOffload /t REG_DWORD /d 1 /f
+reg add "HKLM\\SYSTEM\\CurrentControlSet\\Services\\Tcpip\\Parameters" /v DisableTaskOffload /t REG_DWORD /d 1 /f
 echo Done. Reboot recommended.
 pause`,
      revert:`@echo off
@@ -732,7 +732,7 @@ Get-NetAdapter | Where-Object {$_.Status -eq 'Up'} | ForEach-Object {
   } catch {}
 }
 "
-reg delete "HKLM\SYSTEM\CurrentControlSet\Services\Tcpip\Parameters" /v DisableTaskOffload /f 2>nul
+reg delete "HKLM\\SYSTEM\\CurrentControlSet\\Services\\Tcpip\\Parameters" /v DisableTaskOffload /f 2>nul
 echo NIC offloads restored.
 pause`},
     {id:'ipv6-disable',icon:'6️⃣',name:'Disable IPv6 (Force IPv4 Priority)',badges:['net','ping'],
@@ -742,12 +742,12 @@ pause`},
 REM OPTI — Disable IPv6
 REM Run as Administrator
 echo Disabling IPv6 on all adapters...
-reg add "HKLM\SYSTEM\CurrentControlSet\Services\Tcpip6\Parameters" /v DisabledComponents /t REG_DWORD /d 255 /f
+reg add "HKLM\\SYSTEM\\CurrentControlSet\\Services\\Tcpip6\\Parameters" /v DisabledComponents /t REG_DWORD /d 255 /f
 powershell -Command "Get-NetAdapter | Where-Object {$_.Status -eq 'Up'} | Disable-NetAdapterBinding -ComponentID ms_tcpip6 -EA SilentlyContinue"
 echo Done. Reboot required.
 pause`,
      revert:`@echo off
-reg add "HKLM\SYSTEM\CurrentControlSet\Services\Tcpip6\Parameters" /v DisabledComponents /t REG_DWORD /d 0 /f
+reg add "HKLM\\SYSTEM\\CurrentControlSet\\Services\\Tcpip6\\Parameters" /v DisabledComponents /t REG_DWORD /d 0 /f
 powershell -Command "Get-NetAdapter | Enable-NetAdapterBinding -ComponentID ms_tcpip6 -EA SilentlyContinue"
 echo IPv6 re-enabled. Reboot required.
 pause`},
@@ -759,14 +759,14 @@ REM OPTI — Optimize ARP Cache
 REM Run as Administrator
 echo Optimizing ARP neighbor cache...
 netsh int ip set global neighborcachelimit=4096
-reg add "HKLM\SYSTEM\CurrentControlSet\Services\Tcpip\Parameters" /v ArpCacheLife /t REG_DWORD /d 60 /f
-reg add "HKLM\SYSTEM\CurrentControlSet\Services\Tcpip\Parameters" /v ArpCacheMinReferencedLife /t REG_DWORD /d 20 /f
+reg add "HKLM\\SYSTEM\\CurrentControlSet\\Services\\Tcpip\\Parameters" /v ArpCacheLife /t REG_DWORD /d 60 /f
+reg add "HKLM\\SYSTEM\\CurrentControlSet\\Services\\Tcpip\\Parameters" /v ArpCacheMinReferencedLife /t REG_DWORD /d 20 /f
 echo Done. No reboot needed.
 pause`,
      revert:`@echo off
 netsh int ip set global neighborcachelimit=256
-reg delete "HKLM\SYSTEM\CurrentControlSet\Services\Tcpip\Parameters" /v ArpCacheLife /f 2>nul
-reg delete "HKLM\SYSTEM\CurrentControlSet\Services\Tcpip\Parameters" /v ArpCacheMinReferencedLife /f 2>nul
+reg delete "HKLM\\SYSTEM\\CurrentControlSet\\Services\\Tcpip\\Parameters" /v ArpCacheLife /f 2>nul
+reg delete "HKLM\\SYSTEM\\CurrentControlSet\\Services\\Tcpip\\Parameters" /v ArpCacheMinReferencedLife /f 2>nul
 echo ARP cache settings reverted.
 pause`},
     {id:'winsock-reset',icon:'🔄',name:'Optimize Winsock & LSP Stack',badges:['net','ping','latency'],
@@ -796,10 +796,10 @@ pause`},
 REM OPTI — TCP Global Parameter Tuning
 REM Run as Administrator
 echo [1/3] Setting TCP connection parameters...
-reg add "HKLM\SYSTEM\CurrentControlSet\Services\Tcpip\Parameters" /v TcpMaxDupAcks /t REG_DWORD /d 2 /f
-reg add "HKLM\SYSTEM\CurrentControlSet\Services\Tcpip\Parameters" /v TcpTimedWaitDelay /t REG_DWORD /d 30 /f
-reg add "HKLM\SYSTEM\CurrentControlSet\Services\Tcpip\Parameters" /v MaxUserPort /t REG_DWORD /d 65534 /f
-reg add "HKLM\SYSTEM\CurrentControlSet\Services\Tcpip\Parameters" /v TcpNumConnections /t REG_DWORD /d 16777214 /f
+reg add "HKLM\\SYSTEM\\CurrentControlSet\\Services\\Tcpip\\Parameters" /v TcpMaxDupAcks /t REG_DWORD /d 2 /f
+reg add "HKLM\\SYSTEM\\CurrentControlSet\\Services\\Tcpip\\Parameters" /v TcpTimedWaitDelay /t REG_DWORD /d 30 /f
+reg add "HKLM\\SYSTEM\\CurrentControlSet\\Services\\Tcpip\\Parameters" /v MaxUserPort /t REG_DWORD /d 65534 /f
+reg add "HKLM\\SYSTEM\\CurrentControlSet\\Services\\Tcpip\\Parameters" /v TcpNumConnections /t REG_DWORD /d 16777214 /f
 echo [2/3] Setting initial retransmit timeout...
 netsh int tcp set global initialrto=2000
 echo [3/3] Setting max SYN retransmissions...
@@ -807,10 +807,10 @@ netsh int tcp set global maxsynretransmissions=2
 echo Done. Reboot recommended.
 pause`,
      revert:`@echo off
-reg delete "HKLM\SYSTEM\CurrentControlSet\Services\Tcpip\Parameters" /v TcpMaxDupAcks /f 2>nul
-reg delete "HKLM\SYSTEM\CurrentControlSet\Services\Tcpip\Parameters" /v TcpTimedWaitDelay /f 2>nul
-reg delete "HKLM\SYSTEM\CurrentControlSet\Services\Tcpip\Parameters" /v MaxUserPort /f 2>nul
-reg delete "HKLM\SYSTEM\CurrentControlSet\Services\Tcpip\Parameters" /v TcpNumConnections /f 2>nul
+reg delete "HKLM\\SYSTEM\\CurrentControlSet\\Services\\Tcpip\\Parameters" /v TcpMaxDupAcks /f 2>nul
+reg delete "HKLM\\SYSTEM\\CurrentControlSet\\Services\\Tcpip\\Parameters" /v TcpTimedWaitDelay /f 2>nul
+reg delete "HKLM\\SYSTEM\\CurrentControlSet\\Services\\Tcpip\\Parameters" /v MaxUserPort /f 2>nul
+reg delete "HKLM\\SYSTEM\\CurrentControlSet\\Services\\Tcpip\\Parameters" /v TcpNumConnections /f 2>nul
 netsh int tcp set global initialrto=3000
 netsh int tcp set global maxsynretransmissions=4
 echo TCP global parameters reverted.
@@ -854,7 +854,7 @@ pause`},
 REM OPTI — TCP Task Offload (Enable hardware offloading)
 REM Run as Administrator
 echo Enabling TCP task offload...
-reg add "HKLM\SYSTEM\CurrentControlSet\Services\Tcpip\Parameters" /v DisableTaskOffload /t REG_DWORD /d 1 /f
+reg add "HKLM\\SYSTEM\\CurrentControlSet\\Services\\Tcpip\\Parameters" /v DisableTaskOffload /t REG_DWORD /d 1 /f
 powershell -Command "
 Get-NetAdapter | Where-Object {$_.Status -eq 'Up'} | ForEach-Object {
   try {
@@ -867,7 +867,7 @@ Get-NetAdapter | Where-Object {$_.Status -eq 'Up'} | ForEach-Object {
 echo Done. Reboot recommended.
 pause`,
      revert:`@echo off
-reg delete "HKLM\SYSTEM\CurrentControlSet\Services\Tcpip\Parameters" /v DisableTaskOffload /f 2>nul
+reg delete "HKLM\\SYSTEM\\CurrentControlSet\\Services\\Tcpip\\Parameters" /v DisableTaskOffload /f 2>nul
 echo TCP task offload settings reverted.
 pause`},
     {id:'binding-priority',icon:'📌',name:'Set Network Adapter Binding Priority',badges:['net','ping'],
@@ -912,11 +912,11 @@ REM Disable TCP Delayed ACK globally and on all NIC interfaces
 REM Run as Administrator
 REM
 REM Global parameters:
-reg add "HKLM\SYSTEM\CurrentControlSet\Services\Tcpip\Parameters" /v TcpDelayedAckFrequency /t REG_DWORD /d 1 /f
-reg add "HKLM\SYSTEM\CurrentControlSet\Services\Tcpip\Parameters" /v TcpDelayedAckTicks /t REG_DWORD /d 0 /f
+reg add "HKLM\\SYSTEM\\CurrentControlSet\\Services\\Tcpip\\Parameters" /v TcpDelayedAckFrequency /t REG_DWORD /d 1 /f
+reg add "HKLM\\SYSTEM\\CurrentControlSet\\Services\\Tcpip\\Parameters" /v TcpDelayedAckTicks /t REG_DWORD /d 0 /f
 REM
 REM Per-interface (no GUID needed):
-powershell -Command "Get-ChildItem 'HKLM:\SYSTEM\CurrentControlSet\Services\Tcpip\Parameters\Interfaces' | ForEach-Object { Set-ItemProperty -Path $_.PSPath -Name 'TcpDelAckTicks' -Value 0 -Type DWord -Force } 2>$null"
+powershell -Command "Get-ChildItem 'HKLM:\\SYSTEM\\CurrentControlSet\\Services\\Tcpip\\Parameters\\Interfaces' | ForEach-Object { Set-ItemProperty -Path $_.PSPath -Name 'TcpDelAckTicks' -Value 0 -Type DWord -Force } 2>$null"
 echo TCP Delayed ACK disabled on all interfaces.
 pause`,
      revert:`reg delete "HKLM\\SYSTEM\\CurrentControlSet\\Services\\Tcpip\\Parameters" /v TcpDelayedAckFrequency /f\nreg delete "HKLM\\SYSTEM\\CurrentControlSet\\Services\\Tcpip\\Parameters" /v TcpDelayedAckTicks /f`},
@@ -988,13 +988,13 @@ pause`},
 REM OPTI — Firewall Allow Rules for CS2 and Valorant
 REM Run as Administrator
 echo [1/4] Adding CS2 inbound rule...
-netsh advfirewall firewall add rule name="CS2 Allow In" dir=in action=allow program="C:\Program Files (x86)\Steam\steamapps\common\Counter-Strike Global Offensive\game\bin\win64\cs2.exe" enable=yes profile=any
+netsh advfirewall firewall add rule name="CS2 Allow In" dir=in action=allow program="C:\\Program Files (x86)\\Steam\\steamapps\\common\\Counter-Strike Global Offensive\\game\bin\\win64\\cs2.exe" enable=yes profile=any
 echo [2/4] Adding CS2 outbound rule...
-netsh advfirewall firewall add rule name="CS2 Allow Out" dir=out action=allow program="C:\Program Files (x86)\Steam\steamapps\common\Counter-Strike Global Offensive\game\bin\win64\cs2.exe" enable=yes profile=any
+netsh advfirewall firewall add rule name="CS2 Allow Out" dir=out action=allow program="C:\\Program Files (x86)\\Steam\\steamapps\\common\\Counter-Strike Global Offensive\\game\bin\\win64\\cs2.exe" enable=yes profile=any
 echo [3/4] Adding Valorant inbound rule...
-netsh advfirewall firewall add rule name="Valorant Allow In" dir=in action=allow program="C:\Riot Games\VALORANT\live\ShooterGame\Binaries\Win64\VALORANT-Win64-Shipping.exe" enable=yes profile=any
+netsh advfirewall firewall add rule name="Valorant Allow In" dir=in action=allow program="C:\\Riot Games\\VALORANT\\live\\ShooterGame\\Binaries\\Win64\\VALORANT-Win64-Shipping.exe" enable=yes profile=any
 echo [4/4] Adding Valorant outbound rule...
-netsh advfirewall firewall add rule name="Valorant Allow Out" dir=out action=allow program="C:\Riot Games\VALORANT\live\ShooterGame\Binaries\Win64\VALORANT-Win64-Shipping.exe" enable=yes profile=any
+netsh advfirewall firewall add rule name="Valorant Allow Out" dir=out action=allow program="C:\\Riot Games\\VALORANT\\live\\ShooterGame\\Binaries\\Win64\\VALORANT-Win64-Shipping.exe" enable=yes profile=any
 echo Done.
 pause`,
      revert:`@echo off
@@ -1012,12 +1012,12 @@ REM OPTI — Enable ECN (Explicit Congestion Notification)
 REM Run as Administrator
 echo Enabling ECN...
 netsh int tcp set global ecncapability=enabled
-reg add "HKLM\SYSTEM\CurrentControlSet\Services\Tcpip\Parameters" /v ECNEnabled /t REG_DWORD /d 1 /f
+reg add "HKLM\\SYSTEM\\CurrentControlSet\\Services\\Tcpip\\Parameters" /v ECNEnabled /t REG_DWORD /d 1 /f
 echo Done. No reboot needed.
 pause`,
      revert:`@echo off
 netsh int tcp set global ecncapability=disabled
-reg delete "HKLM\SYSTEM\CurrentControlSet\Services\Tcpip\Parameters" /v ECNEnabled /f 2>nul
+reg delete "HKLM\\SYSTEM\\CurrentControlSet\\Services\\Tcpip\\Parameters" /v ECNEnabled /f 2>nul
 echo ECN disabled.
 pause`},
     {id:'bgp-disable',icon:'📡',name:'Disable Background Intelligent Transfer Service (BITS)',badges:['net','perf'],
@@ -1057,17 +1057,17 @@ pause`},
 REM OPTI — Optimize TTL and PMTU Discovery
 REM Run as Administrator
 echo [1/3] Setting default TTL to 64...
-reg add "HKLM\SYSTEM\CurrentControlSet\Services\Tcpip\Parameters" /v DefaultTTL /t REG_DWORD /d 64 /f
+reg add "HKLM\\SYSTEM\\CurrentControlSet\\Services\\Tcpip\\Parameters" /v DefaultTTL /t REG_DWORD /d 64 /f
 echo [2/3] Enabling PMTU discovery...
-reg add "HKLM\SYSTEM\CurrentControlSet\Services\Tcpip\Parameters" /v EnablePMTUDiscovery /t REG_DWORD /d 1 /f
+reg add "HKLM\\SYSTEM\\CurrentControlSet\\Services\\Tcpip\\Parameters" /v EnablePMTUDiscovery /t REG_DWORD /d 1 /f
 echo [3/3] Disabling PMTU black hole detection...
-reg add "HKLM\SYSTEM\CurrentControlSet\Services\Tcpip\Parameters" /v EnablePMTUBHDetect /t REG_DWORD /d 0 /f
+reg add "HKLM\\SYSTEM\\CurrentControlSet\\Services\\Tcpip\\Parameters" /v EnablePMTUBHDetect /t REG_DWORD /d 0 /f
 echo Done. No reboot needed.
 pause`,
      revert:`@echo off
-reg delete "HKLM\SYSTEM\CurrentControlSet\Services\Tcpip\Parameters" /v DefaultTTL /f 2>nul
-reg delete "HKLM\SYSTEM\CurrentControlSet\Services\Tcpip\Parameters" /v EnablePMTUDiscovery /f 2>nul
-reg delete "HKLM\SYSTEM\CurrentControlSet\Services\Tcpip\Parameters" /v EnablePMTUBHDetect /f 2>nul
+reg delete "HKLM\\SYSTEM\\CurrentControlSet\\Services\\Tcpip\\Parameters" /v DefaultTTL /f 2>nul
+reg delete "HKLM\\SYSTEM\\CurrentControlSet\\Services\\Tcpip\\Parameters" /v EnablePMTUDiscovery /f 2>nul
+reg delete "HKLM\\SYSTEM\\CurrentControlSet\\Services\\Tcpip\\Parameters" /v EnablePMTUBHDetect /f 2>nul
 echo TTL and PMTU settings reverted.
 pause`},
     {id:'route-optimizer',icon:'🗺️',name:'Game Traffic Route Optimizer (ExitLag-Style)',badges:['net','latency','ping'],
@@ -1388,8 +1388,8 @@ pause`},
     {id:'telemetry',icon:'📡',name:'Disable Telemetry, Xbox DVR & Background Bandwidth',badges:['perf'],
      impact:`Each disabled service removes a source of DPC interrupts, network spikes, or CPU scheduling contention. Xbox DVR alone adds a persistent GPU interrupt hook. Delivery Optimization can saturate your upload mid-match. SgrmBroker fires a kernel poll every 5 seconds. Combined, these account for 1-3ms of the gap between your current latency and target 2-3ms.`,
      desc:'Kills all background Windows processes that fire interrupts, use bandwidth, or spike CPU during gaming: DiagTrack telemetry, Xbox Game DVR (adds GPU interrupt overhead even when off in Settings), GameBar presence scanner, Delivery Optimization P2P (uses your upload bandwidth), Security Health poller (fires every 5s), Application Experience service (500ms spike on game launch), and 6 scheduled tasks that can fire mid-match.',
-     apply:`reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\DataCollection" /v AllowTelemetry /t REG_DWORD /d 0 /f\nsc stop DiagTrack & sc config DiagTrack start= disabled\nsc stop diagnosticshub.standardcollector.service & sc config diagnosticshub.standardcollector.service start= disabled\nsc stop WerSvc & sc config WerSvc start= disabled\nREM Kill Xbox Game DVR — adds GPU/DPC interrupt overhead even when "disabled" in settings:\nreg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\GameDVR" /v AllowGameDVR /t REG_DWORD /d 0 /f\nreg add "HKCU\System\GameConfigStore" /v GameDVR_Enabled /t REG_DWORD /d 0 /f\nreg add "HKCU\Software\Microsoft\Windows\CurrentVersion\GameDVR" /v AppCaptureEnabled /t REG_DWORD /d 0 /f\nsc stop BcastDVRUserService 2>nul & sc config BcastDVRUserService start= disabled 2>nul\nREM Kill GameBar presence writer (polls every 2s scanning for game windows):\nsc stop GameBarPresenceWriter 2>nul & sc config GameBarPresenceWriter start= disabled 2>nul\nreg add "HKCU\Software\Microsoft\GameBar" /v UseNexusForGameBarEnabled /t REG_DWORD /d 0 /f\nreg add "HKCU\Software\Microsoft\GameBar" /v AllowAutoGameMode /t REG_DWORD /d 0 /f\nREM Disable Delivery Optimization (uses your bandwidth for Windows Update P2P):\nsc stop DoSvc & sc config DoSvc start= disabled\nreg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\DeliveryOptimization" /v DODownloadMode /t REG_DWORD /d 0 /f\nREM Disable Security Health poller (SgrmBroker polls every 5s = consistent DPC spike):\nsc stop SgrmBroker 2>nul & sc config SgrmBroker start= disabled 2>nul\nREM Kill Application Experience service (fires on every game launch causing 200-500ms stutter):\nsc stop AeLookupSvc 2>nul & sc config AeLookupSvc start= disabled 2>nul\nsc stop PcaSvc 2>nul & sc config PcaSvc start= disabled 2>nul\nREM Kill Windows Error Reporting live kernel dumps (can spike CPU mid-game):\nreg add "HKLM\SOFTWARE\Microsoft\Windows\Windows Error Reporting" /v Disabled /t REG_DWORD /d 1 /f\nREM Disable CEIP and Application Experience scheduled tasks:\nschtasks /Change /TN "Microsoft\Windows\Customer Experience Improvement Program\Consolidator" /Disable 2>nul\nschtasks /Change /TN "Microsoft\Windows\Customer Experience Improvement Program\UsbCeip" /Disable 2>nul\nschtasks /Change /TN "Microsoft\Windows\Application Experience\Microsoft Compatibility Appraiser" /Disable 2>nul\nschtasks /Change /TN "Microsoft\Windows\Application Experience\ProgramDataUpdater" /Disable 2>nul\nschtasks /Change /TN "Microsoft\Windows\Application Experience\StartupAppTask" /Disable 2>nul\nREM Disable Windows Update background bandwidth usage during gaming:\nreg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate\AU" /v NoAutoUpdate /t REG_DWORD /d 0 /f\nreg add "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\DeliveryOptimization\Config" /v DODownloadMode /t REG_DWORD /d 0 /f\nREM Block telemetry endpoints at the registry level:\nreg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\DataCollection" /v DisableEnterpriseAuthProxy /t REG_DWORD /d 1 /f\nreg add "HKLM\SYSTEM\CurrentControlSet\Services\DiagTrack" /v Start /t REG_DWORD /d 4 /f`,
-     revert:`reg delete "HKLM\SOFTWARE\Policies\Microsoft\Windows\DataCollection" /v AllowTelemetry /f 2>nul\nreg delete "HKLM\SOFTWARE\Policies\Microsoft\Windows\DataCollection" /v DisableEnterpriseAuthProxy /f 2>nul\nsc config DiagTrack start= auto & sc start DiagTrack\nsc config WerSvc start= manual\nsc config DoSvc start= auto & sc start DoSvc 2>nul\nreg delete "HKLM\SOFTWARE\Policies\Microsoft\Windows\GameDVR" /v AllowGameDVR /f 2>nul\nreg delete "HKCU\System\GameConfigStore" /v GameDVR_Enabled /f 2>nul\nreg add "HKLM\SOFTWARE\Microsoft\Windows\Windows Error Reporting" /v Disabled /t REG_DWORD /d 0 /f\nsc config AeLookupSvc start= manual 2>nul\nsc config PcaSvc start= manual 2>nul\nschtasks /Change /TN "Microsoft\Windows\Customer Experience Improvement Program\Consolidator" /Enable 2>nul\nschtasks /Change /TN "Microsoft\Windows\Application Experience\Microsoft Compatibility Appraiser" /Enable 2>nul\necho Telemetry reverted. Note: Xbox DVR and GameBar will need manual re-enable in Windows Settings if desired.`},
+     apply:`reg add "HKLM\\SOFTWARE\\Policies\\Microsoft\\Windows\\DataCollection" /v AllowTelemetry /t REG_DWORD /d 0 /f\nsc stop DiagTrack & sc config DiagTrack start= disabled\nsc stop diagnosticshub.standardcollector.service & sc config diagnosticshub.standardcollector.service start= disabled\nsc stop WerSvc & sc config WerSvc start= disabled\nREM Kill Xbox Game DVR — adds GPU/DPC interrupt overhead even when "disabled" in settings:\nreg add "HKLM\\SOFTWARE\\Policies\\Microsoft\\Windows\\GameDVR" /v AllowGameDVR /t REG_DWORD /d 0 /f\nreg add "HKCU\\System\\GameConfigStore" /v GameDVR_Enabled /t REG_DWORD /d 0 /f\nreg add "HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\GameDVR" /v AppCaptureEnabled /t REG_DWORD /d 0 /f\nsc stop BcastDVRUserService 2>nul & sc config BcastDVRUserService start= disabled 2>nul\nREM Kill GameBar presence writer (polls every 2s scanning for game windows):\nsc stop GameBarPresenceWriter 2>nul & sc config GameBarPresenceWriter start= disabled 2>nul\nreg add "HKCU\\Software\\Microsoft\\GameBar" /v UseNexusForGameBarEnabled /t REG_DWORD /d 0 /f\nreg add "HKCU\\Software\\Microsoft\\GameBar" /v AllowAutoGameMode /t REG_DWORD /d 0 /f\nREM Disable Delivery Optimization (uses your bandwidth for Windows Update P2P):\nsc stop DoSvc & sc config DoSvc start= disabled\nreg add "HKLM\\SOFTWARE\\Policies\\Microsoft\\Windows\\DeliveryOptimization" /v DODownloadMode /t REG_DWORD /d 0 /f\nREM Disable Security Health poller (SgrmBroker polls every 5s = consistent DPC spike):\nsc stop SgrmBroker 2>nul & sc config SgrmBroker start= disabled 2>nul\nREM Kill Application Experience service (fires on every game launch causing 200-500ms stutter):\nsc stop AeLookupSvc 2>nul & sc config AeLookupSvc start= disabled 2>nul\nsc stop PcaSvc 2>nul & sc config PcaSvc start= disabled 2>nul\nREM Kill Windows Error Reporting live kernel dumps (can spike CPU mid-game):\nreg add "HKLM\\SOFTWARE\\Microsoft\\Windows\\Windows Error Reporting" /v Disabled /t REG_DWORD /d 1 /f\nREM Disable CEIP and Application Experience scheduled tasks:\nschtasks /Change /TN "Microsoft\\Windows\\Customer Experience Improvement Program\\Consolidator" /Disable 2>nul\nschtasks /Change /TN "Microsoft\\Windows\\Customer Experience Improvement Program\\UsbCeip" /Disable 2>nul\nschtasks /Change /TN "Microsoft\\Windows\\Application Experience\\Microsoft Compatibility Appraiser" /Disable 2>nul\nschtasks /Change /TN "Microsoft\\Windows\\Application Experience\\ProgramDataUpdater" /Disable 2>nul\nschtasks /Change /TN "Microsoft\\Windows\\Application Experience\\StartupAppTask" /Disable 2>nul\nREM Disable Windows Update background bandwidth usage during gaming:\nreg add "HKLM\\SOFTWARE\\Policies\\Microsoft\\Windows\\WindowsUpdate\\AU" /v NoAutoUpdate /t REG_DWORD /d 0 /f\nreg add "HKLM\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\DeliveryOptimization\\Config" /v DODownloadMode /t REG_DWORD /d 0 /f\nREM Block telemetry endpoints at the registry level:\nreg add "HKLM\\SOFTWARE\\Policies\\Microsoft\\Windows\\DataCollection" /v DisableEnterpriseAuthProxy /t REG_DWORD /d 1 /f\nreg add "HKLM\\SYSTEM\\CurrentControlSet\\Services\\DiagTrack" /v Start /t REG_DWORD /d 4 /f`,
+     revert:`reg delete "HKLM\\SOFTWARE\\Policies\\Microsoft\\Windows\\DataCollection" /v AllowTelemetry /f 2>nul\nreg delete "HKLM\\SOFTWARE\\Policies\\Microsoft\\Windows\\DataCollection" /v DisableEnterpriseAuthProxy /f 2>nul\nsc config DiagTrack start= auto & sc start DiagTrack\nsc config WerSvc start= manual\nsc config DoSvc start= auto & sc start DoSvc 2>nul\nreg delete "HKLM\\SOFTWARE\\Policies\\Microsoft\\Windows\\GameDVR" /v AllowGameDVR /f 2>nul\nreg delete "HKCU\\System\\GameConfigStore" /v GameDVR_Enabled /f 2>nul\nreg add "HKLM\\SOFTWARE\\Microsoft\\Windows\\Windows Error Reporting" /v Disabled /t REG_DWORD /d 0 /f\nsc config AeLookupSvc start= manual 2>nul\nsc config PcaSvc start= manual 2>nul\nschtasks /Change /TN "Microsoft\\Windows\\Customer Experience Improvement Program\\Consolidator" /Enable 2>nul\nschtasks /Change /TN "Microsoft\\Windows\\Application Experience\\Microsoft Compatibility Appraiser" /Enable 2>nul\necho Telemetry reverted. Note: Xbox DVR and GameBar will need manual re-enable in Windows Settings if desired.`},
     {id:'visual-fx',icon:'🎭',name:'Disable All Visual Effects & Animations',badges:['perf','gpu'],
      impact:`Windows animates every window, menu, and UI element using the GPU. During a CS2 or Valorant match these animations run in the background via DWM, consuming GPU time on invisible effects. Setting visual effects to Best Performance disables all animations and tells Windows to minimize GPU use for the desktop.`,
      desc:'Even in exclusive fullscreen, alt-tabbing during CS2 with animations enabled causes visible GPU load spikes as Windows re-renders the animated desktop. Disabling animations makes alt-tab instant and ensures the GPU is 100% available to the game rather than animating desktop effects.',
@@ -1474,11 +1474,11 @@ echo [1/3] Disabling Hyper-V...
 bcdedit /set hypervisorlaunchtype off
 
 echo [2/3] Disabling VBS via registry...
-reg add "HKLM\SYSTEM\CurrentControlSet\Control\DeviceGuard" /v EnableVirtualizationBasedSecurity /t REG_DWORD /d 0 /f
-reg add "HKLM\SYSTEM\CurrentControlSet\Control\DeviceGuard" /v RequirePlatformSecurityFeatures /t REG_DWORD /d 0 /f
+reg add "HKLM\\SYSTEM\\CurrentControlSet\\Control\\DeviceGuard" /v EnableVirtualizationBasedSecurity /t REG_DWORD /d 0 /f
+reg add "HKLM\\SYSTEM\\CurrentControlSet\\Control\\DeviceGuard" /v RequirePlatformSecurityFeatures /t REG_DWORD /d 0 /f
 
 echo [3/3] Disabling Memory Integrity (HVCI)...
-reg add "HKLM\SYSTEM\CurrentControlSet\Control\DeviceGuard\Scenarios\HypervisorEnforcedCodeIntegrity" /v Enabled /t REG_DWORD /d 0 /f
+reg add "HKLM\\SYSTEM\\CurrentControlSet\\Control\\DeviceGuard\\Scenarios\\HypervisorEnforcedCodeIntegrity" /v Enabled /t REG_DWORD /d 0 /f
 
 echo.
 echo Reboot required. Check Settings > Windows Security > Device Security
@@ -1487,8 +1487,8 @@ pause`,
      revert:`@echo off
 REM Re-enable VBS and Hyper-V
 bcdedit /set hypervisorlaunchtype auto
-reg add "HKLM\SYSTEM\CurrentControlSet\Control\DeviceGuard" /v EnableVirtualizationBasedSecurity /t REG_DWORD /d 1 /f
-reg add "HKLM\SYSTEM\CurrentControlSet\Control\DeviceGuard\Scenarios\HypervisorEnforcedCodeIntegrity" /v Enabled /t REG_DWORD /d 1 /f
+reg add "HKLM\\SYSTEM\\CurrentControlSet\\Control\\DeviceGuard" /v EnableVirtualizationBasedSecurity /t REG_DWORD /d 1 /f
+reg add "HKLM\\SYSTEM\\CurrentControlSet\\Control\\DeviceGuard\\Scenarios\\HypervisorEnforcedCodeIntegrity" /v Enabled /t REG_DWORD /d 1 /f
 echo VBS restored. Reboot required.
 pause`},
     {id:'gpu-msi-mode',icon:'⚡',name:'Enable GPU Message Signaled Interrupts (MSI Mode)',badges:['latency','gpu'],
@@ -1505,7 +1505,7 @@ REM Enable MSI for all VGA/display adapters via PowerShell
 powershell -Command "
 Get-WmiObject Win32_VideoController | ForEach-Object {
   $pnpId = $_.PNPDeviceID
-  $regPath = 'HKLM:\SYSTEM\CurrentControlSet\Enum\' + $pnpId + '\Device Parameters\Interrupt Management\MessageSignaledInterruptProperties'
+  $regPath = 'HKLM:\\SYSTEM\\CurrentControlSet\\Enum\' + $pnpId + '\\Device Parameters\\Interrupt Management\\MessageSignaledInterruptProperties'
   if (!(Test-Path $regPath)) { New-Item -Path $regPath -Force | Out-Null }
   Set-ItemProperty -Path $regPath -Name MSISupported -Value 1 -Type DWord -Force
   Write-Host ('MSI enabled for: ' + $_.Name)
@@ -1521,7 +1521,7 @@ REM Disable GPU MSI Mode (restore line-based interrupts)
 powershell -Command "
 Get-WmiObject Win32_VideoController | ForEach-Object {
   $pnpId = $_.PNPDeviceID
-  $regPath = 'HKLM:\SYSTEM\CurrentControlSet\Enum\' + $pnpId + '\Device Parameters\Interrupt Management\MessageSignaledInterruptProperties'
+  $regPath = 'HKLM:\\SYSTEM\\CurrentControlSet\\Enum\' + $pnpId + '\\Device Parameters\\Interrupt Management\\MessageSignaledInterruptProperties'
   if (Test-Path $regPath) {
     Set-ItemProperty -Path $regPath -Name MSISupported -Value 0 -Type DWord -Force
     Write-Host ('MSI disabled for: ' + $_.Name)
@@ -1538,13 +1538,13 @@ REM OPTI — Disable Audio Enhancements / Reduce Audio DPC Overhead
 REM Run as Administrator
 
 echo [1/3] Disabling audio enhancements globally...
-reg add "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\MMDevices\Audio\Render" /v "DeviceProperty_FxProperties" /t REG_SZ /d "" /f 2>nul
+reg add "HKLM\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\MMDevices\\Audio\\Render" /v "DeviceProperty_FxProperties" /t REG_SZ /d "" /f 2>nul
 
 echo [2/3] Setting MMCSS for minimum audio overhead...
-reg add "HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Multimedia\SystemProfile" /v "SystemResponsiveness" /t REG_DWORD /d 0 /f
-reg add "HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Multimedia\SystemProfile\Tasks\Games" /v "GPU Priority" /t REG_DWORD /d 8 /f
-reg add "HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Multimedia\SystemProfile\Tasks\Games" /v "Priority" /t REG_DWORD /d 6 /f
-reg add "HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Multimedia\SystemProfile\Tasks\Games" /v "Scheduling Category" /t REG_SZ /d "High" /f
+reg add "HKLM\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Multimedia\\SystemProfile" /v "SystemResponsiveness" /t REG_DWORD /d 0 /f
+reg add "HKLM\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Multimedia\\SystemProfile\\Tasks\\Games" /v "GPU Priority" /t REG_DWORD /d 8 /f
+reg add "HKLM\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Multimedia\\SystemProfile\\Tasks\\Games" /v "Priority" /t REG_DWORD /d 6 /f
+reg add "HKLM\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Multimedia\\SystemProfile\\Tasks\\Games" /v "Scheduling Category" /t REG_SZ /d "High" /f
 
 echo [3/3] Manual step required:
 echo   Control Panel > Sound > Playback > [your device] > Properties
@@ -1554,10 +1554,10 @@ echo.
 echo Registry portion applied. Manual steps needed for per-device settings.
 pause`,
      revert:`@echo off
-reg add "HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Multimedia\SystemProfile" /v "SystemResponsiveness" /t REG_DWORD /d 20 /f
-reg add "HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Multimedia\SystemProfile\Tasks\Games" /v "GPU Priority" /t REG_DWORD /d 2 /f
-reg add "HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Multimedia\SystemProfile\Tasks\Games" /v "Priority" /t REG_DWORD /d 2 /f
-reg add "HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Multimedia\SystemProfile\Tasks\Games" /v "Scheduling Category" /t REG_SZ /d "Medium" /f
+reg add "HKLM\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Multimedia\\SystemProfile" /v "SystemResponsiveness" /t REG_DWORD /d 20 /f
+reg add "HKLM\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Multimedia\\SystemProfile\\Tasks\\Games" /v "GPU Priority" /t REG_DWORD /d 2 /f
+reg add "HKLM\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Multimedia\\SystemProfile\\Tasks\\Games" /v "Priority" /t REG_DWORD /d 2 /f
+reg add "HKLM\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Multimedia\\SystemProfile\\Tasks\\Games" /v "Scheduling Category" /t REG_SZ /d "Medium" /f
 echo Audio settings reverted.
 pause`},
     {id:'flip-model',icon:'🖥️',name:'Enable Win11 Optimized Flip Model (Windowed Game Latency)',badges:['latency','fps'],
@@ -1568,10 +1568,10 @@ REM OPTI — Enable Optimized Flip Model for Windowed Games (Win11)
 REM Run as Administrator
 
 echo Enabling optimized flip presentation model...
-reg add "HKCU\Software\Microsoft\DirectX\UserGpuPreferences" /v "DirectXUserGlobalSettings" /t REG_SZ /d "SwapEffectUpgradeEnable=1;" /f
+reg add "HKCU\\Software\\Microsoft\\DirectX\\UserGpuPreferences" /v "DirectXUserGlobalSettings" /t REG_SZ /d "SwapEffectUpgradeEnable=1;" /f
 
 echo Enabling VRR for windowed games...
-reg add "HKLM\SYSTEM\CurrentControlSet\Control\GraphicsDrivers" /v "HwFlipQueueLength" /t REG_DWORD /d 1 /f
+reg add "HKLM\\SYSTEM\\CurrentControlSet\\Control\\GraphicsDrivers" /v "HwFlipQueueLength" /t REG_DWORD /d 1 /f
 
 echo.
 echo Also enable in Settings manually:
@@ -1580,8 +1580,8 @@ echo   Turn ON: "Optimizations for windowed games"
 echo   Turn ON: "Variable refresh rate"
 pause`,
      revert:`@echo off
-reg delete "HKCU\Software\Microsoft\DirectX\UserGpuPreferences" /v "DirectXUserGlobalSettings" /f 2>nul
-reg delete "HKLM\SYSTEM\CurrentControlSet\Control\GraphicsDrivers" /v "HwFlipQueueLength" /f 2>nul
+reg delete "HKCU\\Software\\Microsoft\\DirectX\\UserGpuPreferences" /v "DirectXUserGlobalSettings" /f 2>nul
+reg delete "HKLM\\SYSTEM\\CurrentControlSet\\Control\\GraphicsDrivers" /v "HwFlipQueueLength" /f 2>nul
 echo Flip model settings reverted.
 pause`},
     {id:'disable-fso',icon:'🪟',name:'Disable Fullscreen Optimizations (Per-Game Override)',badges:['latency','fps'],
@@ -1592,18 +1592,18 @@ REM OPTI — Disable Fullscreen Optimizations for CS2 and Valorant
 REM Run as Administrator
 
 echo Disabling FSO for cs2.exe...
-reg add "HKCU\Software\Microsoft\Windows NT\CurrentVersion\AppCompatFlags\Layers" /v "C:\Program Files (x86)\Steam\steamapps\common\Counter-Strike Global Offensive\game\bin\win64\cs2.exe" /t REG_SZ /d "~ DISABLEDXMAXIMIZEDWINDOWEDMODE" /f
+reg add "HKCU\\Software\\Microsoft\\Windows NT\\CurrentVersion\\AppCompatFlags\\Layers" /v "C:\\Program Files (x86)\\Steam\\steamapps\\common\\Counter-Strike Global Offensive\\game\bin\\win64\\cs2.exe" /t REG_SZ /d "~ DISABLEDXMAXIMIZEDWINDOWEDMODE" /f
 
 echo Disabling FSO for VALORANT...
-reg add "HKCU\Software\Microsoft\Windows NT\CurrentVersion\AppCompatFlags\Layers" /v "C:\Riot Games\VALORANT\live\ShooterGame\Binaries\Win64\VALORANT-Win64-Shipping.exe" /t REG_SZ /d "~ DISABLEDXMAXIMIZEDWINDOWEDMODE" /f
+reg add "HKCU\\Software\\Microsoft\\Windows NT\\CurrentVersion\\AppCompatFlags\\Layers" /v "C:\\Riot Games\\VALORANT\\live\\ShooterGame\\Binaries\\Win64\\VALORANT-Win64-Shipping.exe" /t REG_SZ /d "~ DISABLEDXMAXIMIZEDWINDOWEDMODE" /f
 
 echo.
 echo FSO disabled for CS2 and Valorant.
 echo Make sure to set both games to Fullscreen (not Borderless) in-game settings.
 pause`,
      revert:`@echo off
-reg delete "HKCU\Software\Microsoft\Windows NT\CurrentVersion\AppCompatFlags\Layers" /v "C:\Program Files (x86)\Steam\steamapps\common\Counter-Strike Global Offensive\game\bin\win64\cs2.exe" /f 2>nul
-reg delete "HKCU\Software\Microsoft\Windows NT\CurrentVersion\AppCompatFlags\Layers" /v "C:\Riot Games\VALORANT\live\ShooterGame\Binaries\Win64\VALORANT-Win64-Shipping.exe" /f 2>nul
+reg delete "HKCU\\Software\\Microsoft\\Windows NT\\CurrentVersion\\AppCompatFlags\\Layers" /v "C:\\Program Files (x86)\\Steam\\steamapps\\common\\Counter-Strike Global Offensive\\game\bin\\win64\\cs2.exe" /f 2>nul
+reg delete "HKCU\\Software\\Microsoft\\Windows NT\\CurrentVersion\\AppCompatFlags\\Layers" /v "C:\\Riot Games\\VALORANT\\live\\ShooterGame\\Binaries\\Win64\\VALORANT-Win64-Shipping.exe" /f 2>nul
 echo Fullscreen optimizations restored for CS2 and Valorant.
 pause`},
     {id:'ntfs-last-access',icon:'💾',name:'Disable NTFS Last Access Time Stamp',style:'sc',badges:['perf','disk'],
@@ -1614,12 +1614,12 @@ REM OPTI — Disable NTFS Last Access Time Stamp
 REM Run as Administrator
 echo Disabling NTFS last access time updates...
 fsutil behavior set disablelastaccess 1
-reg add "HKLM\SYSTEM\CurrentControlSet\Control\FileSystem" /v NtfsDisableLastAccessUpdate /t REG_DWORD /d 1 /f
+reg add "HKLM\\SYSTEM\\CurrentControlSet\\Control\\FileSystem" /v NtfsDisableLastAccessUpdate /t REG_DWORD /d 1 /f
 echo Done. No reboot needed.
 pause`,
      revert:`@echo off
 fsutil behavior set disablelastaccess 0
-reg add "HKLM\SYSTEM\CurrentControlSet\Control\FileSystem" /v NtfsDisableLastAccessUpdate /t REG_DWORD /d 0 /f
+reg add "HKLM\\SYSTEM\\CurrentControlSet\\Control\\FileSystem" /v NtfsDisableLastAccessUpdate /t REG_DWORD /d 0 /f
 echo NTFS last access time restored.
 pause`},
     {id:'svchost-split',icon:'⚙️',name:'Optimize SvcHost Process Splitting Threshold',style:'sc',badges:['perf','cpu'],
@@ -1632,12 +1632,12 @@ REM Run as Administrator
 for /f "tokens=2 delims==" %%a in ('wmic os get TotalVisibleMemorySize /value') do set TOTALMEM=%%a
 echo Total RAM: %TOTALMEM% KB
 REM Set split threshold to 0 = always split (recommended for 8GB+)
-reg add "HKLM\SYSTEM\CurrentControlSet\Control" /v SvcHostSplitThresholdInKB /t REG_DWORD /d 0 /f
+reg add "HKLM\\SYSTEM\\CurrentControlSet\\Control" /v SvcHostSplitThresholdInKB /t REG_DWORD /d 0 /f
 echo SvcHost split threshold set to 0 (always split). Reboot required.
 pause`,
      revert:`@echo off
 REM Restore SvcHost split threshold to Windows default (3670016 KB = 3.5GB)
-reg add "HKLM\SYSTEM\CurrentControlSet\Control" /v SvcHostSplitThresholdInKB /t REG_DWORD /d 3670016 /f
+reg add "HKLM\\SYSTEM\\CurrentControlSet\\Control" /v SvcHostSplitThresholdInKB /t REG_DWORD /d 3670016 /f
 echo SvcHost split threshold restored. Reboot required.
 pause`},
     {id:'search-indexer',icon:'🔍',name:'Disable Windows Search Indexer During Gaming',style:'sc',badges:['perf','cpu','disk'],
@@ -1662,11 +1662,11 @@ pause`},
      apply:`@echo off
 REM OPTI — Disable Windows Power Throttling
 REM Run as Administrator
-reg add "HKLM\SYSTEM\CurrentControlSet\Control\Power\PowerThrottling" /v PowerThrottlingOff /t REG_DWORD /d 1 /f
+reg add "HKLM\\SYSTEM\\CurrentControlSet\\Control\\Power\\PowerThrottling" /v PowerThrottlingOff /t REG_DWORD /d 1 /f
 echo Power throttling disabled. No reboot needed.
 pause`,
      revert:`@echo off
-reg delete "HKLM\SYSTEM\CurrentControlSet\Control\Power\PowerThrottling" /v PowerThrottlingOff /f 2>nul
+reg delete "HKLM\\SYSTEM\\CurrentControlSet\\Control\\Power\\PowerThrottling" /v PowerThrottlingOff /f 2>nul
 echo Power throttling restored to default.
 pause`}
     ,{id:'services-manual',icon:'⚙️',name:'Set Non-Essential Services to Manual',style:'gp',badges:['perf','system'],
@@ -1995,7 +1995,7 @@ REM Eliminates USB port wake latency on mouse/keyboard
 REM Run as Administrator
 
 echo [1/2] Disabling USB selective suspend via registry...
-reg add "HKLM\SYSTEM\CurrentControlSet\Services\USB" /v "DisableSelectiveSuspend" /t REG_DWORD /d 1 /f
+reg add "HKLM\\SYSTEM\\CurrentControlSet\\Services\\USB" /v "DisableSelectiveSuspend" /t REG_DWORD /d 1 /f
 
 echo [2/2] Disabling via power plan settings...
 powercfg /setacvalueindex scheme_current 2a737441-1930-4402-8d77-b2bebba308a3 48e6b7a6-50f5-4782-a5d4-53bb8f07e226 0
@@ -2007,7 +2007,7 @@ echo USB selective suspend disabled. No reboot needed.
 echo Your USB mouse and keyboard will never sleep.
 pause`,
      revert:`@echo off
-reg delete "HKLM\SYSTEM\CurrentControlSet\Services\USB" /v "DisableSelectiveSuspend" /f 2>nul
+reg delete "HKLM\\SYSTEM\\CurrentControlSet\\Services\\USB" /v "DisableSelectiveSuspend" /f 2>nul
 powercfg /setacvalueindex scheme_current 2a737441-1930-4402-8d77-b2bebba308a3 48e6b7a6-50f5-4782-a5d4-53bb8f07e226 1
 powercfg /setdcvalueindex scheme_current 2a737441-1930-4402-8d77-b2bebba308a3 48e6b7a6-50f5-4782-a5d4-53bb8f07e226 1
 powercfg /setactive scheme_current
@@ -2069,18 +2069,18 @@ REM Sets process priority at launch without any launcher needed
 REM Run as Administrator
 
 echo Setting CS2 to High priority on launch...
-reg add "HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\cs2.exe\PerfOptions" /v "CpuPriorityClass" /t REG_DWORD /d 3 /f
+reg add "HKLM\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Image File Execution Options\\cs2.exe\\PerfOptions" /v "CpuPriorityClass" /t REG_DWORD /d 3 /f
 
 echo Setting Valorant to High priority on launch...
-reg add "HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\VALORANT-Win64-Shipping.exe\PerfOptions" /v "CpuPriorityClass" /t REG_DWORD /d 3 /f
+reg add "HKLM\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Image File Execution Options\\VALORANT-Win64-Shipping.exe\\PerfOptions" /v "CpuPriorityClass" /t REG_DWORD /d 3 /f
 
 echo.
 echo Done. Priority 3 = High (below Real-Time, above Normal).
 echo Both games will launch at High priority automatically from now on.
 pause`,
      revert:`@echo off
-reg delete "HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\cs2.exe\PerfOptions" /v "CpuPriorityClass" /f 2>nul
-reg delete "HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\VALORANT-Win64-Shipping.exe\PerfOptions" /v "CpuPriorityClass" /f 2>nul
+reg delete "HKLM\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Image File Execution Options\\cs2.exe\\PerfOptions" /v "CpuPriorityClass" /f 2>nul
+reg delete "HKLM\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Image File Execution Options\\VALORANT-Win64-Shipping.exe\\PerfOptions" /v "CpuPriorityClass" /f 2>nul
 echo Game process priority reverted to Windows default (Normal).
 pause`},
   ],
@@ -2099,19 +2099,19 @@ REM Advanced > Hardware Acceleration = OFF
 REM Click OK > Restart Discord
 
 REM Method 2 — Edit Discord settings JSON:
-REM File: %APPDATA%\Discord\settings.json
+REM File: %APPDATA%\\Discord\\settings.json
 REM Add line: "SKIP_HOST_UPDATE": false
 REM Change or add: "hardwareAcceleration": false
 
 REM Method 3 — Registry flag:
-reg add "HKCU\Software\Discord" /v "disableHardwareAcceleration" /t REG_DWORD /d 1 /f
+reg add "HKCU\\Software\\Discord" /v "disableHardwareAcceleration" /t REG_DWORD /d 1 /f
 
 echo Done. Restart Discord for changes to take effect.
 pause`,
      revert:`@echo off
 REM Re-enable Discord Hardware Acceleration:
 REM Discord > User Settings > Advanced > Hardware Acceleration = ON
-reg delete "HKCU\Software\Discord" /v "disableHardwareAcceleration" /f 2>nul
+reg delete "HKCU\\Software\\Discord" /v "disableHardwareAcceleration" /f 2>nul
 echo Done. Restart Discord.
 pause`},
     {id:'chrome-hw-accel',icon:'🌐',name:'Disable Chrome & Edge Hardware Acceleration',style:'gc',badges:['perf','gpu'],
@@ -2122,11 +2122,11 @@ REM Disable Hardware Acceleration — Chrome and Edge
 REM Run as Administrator
 
 REM === Google Chrome ===
-reg add "HKLM\SOFTWARE\Policies\Google\Chrome" /v "HardwareAccelerationModeEnabled" /t REG_DWORD /d 0 /f
+reg add "HKLM\\SOFTWARE\\Policies\\Google\\Chrome" /v "HardwareAccelerationModeEnabled" /t REG_DWORD /d 0 /f
 REM Verify: chrome://settings/system > Use hardware acceleration = OFF
 
 REM === Microsoft Edge ===
-reg add "HKLM\SOFTWARE\Policies\Microsoft\Edge" /v "HardwareAccelerationModeEnabled" /t REG_DWORD /d 0 /f
+reg add "HKLM\\SOFTWARE\\Policies\\Microsoft\\Edge" /v "HardwareAccelerationModeEnabled" /t REG_DWORD /d 0 /f
 REM Verify: edge://settings/system > Use hardware acceleration = OFF
 
 REM === Manual method (any Chromium browser) ===
@@ -2136,8 +2136,8 @@ REM Toggle OFF > click Relaunch
 echo Done. Restart all browsers for changes to take effect.
 pause`,
      revert:`@echo off
-reg delete "HKLM\SOFTWARE\Policies\Google\Chrome" /v "HardwareAccelerationModeEnabled" /f 2>nul
-reg delete "HKLM\SOFTWARE\Policies\Microsoft\Edge" /v "HardwareAccelerationModeEnabled" /f 2>nul
+reg delete "HKLM\\SOFTWARE\\Policies\\Google\\Chrome" /v "HardwareAccelerationModeEnabled" /f 2>nul
+reg delete "HKLM\\SOFTWARE\\Policies\\Microsoft\\Edge" /v "HardwareAccelerationModeEnabled" /f 2>nul
 echo Chrome and Edge hardware acceleration restored. Restart browsers.
 pause`},
     {id:'xbox-game-bar',icon:'🎮',name:'Disable Xbox Game Bar & Background DVR',style:'gc',badges:['perf','gpu','latency'],
@@ -2148,28 +2148,28 @@ REM Disable Xbox Game Bar and Game DVR
 REM Run as Administrator
 
 REM Disable Game DVR
-reg add "HKCU\System\GameConfigStore" /v GameDVR_FSEBehaviorMode /t REG_DWORD /d 2 /f
-reg add "HKCU\System\GameConfigStore" /v GameDVR_HonorUserFSEBehaviorMode /t REG_DWORD /d 1 /f
-reg add "HKCU\System\GameConfigStore" /v GameDVR_DXGIHonorFSEWindowsCompatible /t REG_DWORD /d 1 /f
-reg add "HKCU\System\GameConfigStore" /v GameDVR_EFSEFeatureFlags /t REG_DWORD /d 0 /f
-reg add "HKCU\System\GameConfigStore" /v GameDVR_Enabled /t REG_DWORD /d 0 /f
+reg add "HKCU\\System\\GameConfigStore" /v GameDVR_FSEBehaviorMode /t REG_DWORD /d 2 /f
+reg add "HKCU\\System\\GameConfigStore" /v GameDVR_HonorUserFSEBehaviorMode /t REG_DWORD /d 1 /f
+reg add "HKCU\\System\\GameConfigStore" /v GameDVR_DXGIHonorFSEWindowsCompatible /t REG_DWORD /d 1 /f
+reg add "HKCU\\System\\GameConfigStore" /v GameDVR_EFSEFeatureFlags /t REG_DWORD /d 0 /f
+reg add "HKCU\\System\\GameConfigStore" /v GameDVR_Enabled /t REG_DWORD /d 0 /f
 
 REM Disable background capture
-reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\GameDVR" /v AppCaptureEnabled /t REG_DWORD /d 0 /f
+reg add "HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\GameDVR" /v AppCaptureEnabled /t REG_DWORD /d 0 /f
 
 REM Block via Group Policy
-reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\GameDVR" /v AllowGameDVR /t REG_DWORD /d 0 /f
+reg add "HKLM\\SOFTWARE\\Policies\\Microsoft\\Windows\\GameDVR" /v AllowGameDVR /t REG_DWORD /d 0 /f
 
 REM Disable Win+G shortcut
-reg add "HKCU\Software\Microsoft\GameBar" /v UseNexusForGameBarEnabled /t REG_DWORD /d 0 /f
-reg add "HKCU\Software\Microsoft\GameBar" /v AllowAutoGameMode /t REG_DWORD /d 0 /f
+reg add "HKCU\\Software\\Microsoft\\GameBar" /v UseNexusForGameBarEnabled /t REG_DWORD /d 0 /f
+reg add "HKCU\\Software\\Microsoft\\GameBar" /v AllowAutoGameMode /t REG_DWORD /d 0 /f
 
 echo Xbox Game Bar and DVR disabled.
 pause`,
      revert:`@echo off
-reg add "HKCU\System\GameConfigStore" /v GameDVR_Enabled /t REG_DWORD /d 1 /f
-reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\GameDVR" /v AppCaptureEnabled /t REG_DWORD /d 1 /f
-reg delete "HKLM\SOFTWARE\Policies\Microsoft\Windows\GameDVR" /v AllowGameDVR /f 2>nul
+reg add "HKCU\\System\\GameConfigStore" /v GameDVR_Enabled /t REG_DWORD /d 1 /f
+reg add "HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\GameDVR" /v AppCaptureEnabled /t REG_DWORD /d 1 /f
+reg delete "HKLM\\SOFTWARE\\Policies\\Microsoft\\Windows\\GameDVR" /v AllowGameDVR /f 2>nul
 echo Xbox Game Bar restored.
 pause`},
     {id:'steam-overlay',icon:'🎮',name:'Steam — Disable Overlay & Download During Play',style:'gc',badges:['perf','fps'],
@@ -2179,8 +2179,8 @@ pause`},
 REM Steam Gaming Optimizations
 
 REM Clear Steam browser cache (reduces RAM usage)
-if exist "%LOCALAPPDATA%\Steam\htmlcache" (
-    rmdir /s /q "%LOCALAPPDATA%\Steam\htmlcache"
+if exist "%LOCALAPPDATA%\\Steam\\htmlcache" (
+    rmdir /s /q "%LOCALAPPDATA%\\Steam\\htmlcache"
     echo Steam browser cache cleared.
 )
 
@@ -2331,8 +2331,8 @@ pause`},
      badges:['latency','cs2','perf','net'],
      desc:'Targeted batch of registry and system changes that address the most common causes of CS2 latency sitting at 7–10ms instead of 2–3ms. Covers timer resolution, CPU idle, MMCSS game scheduling, GPU flip queue, and kernel sleep precision. Run after applying all CPU, GPU, and network tweaks.',
      impact:'Getting from 9ms to 2–3ms requires stacking multiple small wins: timer resolution (~1ms), CPU idle off (~0.5ms), MMCSS tuning (~0.5–1ms), GPU flip queue 1 (~0.5–1ms). These compound together. Pair with the NIC Interrupt Moderation and Audio DPC tweaks for maximum effect.',
-     apply:`@echo off\nREM CS2 Full Latency Stack — Targets 2-3ms\nREM Run as Administrator after all CPU/GPU/network tweaks\necho [1/7] Timer resolution — force TSC (not HPET), 0.5ms quantum...\nreg add "HKLM\SYSTEM\CurrentControlSet\Control\Session Manager\kernel" /v GlobalTimerResolutionRequests /t REG_DWORD /d 1 /f\nREM Delete useplatformtick so Windows uses CPU TSC (faster than HPET):\nbcdedit /deletevalue useplatformtick 2>nul\nbcdedit /set disabledynamictick no 2>nul\necho [2/7] CPU — lock to 100%% min/max (no C-state exit delay)...\npowercfg /setacvalueindex scheme_current sub_processor PROCTHROTTLEMIN 100\npowercfg /setacvalueindex scheme_current sub_processor PROCTHROTTLEMAX 100\npowercfg /setactive scheme_current\necho [3/7] MMCSS — maximize game thread precision...\nreg add "HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Multimedia\SystemProfile" /v SystemResponsiveness /t REG_DWORD /d 0 /f\nreg add "HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Multimedia\SystemProfile\Tasks\Games" /v "GPU Priority" /t REG_DWORD /d 8 /f\nreg add "HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Multimedia\SystemProfile\Tasks\Games" /v Priority /t REG_DWORD /d 6 /f\nreg add "HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Multimedia\SystemProfile\Tasks\Games" /v "Scheduling Category" /t REG_SZ /d "High" /f\nreg add "HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Multimedia\SystemProfile\Tasks\Games" /v "SFIO Priority" /t REG_SZ /d "High" /f\nreg add "HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Multimedia\SystemProfile\Tasks\Games" /v "Background Only" /t REG_SZ /d "False" /f\nreg add "HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Multimedia\SystemProfile\Tasks\Games" /v "Clock Rate" /t REG_DWORD /d 2500 /f\necho [4/7] Network — disable packet throttling (big latency win)...\nREM NetworkThrottlingIndex=0xFFFFFFFF disables Windows throttling game packets\nREM Default (10) batches packets adding 1-4ms. Disabled = immediate delivery.\nreg add "HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Multimedia\SystemProfile" /v NetworkThrottlingIndex /t REG_DWORD /d 4294967295 /f\nREM Also disable TCP auto-tuning interference:\nnetsh int tcp set global autotuninglevel=normal 2>nul\necho [5/7] GPU flip queue = 1 + DXGI max latency = 1...\nreg add "HKLM\SYSTEM\CurrentControlSet\Control\GraphicsDrivers" /v HwFlipQueueLength /t REG_DWORD /d 1 /f\nreg add "HKLM\SOFTWARE\Microsoft\DXGI" /v MaxFrameLatency /t REG_DWORD /d 1 /f\necho [6/7] Foreground app absolute CPU priority...\nreg add "HKLM\SYSTEM\CurrentControlSet\Control\PriorityControl" /v Win32PrioritySeparation /t REG_DWORD /d 38 /f\necho [7/7] Kill residual idle tasks...\nrundll32.exe advapi32.dll,ProcessIdleTasks\necho.\necho =============================================\necho  CS2 Latency Stack Applied\necho  Expected: 2-4ms system latency\necho  Stack with: NIC Interrupt Moderation tweak\necho  Stack with: Audio DPC tweak (if Realtek)\necho  Stack with: Telemetry tweak\necho  In CS2: NVIDIA Reflex = Enabled + Boost\necho  autoexec: r_low_latency 2, fps_max [Hz+20]\necho  Verify with: LatencyMon (resplendence.com)\necho =============================================\npause`,
-     revert:`@echo off\nbcdedit /deletevalue useplatformtick 2>nul\nreg delete "HKLM\SYSTEM\CurrentControlSet\Control\Session Manager\kernel" /v GlobalTimerResolutionRequests /f 2>nul\nreg add "HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Multimedia\SystemProfile" /v SystemResponsiveness /t REG_DWORD /d 20 /f\nreg add "HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Multimedia\SystemProfile" /v NetworkThrottlingIndex /t REG_DWORD /d 10 /f\nreg add "HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Multimedia\SystemProfile\Tasks\Games" /v "GPU Priority" /t REG_DWORD /d 2 /f\nreg add "HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Multimedia\SystemProfile\Tasks\Games" /v Priority /t REG_DWORD /d 2 /f\nreg add "HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Multimedia\SystemProfile\Tasks\Games" /v "Scheduling Category" /t REG_SZ /d "Medium" /f\nreg add "HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Multimedia\SystemProfile\Tasks\Games" /v "Clock Rate" /t REG_DWORD /d 10000 /f\nreg delete "HKLM\SYSTEM\CurrentControlSet\Control\GraphicsDrivers" /v HwFlipQueueLength /f 2>nul\nreg delete "HKLM\SOFTWARE\Microsoft\DXGI" /v MaxFrameLatency /f 2>nul\nreg add "HKLM\SYSTEM\CurrentControlSet\Control\PriorityControl" /v Win32PrioritySeparation /t REG_DWORD /d 2 /f\nnetsh int tcp set global autotuninglevel=normal 2>nul\necho CS2 latency stack reverted.\npause`},
+     apply:`@echo off\nREM CS2 Full Latency Stack — Targets 2-3ms\nREM Run as Administrator after all CPU/GPU/network tweaks\necho [1/7] Timer resolution — force TSC (not HPET), 0.5ms quantum...\nreg add "HKLM\\SYSTEM\\CurrentControlSet\\Control\\Session Manager\\kernel" /v GlobalTimerResolutionRequests /t REG_DWORD /d 1 /f\nREM Delete useplatformtick so Windows uses CPU TSC (faster than HPET):\nbcdedit /deletevalue useplatformtick 2>nul\nbcdedit /set disabledynamictick no 2>nul\necho [2/7] CPU — lock to 100%% min/max (no C-state exit delay)...\npowercfg /setacvalueindex scheme_current sub_processor PROCTHROTTLEMIN 100\npowercfg /setacvalueindex scheme_current sub_processor PROCTHROTTLEMAX 100\npowercfg /setactive scheme_current\necho [3/7] MMCSS — maximize game thread precision...\nreg add "HKLM\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Multimedia\\SystemProfile" /v SystemResponsiveness /t REG_DWORD /d 0 /f\nreg add "HKLM\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Multimedia\\SystemProfile\\Tasks\\Games" /v "GPU Priority" /t REG_DWORD /d 8 /f\nreg add "HKLM\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Multimedia\\SystemProfile\\Tasks\\Games" /v Priority /t REG_DWORD /d 6 /f\nreg add "HKLM\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Multimedia\\SystemProfile\\Tasks\\Games" /v "Scheduling Category" /t REG_SZ /d "High" /f\nreg add "HKLM\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Multimedia\\SystemProfile\\Tasks\\Games" /v "SFIO Priority" /t REG_SZ /d "High" /f\nreg add "HKLM\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Multimedia\\SystemProfile\\Tasks\\Games" /v "Background Only" /t REG_SZ /d "False" /f\nreg add "HKLM\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Multimedia\\SystemProfile\\Tasks\\Games" /v "Clock Rate" /t REG_DWORD /d 2500 /f\necho [4/7] Network — disable packet throttling (big latency win)...\nREM NetworkThrottlingIndex=0xFFFFFFFF disables Windows throttling game packets\nREM Default (10) batches packets adding 1-4ms. Disabled = immediate delivery.\nreg add "HKLM\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Multimedia\\SystemProfile" /v NetworkThrottlingIndex /t REG_DWORD /d 4294967295 /f\nREM Also disable TCP auto-tuning interference:\nnetsh int tcp set global autotuninglevel=normal 2>nul\necho [5/7] GPU flip queue = 1 + DXGI max latency = 1...\nreg add "HKLM\\SYSTEM\\CurrentControlSet\\Control\\GraphicsDrivers" /v HwFlipQueueLength /t REG_DWORD /d 1 /f\nreg add "HKLM\\SOFTWARE\\Microsoft\\DXGI" /v MaxFrameLatency /t REG_DWORD /d 1 /f\necho [6/7] Foreground app absolute CPU priority...\nreg add "HKLM\\SYSTEM\\CurrentControlSet\\Control\\PriorityControl" /v Win32PrioritySeparation /t REG_DWORD /d 38 /f\necho [7/7] Kill residual idle tasks...\nrundll32.exe advapi32.dll,ProcessIdleTasks\necho.\necho =============================================\necho  CS2 Latency Stack Applied\necho  Expected: 2-4ms system latency\necho  Stack with: NIC Interrupt Moderation tweak\necho  Stack with: Audio DPC tweak (if Realtek)\necho  Stack with: Telemetry tweak\necho  In CS2: NVIDIA Reflex = Enabled + Boost\necho  autoexec: r_low_latency 2, fps_max [Hz+20]\necho  Verify with: LatencyMon (resplendence.com)\necho =============================================\npause`,
+     revert:`@echo off\nbcdedit /deletevalue useplatformtick 2>nul\nreg delete "HKLM\\SYSTEM\\CurrentControlSet\\Control\\Session Manager\\kernel" /v GlobalTimerResolutionRequests /f 2>nul\nreg add "HKLM\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Multimedia\\SystemProfile" /v SystemResponsiveness /t REG_DWORD /d 20 /f\nreg add "HKLM\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Multimedia\\SystemProfile" /v NetworkThrottlingIndex /t REG_DWORD /d 10 /f\nreg add "HKLM\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Multimedia\\SystemProfile\\Tasks\\Games" /v "GPU Priority" /t REG_DWORD /d 2 /f\nreg add "HKLM\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Multimedia\\SystemProfile\\Tasks\\Games" /v Priority /t REG_DWORD /d 2 /f\nreg add "HKLM\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Multimedia\\SystemProfile\\Tasks\\Games" /v "Scheduling Category" /t REG_SZ /d "Medium" /f\nreg add "HKLM\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Multimedia\\SystemProfile\\Tasks\\Games" /v "Clock Rate" /t REG_DWORD /d 10000 /f\nreg delete "HKLM\\SYSTEM\\CurrentControlSet\\Control\\GraphicsDrivers" /v HwFlipQueueLength /f 2>nul\nreg delete "HKLM\\SOFTWARE\\Microsoft\\DXGI" /v MaxFrameLatency /f 2>nul\nreg add "HKLM\\SYSTEM\\CurrentControlSet\\Control\\PriorityControl" /v Win32PrioritySeparation /t REG_DWORD /d 2 /f\nnetsh int tcp set global autotuninglevel=normal 2>nul\necho CS2 latency stack reverted.\npause`},
     {id:'cs2-telemetry-diag',icon:'📉',name:'CS2 Latency Telemetry — Diagnose Your 9ms',style:'cc',badges:['cs2','latency'],
      impact:`CS2 has a built-in latency overlay that shows exactly where your 9ms is coming from. The breakdown: Input (mouse to frame start), CPU (game thread), GPU (render time), Queue (flip queue delay). 9ms usually means flip queue backpressure or GPU-bound frames. r_low_latency 2 plus NVIDIA Reflex together typically cuts this to 2–3ms.`,
      desc:'cl_showtelemetry 1 shows a real-time breakdown of your input latency split into 4 components. Each component points to a specific fix. GPU time high = lower video settings or enable Reflex. Flip queue high = run the Full Latency Stack tweak. CPU time high = core parking on, wrong power plan, or MMCSS not tuned. Input time high = raw input disabled or mouse driver overhead.',
@@ -2430,32 +2430,32 @@ REM Valorant Network Stack Optimization
 REM Run as Administrator
 REM
 REM Disable Nagle on all NIC interfaces (no GUID needed):
-powershell -Command "Get-ChildItem 'HKLM:\SYSTEM\CurrentControlSet\Services\Tcpip\Parameters\Interfaces' | ForEach-Object { Set-ItemProperty -Path $_.PSPath -Name 'TcpAckFrequency' -Value 1 -Type DWord -Force; Set-ItemProperty -Path $_.PSPath -Name 'TCPNoDelay' -Value 1 -Type DWord -Force } 2>$null"
-reg add "HKLM\SYSTEM\CurrentControlSet\Services\Tcpip\Parameters" /v TCPNoDelay /t REG_DWORD /d 1 /f
-reg add "HKLM\SYSTEM\CurrentControlSet\Services\Tcpip\Parameters" /v TcpAckFrequency /t REG_DWORD /d 1 /f
+powershell -Command "Get-ChildItem 'HKLM:\\SYSTEM\\CurrentControlSet\\Services\\Tcpip\\Parameters\\Interfaces' | ForEach-Object { Set-ItemProperty -Path $_.PSPath -Name 'TcpAckFrequency' -Value 1 -Type DWord -Force; Set-ItemProperty -Path $_.PSPath -Name 'TCPNoDelay' -Value 1 -Type DWord -Force } 2>$null"
+reg add "HKLM\\SYSTEM\\CurrentControlSet\\Services\\Tcpip\\Parameters" /v TCPNoDelay /t REG_DWORD /d 1 /f
+reg add "HKLM\\SYSTEM\\CurrentControlSet\\Services\\Tcpip\\Parameters" /v TcpAckFrequency /t REG_DWORD /d 1 /f
 REM
 REM Flush DNS
 ipconfig /flushdns
 REM
 REM QoS policy for Valorant UDP:
 netsh advfirewall firewall add rule name="OPTI-VAL-UDP" protocol=UDP dir=out localport=7000-8000 action=allow
-reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\QoS\OPTI-VAL-NET" /v "Version" /t REG_SZ /d "1.0" /f
-reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\QoS\OPTI-VAL-NET" /v "Application Name" /t REG_SZ /d "VALORANT-Win64-Shipping.exe" /f
-reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\QoS\OPTI-VAL-NET" /v "Protocol" /t REG_SZ /d "UDP" /f
-reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\QoS\OPTI-VAL-NET" /v "Local Port" /t REG_SZ /d "*" /f
-reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\QoS\OPTI-VAL-NET" /v "Remote Port" /t REG_SZ /d "*" /f
-reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\QoS\OPTI-VAL-NET" /v "Local IP" /t REG_SZ /d "*" /f
-reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\QoS\OPTI-VAL-NET" /v "Remote IP" /t REG_SZ /d "*" /f
-reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\QoS\OPTI-VAL-NET" /v "DSCP Value" /t REG_SZ /d "46" /f
-reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\QoS\OPTI-VAL-NET" /v "Throttle Rate" /t REG_SZ /d "-1" /f
+reg add "HKLM\\SOFTWARE\\Policies\\Microsoft\\Windows\\QoS\\OPTI-VAL-NET" /v "Version" /t REG_SZ /d "1.0" /f
+reg add "HKLM\\SOFTWARE\\Policies\\Microsoft\\Windows\\QoS\\OPTI-VAL-NET" /v "Application Name" /t REG_SZ /d "VALORANT-Win64-Shipping.exe" /f
+reg add "HKLM\\SOFTWARE\\Policies\\Microsoft\\Windows\\QoS\\OPTI-VAL-NET" /v "Protocol" /t REG_SZ /d "UDP" /f
+reg add "HKLM\\SOFTWARE\\Policies\\Microsoft\\Windows\\QoS\\OPTI-VAL-NET" /v "Local Port" /t REG_SZ /d "*" /f
+reg add "HKLM\\SOFTWARE\\Policies\\Microsoft\\Windows\\QoS\\OPTI-VAL-NET" /v "Remote Port" /t REG_SZ /d "*" /f
+reg add "HKLM\\SOFTWARE\\Policies\\Microsoft\\Windows\\QoS\\OPTI-VAL-NET" /v "Local IP" /t REG_SZ /d "*" /f
+reg add "HKLM\\SOFTWARE\\Policies\\Microsoft\\Windows\\QoS\\OPTI-VAL-NET" /v "Remote IP" /t REG_SZ /d "*" /f
+reg add "HKLM\\SOFTWARE\\Policies\\Microsoft\\Windows\\QoS\\OPTI-VAL-NET" /v "DSCP Value" /t REG_SZ /d "46" /f
+reg add "HKLM\\SOFTWARE\\Policies\\Microsoft\\Windows\\QoS\\OPTI-VAL-NET" /v "Throttle Rate" /t REG_SZ /d "-1" /f
 echo Valorant network optimization applied.
 pause`,
      revert:`@echo off
-reg delete "HKLM\SOFTWARE\Policies\Microsoft\Windows\QoS\OPTI-VAL-NET" /f 2>nul
+reg delete "HKLM\\SOFTWARE\\Policies\\Microsoft\\Windows\\QoS\\OPTI-VAL-NET" /f 2>nul
 netsh advfirewall firewall delete rule name="OPTI-VAL-UDP" 2>nul
-powershell -Command "Get-ChildItem 'HKLM:\SYSTEM\CurrentControlSet\Services\Tcpip\Parameters\Interfaces' | ForEach-Object { Remove-ItemProperty -Path $_.PSPath -Name 'TcpAckFrequency' -Force -ErrorAction SilentlyContinue; Remove-ItemProperty -Path $_.PSPath -Name 'TCPNoDelay' -Force -ErrorAction SilentlyContinue }"
-reg delete "HKLM\SYSTEM\CurrentControlSet\Services\Tcpip\Parameters" /v TCPNoDelay /f 2>nul
-reg delete "HKLM\SYSTEM\CurrentControlSet\Services\Tcpip\Parameters" /v TcpAckFrequency /f 2>nul
+powershell -Command "Get-ChildItem 'HKLM:\\SYSTEM\\CurrentControlSet\\Services\\Tcpip\\Parameters\\Interfaces' | ForEach-Object { Remove-ItemProperty -Path $_.PSPath -Name 'TcpAckFrequency' -Force -ErrorAction SilentlyContinue; Remove-ItemProperty -Path $_.PSPath -Name 'TCPNoDelay' -Force -ErrorAction SilentlyContinue }"
+reg delete "HKLM\\SYSTEM\\CurrentControlSet\\Services\\Tcpip\\Parameters" /v TCPNoDelay /f 2>nul
+reg delete "HKLM\\SYSTEM\\CurrentControlSet\\Services\\Tcpip\\Parameters" /v TcpAckFrequency /f 2>nul
 echo Valorant network tweaks reverted.
 pause`},
     {id:'val-fps-cap',icon:'🎯',name:'Valorant FPS Cap — Riot Recommended Method',style:'vc',badges:['val','fps','latency'],
@@ -3343,7 +3343,7 @@ const GUIDES_DATA = [
   },
 ];
 
-const STORAGE_KEY = 'JSP_v7';
+const STORAGE_KEY = 'OPTI_v7';
 
 function download(content, filename){
   const a = Object.assign(document.createElement('a'),{
@@ -4347,8 +4347,8 @@ function ForMyBuildSection() {
                         if (!entries.length) { toast('Nothing to download', 'warn'); return; }
                         const label = (hw.cpu ? hw.cpu.name : '') + (hw.gpu ? ' + ' + hw.gpu.name : '') + (ram.capacity ? ' ' + ram.capacity : '') + (ram.type ? ' ' + ram.type : '');
                         const s = buildBat('FOR MY BUILD', entries, false, 'Tweaks optimized for: ' + label.trim());
-                        download(s, 'JSP_my_build.bat');
-                        toast('\u2193 JSP_my_build.bat downloaded', 'success');
+                        download(s, 'OPTI_my_build.bat');
+                        toast('\u2193 OPTI_my_build.bat downloaded', 'success');
                     },
                     style: { padding: '9px 16px', fontFamily: 'var(--mono)', fontSize: 'var(--f2xs)', fontWeight: 700, letterSpacing: '.12em', cursor: 'pointer', background: `${T.g}18`, color: T.g, border: `1px solid ${T.g}50`, transition: '.12s' }
                 }, "\u2193 DOWNLOAD BUILD SCRIPT")),
@@ -4754,12 +4754,12 @@ function exportApply() {
             return;
         }
         const s = buildBat('APPLY SELECTED', selE, false);
-        download(s, 'JSP_apply.bat');
+        download(s, 'OPTI_apply.bat');
         const na = Object.assign({}, applied);
         selE.forEach(([id, cat]) => { na[id] = cat; });
         setApplied(na);
         setSel({});
-        toast(`⬇ JSP_apply.bat (${selE.length})`, 'success');
+        toast(`⬇ OPTI_apply.bat (${selE.length})`, 'success');
     }
     function exportRevert() {
         if (!selE.length) {
@@ -4767,12 +4767,12 @@ function exportApply() {
             return;
         }
         const s = buildBat('REVERT SELECTED', selE, true);
-        download(s, 'JSP_revert.bat');
+        download(s, 'OPTI_revert.bat');
         const na = Object.assign({}, applied);
         selE.forEach(([id]) => { delete na[id]; });
         setApplied(na);
         setSel({});
-        toast(`⬇ JSP_revert.bat (${selE.length})`, 'success');
+        toast(`⬇ OPTI_revert.bat (${selE.length})`, 'success');
     }
     function exportRevertAll() {
         if (!appE.length) {
@@ -4780,10 +4780,10 @@ function exportApply() {
             return;
         }
         const s = buildBat('REVERT ALL', appE, true, 'Reverts every applied tweak.');
-        download(s, 'JSP_revert_ALL.bat');
+        download(s, 'OPTI_revert_ALL.bat');
         setApplied({});
         setSel({});
-        toast(`⬇ JSP_revert_ALL.bat (${appE.length})`, 'success');
+        toast(`⬇ OPTI_revert_ALL.bat (${appE.length})`, 'success');
     }
     return (React.createElement("div", { style: {
             background: T.bg0,
@@ -4919,7 +4919,7 @@ function exportApply() {
 /* ═══════════════════════════════════════════════════════════════════════
    APP
 ═══════════════════════════════════════════════════════════════════════ */
-const SK = typeof STORAGE_KEY !== 'undefined' ? STORAGE_KEY : 'JSP_v7';
+const SK = typeof STORAGE_KEY !== 'undefined' ? STORAGE_KEY : 'OPTI_v7';
 class ErrorBoundary extends React.Component {
     constructor(p) { super(p); this.state = { err: null }; }
     static getDerivedStateFromError(e) { return { err: e }; }
