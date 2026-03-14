@@ -282,6 +282,7 @@ REM Download: https://cms.lucashale.com/timer-resolution/`,
   nvidia: [
     {id:'nvcp-latency-profile',icon:'🟢',name:'NVIDIA Control Panel — Low Latency Profile',badges:['latency','gpu'],
      impact:`NVIDIA's Low Latency mode reduces the GPU's pre-rendered frame queue from 3 frames to 1. This cuts the lag between mouse movement and the corresponding frame appearing on screen by up to 2–4ms. Combined with Max Performance power mode (which keeps GPU clocks pinned at boost speed with no ramp-up delay), this is the highest-impact single NVCP configuration for CS2 and Valorant.`,
+     risky:true,riskNote:`⚠ CAN BREAK DISCORD SCREEN SHARE: This profile also sets HwFlipQueueLength=1. Combined with exclusive fullscreen, Discord screen capture will occasionally drop a frame. Revert HwFlipQueueLength or do not screen share fullscreen games.`,
      desc:'Sets NVIDIA GPU to maximum clock speed at all times and reduces the flip queue to 1 frame. Eliminates GPU clock ramp-up latency and minimises the render queue depth. The registry writes target the correct per-GPU path (HKLM\\Control\\Video\\{GUID}\\0000) which works on all modern drivers.',
      apply:`@echo off
 REM OPTI — NVIDIA Low Latency Profile
@@ -459,6 +460,7 @@ pause`},
      revert:`reg add "HKLM\\SYSTEM\\CurrentControlSet\\Control\\GraphicsDrivers" /v HwSchMode /t REG_DWORD /d 1 /f`},
     {id:'fso',icon:'🖥️',name:'Disable Fullscreen Optimizations',badges:['latency','gpu'],
      impact:`Fullscreen Optimizations silently convert CS2 and Valorant's exclusive fullscreen into borderless windowed, keeping the DWM compositor active. The compositor adds 1-3ms of frame delivery latency that you cannot remove until you disable FSO. True exclusive fullscreen bypasses DWM entirely — your rendered frames go straight to the monitor.`,
+     risky:true,riskNote:`⚠ BREAKS DISCORD SCREEN SHARE IN FULLSCREEN: Disabling FSO forces true exclusive fullscreen. Discord Desktop Duplication API cannot reliably capture exclusive fullscreen — you will see frozen frames or a black screen. Use borderless fullscreen when screen sharing.`,
      desc:'CS2 with FSO enabled (default) runs in a fake fullscreen that still routes frames through the Windows compositor. Disabling FSO per-executable lets CS2 claim true exclusive display access, bypassing DWM and eliminating the compositor\'s frame delivery overhead. Combined with HAGS and Flip Model this achieves the minimum possible render-to-display latency.',
      apply:`reg add "HKCU\\System\\GameConfigStore" /v GameDVR_FSEBehaviorMode /t REG_DWORD /d 2 /f\nreg add "HKCU\\System\\GameConfigStore" /v GameDVR_HonorUserFSEBehaviorMode /t REG_DWORD /d 1 /f\nreg add "HKCU\\System\\GameConfigStore" /v GameDVR_EFSEBehaviorMode /t REG_DWORD /d 0 /f`,
      revert:`reg add "HKCU\\System\\GameConfigStore" /v GameDVR_FSEBehaviorMode /t REG_DWORD /d 0 /f\nreg add "HKCU\\System\\GameConfigStore" /v GameDVR_HonorUserFSEBehaviorMode /t REG_DWORD /d 0 /f\nreg add "HKCU\\System\\GameConfigStore" /v GameDVR_EFSEBehaviorMode /t REG_DWORD /d 2 /f`},
@@ -469,11 +471,13 @@ pause`},
      revert:`@echo off\nreg add "HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\GameDVR" /v AppCaptureEnabled /t REG_DWORD /d 1 /f\nreg delete "HKLM\\SOFTWARE\\Policies\\Microsoft\\Windows\\GameDVR" /v AllowGameDVR /f 2>nul\necho Game DVR restored.\npause`},
     {id:'dxgi-latency',icon:'📦',name:'Reduce DXGI Pre-Rendered Frames to 1',badges:['latency','gpu'],
      impact:`DXGI MaxFrameLatency controls how many frames the GPU renders ahead. At the default of 3, the GPU is always working on frames 1, 2, and 3 ahead of what's displayed — meaning you see a frame that was rendered up to 3 frame-times ago. Setting to 1 eliminates this pre-render buffer, dramatically cutting the time between your input and seeing the result.`,
+     risky:true,riskNote:`⚠ CAN AFFECT DISCORD SCREEN SHARE: MaxFrameLatency=1 tightens GPU-CPU sync. Combined with HwFlipQueueLength=1 or exclusive fullscreen, Discord capture may miss frames. Revert if you see frame drops while screen sharing.`,
      desc:'In CS2 at 240Hz, 3 frames of DXGI latency = ~12.5ms of additional input-to-display latency on top of monitor latency. Setting MaxFrameLatency=1 cuts this to ~4ms. This is what NVIDIA Reflex Low Latency mode sets internally — this registry key does the same thing without needing NVIDIA-specific software.',
      apply:`reg add "HKLM\\SOFTWARE\\Microsoft\\DXGI" /v MaxFrameLatency /t REG_DWORD /d 1 /f`,
      revert:`reg add "HKLM\\SOFTWARE\\Microsoft\\DXGI" /v MaxFrameLatency /t REG_DWORD /d 3 /f`},
     {id:'flip-model',icon:'🔄',name:'Enable Low-Latency Flip Presentation',badges:['latency','gpu'],
      impact:`Flip Model Presentation lets CS2 and Valorant present rendered frames directly to the display without a blit copy. Traditional Present() copies the frame to a separate display buffer before showing it — wasting GPU time. Flip Model presents the render buffer directly, eliminating this copy and enabling VRR (G-Sync/FreeSync) and Reflex simultaneously.`,
+     risky:true,riskNote:`⚠ Win11 Optimised Flip Model can cause Discord screen capture to miss an occasional frame during screen share. Revert if streaming is affected.`,
      desc:'CS2 and Valorant must use Flip Model to support VRR and NVIDIA Reflex at the same time. Traditional blit presentation breaks both. Flip Discard (the optimal variant) drops old frames immediately rather than queuing them, ensuring the most recent frame is always what gets displayed — critical for sub-20ms gaming at high framerates.',
      apply:`@echo off\nREM OPTI — Enable Low-Latency Flip Presentation (Allow Tearing)\nreg add "HKLM\\SYSTEM\\CurrentControlSet\\Control\\GraphicsDrivers" /v AllowTearing /t REG_DWORD /d 1 /f\necho Flip presentation (allow tearing) enabled. Reboot recommended.\npause`,
      revert:`@echo off\nreg delete "HKLM\\SYSTEM\\CurrentControlSet\\Control\\GraphicsDrivers" /v AllowTearing /f 2>nul\necho Flip presentation reverted.\npause`},
@@ -489,6 +493,7 @@ pause`},
      revert:`@echo off\nREM Disable AMD Anti-Lag\npowershell -Command "Get-ChildItem 'HKLM:\\SYSTEM\\CurrentControlSet\\Control\\Class\\{4d36e968-e325-11ce-bfc1-08002be10318}' | Where-Object { (Get-ItemProperty $_.PSPath -EA SilentlyContinue).DriverDesc -like '*AMD*' -or (Get-ItemProperty $_.PSPath -EA SilentlyContinue).DriverDesc -like '*Radeon*' } | ForEach-Object { Remove-ItemProperty -Path $_.PSPath -Name 'KMD_EnableAntiLag' -Force -EA SilentlyContinue; Write-Host ('Anti-Lag disabled for: ' + (Get-ItemProperty $_.PSPath).DriverDesc) }"\necho AMD Anti-Lag disabled.\npause`},
     {id:'hw-flip-queue',icon:'📐',name:'Reduce Hardware Flip Queue to 1',badges:['latency','gpu'],
      impact:`The hardware flip queue determines how many rendered frames sit in the GPU's display queue waiting to be shown. Reducing this to 1 means the most recently rendered frame is shown next — not a frame that was rendered 2-3 frames ago. Combined with DXGI MaxFrameLatency=1 and Flip Model, this achieves the absolute minimum render-queue latency.`,
+     risky:true,riskNote:`⚠ BREAKS DISCORD SCREEN SHARE: HwFlipQueueLength=1 leaves only 1 frame in the hardware flip buffer. Discord Desktop Duplication capture misses this single frame in exclusive fullscreen, producing a frozen frame every few seconds. Revert if you screen share fullscreen games.`,
      desc:'CS2 players using NVIDIA Reflex should also tune the flip queue — Reflex manages the CPU-GPU timing, but the GPU-display queue is separate. Flip queue 1 ensures that after Reflex delivers a frame to the GPU, that frame is shown next rather than waiting behind older frames. Together these eliminate every source of queue-based latency.',
      apply:`reg add "HKLM\\SYSTEM\\CurrentControlSet\\Control\\GraphicsDrivers" /v HwFlipQueueLength /t REG_DWORD /d 1 /f`,
      revert:`@echo off\nreg add "HKLM\\SYSTEM\\CurrentControlSet\\Control\\GraphicsDrivers" /v HwFlipQueueLength /t REG_DWORD /d 2 /f\necho Flip queue length restored to default (2).\npause`},
@@ -622,35 +627,13 @@ pause`},
      desc:'Power management features put your NIC into a low-power state during quiet periods, then wake it when packets arrive. The wake latency adds 1-5ms to every burst of packets. In CS2, enemies appearing around corners send a burst of position updates — NIC sleep delay makes that feel like they teleport.',
      apply:`@echo off
 REM OPTI — Disable NIC Power Saving
-REM Run as Administrator
-echo Disabling power saving on all active network adapters...
-powershell -Command "
-Get-NetAdapter | Where-Object {$_.Status -eq 'Up'} | ForEach-Object {
-  try {
-    Set-NetAdapterAdvancedProperty -Name $_.Name -DisplayName 'Energy Efficient Ethernet' -DisplayValue 'Disabled' -EA SilentlyContinue
-    Set-NetAdapterAdvancedProperty -Name $_.Name -DisplayName 'Green Ethernet' -DisplayValue 'Disabled' -EA SilentlyContinue
-    Set-NetAdapterAdvancedProperty -Name $_.Name -DisplayName 'Power Saving Mode' -DisplayValue 'Disabled' -EA SilentlyContinue
-    Disable-NetAdapterPowerManagement -Name $_.Name -EA SilentlyContinue
-    Write-Host ('Power saving disabled for: ' + $_.Name)
-  } catch { Write-Host ('Skipped: ' + $_.Name) }
-}
-"
-echo.
-echo Also check manually: Device Manager > [NIC] > Properties > Power Management tab
-echo Uncheck all power-saving options there too.
-pause`,
+echo Disabling NIC power saving...
+powershell -NoProfile -Command "Get-NetAdapter | Where-Object {$_.Status -eq 'Up'} | ForEach-Object { $n=$_.Name; try { Set-NetAdapterAdvancedProperty -Name $n -DisplayName 'Energy Efficient Ethernet' -DisplayValue 'Disabled' -EA SilentlyContinue; Set-NetAdapterAdvancedProperty -Name $n -DisplayName 'Green Ethernet' -DisplayValue 'Disabled' -EA SilentlyContinue; Disable-NetAdapterPowerManagement -Name $n -EA SilentlyContinue; Write-Host ('Done: ' + $n) } catch { Write-Host ('Skipped: ' + $n) } }"
+echo Done.`,
      revert:`@echo off
-powershell -Command "
-Get-NetAdapter | Where-Object {$_.Status -eq 'Up'} | ForEach-Object {
-  try {
-    Set-NetAdapterAdvancedProperty -Name $_.Name -DisplayName 'Energy Efficient Ethernet' -DisplayValue 'Enabled' -EA SilentlyContinue
-    Enable-NetAdapterPowerManagement -Name $_.Name -EA SilentlyContinue
-    Write-Host ('Restored: ' + $_.Name)
-  } catch {}
-}
-"
-echo NIC power management restored.
-pause`},
+REM OPTI — Re-enable NIC Power Saving
+powershell -NoProfile -Command "Get-NetAdapter | Where-Object {$_.Status -eq 'Up'} | ForEach-Object { $n=$_.Name; try { Enable-NetAdapterPowerManagement -Name $n -EA SilentlyContinue; Write-Host ('Reverted: ' + $n) } catch { Write-Host ('Skipped: ' + $n) } }"
+echo Done.`},
     {id:'udp-buffer',icon:'📥',name:'Increase UDP & TCP Socket Buffers',badges:['net','ping','latency'],
      impact:`In CS2 at round start when all 10 players' positions update simultaneously, tiny default buffers cause micro-drops that manifest as enemies briefly stuttering into position. In Valorant Ult activations (Sova scan, Brim ult, etc.) trigger similar bursts.`,
      desc:'CS2 and Valorant both use UDP. When the server sends a burst of updates (player positions after a round starts, nade trajectories, multiple simultaneous events), small UDP buffers drop packets that can\'t be processed fast enough. Larger buffers absorb these bursts cleanly.',
@@ -706,35 +689,16 @@ pause`},
      impact:`In Valorant during peak agent ability usage (multiple smokes, flashes, Omen teleports), the CPU is handling game logic AND network processing simultaneously. Hardware offloading removes the network processing portion, reducing CPU load during the most demanding moments.`,
      desc:'Moves TCP checksum calculation and packet segmentation from your CPU to the NIC hardware. Every CS2 and Valorant packet normally uses a few CPU cycles for checksum verification — offloading this to NIC hardware frees those CPU cycles for game physics, AI, and rendering.',
      apply:`@echo off
-REM OPTI — Disable NIC Hardware Offloads (Reduce DPC latency)
-REM Run as Administrator
-echo Disabling checksum/LSO offloads on all active adapters...
-powershell -Command "
-Get-NetAdapter | Where-Object {$_.Status -eq 'Up'} | ForEach-Object {
-  $n = $_.Name
-  try {
-    Disable-NetAdapterChecksumOffload -Name $n -EA SilentlyContinue
-    Disable-NetAdapterLso -Name $n -EA SilentlyContinue
-    Write-Host ('Offloads disabled for: ' + $n)
-  } catch { Write-Host ('Skipped: ' + $n) }
-}
-"
+REM OPTI — Disable NIC Hardware Offloads
+echo Disabling checksum/LSO offloads...
+powershell -NoProfile -Command "Get-NetAdapter | Where-Object {$_.Status -eq 'Up'} | ForEach-Object { $n=$_.Name; try { Disable-NetAdapterChecksumOffload -Name $n -EA SilentlyContinue; Disable-NetAdapterLso -Name $n -EA SilentlyContinue; Write-Host ('Offloads disabled: ' + $n) } catch { Write-Host ('Skipped: ' + $n) } }"
 reg add "HKLM\\SYSTEM\\CurrentControlSet\\Services\\Tcpip\\Parameters" /v DisableTaskOffload /t REG_DWORD /d 1 /f
-echo Done. Reboot recommended.
-pause`,
+echo Done. Reboot recommended.`,
      revert:`@echo off
-powershell -Command "
-Get-NetAdapter | Where-Object {$_.Status -eq 'Up'} | ForEach-Object {
-  try {
-    Enable-NetAdapterChecksumOffload -Name $_.Name -EA SilentlyContinue
-    Enable-NetAdapterLso -Name $_.Name -EA SilentlyContinue
-    Write-Host ('Offloads restored for: ' + $_.Name)
-  } catch {}
-}
-"
-reg delete "HKLM\\SYSTEM\\CurrentControlSet\\Services\\Tcpip\\Parameters" /v DisableTaskOffload /f 2>nul
-echo NIC offloads restored.
-pause`},
+REM OPTI — Re-enable NIC Hardware Offloads
+powershell -NoProfile -Command "Get-NetAdapter | Where-Object {$_.Status -eq 'Up'} | ForEach-Object { $n=$_.Name; try { Enable-NetAdapterChecksumOffload -Name $n -EA SilentlyContinue; Enable-NetAdapterLso -Name $n -EA SilentlyContinue; Write-Host ('Offloads enabled: ' + $n) } catch { Write-Host ('Skipped: ' + $n) } }"
+reg add "HKLM\\SYSTEM\\CurrentControlSet\\Services\\Tcpip\\Parameters" /v DisableTaskOffload /t REG_DWORD /d 0 /f
+echo Done. Reboot recommended.`},
     {id:'ipv6-disable',icon:'6️⃣',name:'Disable IPv6 (Force IPv4 Priority)',badges:['net','ping'],
      impact:`CS2 matchmaking and Valorant server connections both use IPv4. If your system is attempting IPv6 first and failing, you're adding a fixed delay to every connection attempt. Disabling IPv6 eliminates this hidden overhead.`,
      desc:'If your router or ISP has incomplete IPv6 support, Windows wastes 50-300ms on failed IPv6 connection attempts before falling back to IPv4 for every CS2 and Valorant server connection. This delay shows up as the \'connecting to server\' pause before matches start.',
@@ -925,62 +889,30 @@ pause`,
      desc:'URO batches multiple UDP packets into one large delivery to reduce CPU interrupts — great for file transfers, terrible for games. CS2 and Valorant send small, time-sensitive UDP packets that need to be delivered to the game engine individually and immediately. URO delays each packet by accumulating a batch first.\'t always combine them correctly. Disabling the delay forces instant ACKs on every game packet.',
      apply:`@echo off
 REM OPTI — Disable UDP Offload / URO
-REM Run as Administrator
-echo [1/2] Disabling UDP Receive Offload (Win11)...
+echo [1/2] Disabling UDP Receive Offload...
 netsh int udp set global uro=disabled 2>nul
-echo [2/2] Disabling UDP checksum offload on all adapters...
-powershell -Command "
-Get-NetAdapter | Where-Object {$_.Status -eq 'Up'} | ForEach-Object {
-  try {
-    Disable-NetAdapterChecksumOffload -Name $_.Name -EA SilentlyContinue
-    Write-Host ('UDP offload disabled for: ' + $_.Name)
-  } catch { Write-Host ('Skipped: ' + $_.Name) }
-}
-"
-echo Done. Reboot recommended.
-pause`,
+echo [2/2] Disabling UDP checksum offload...
+powershell -NoProfile -Command "Get-NetAdapter | Where-Object {$_.Status -eq 'Up'} | ForEach-Object { $n=$_.Name; try { Disable-NetAdapterChecksumOffload -Name $n -EA SilentlyContinue; Write-Host ('Done: ' + $n) } catch { Write-Host ('Skipped: ' + $n) } }"
+echo Done. Reboot recommended.`,
      revert:`@echo off
+REM OPTI — Re-enable UDP Offload
 netsh int udp set global uro=enabled 2>nul
-powershell -Command "
-Get-NetAdapter | Where-Object {$_.Status -eq 'Up'} | ForEach-Object {
-  try {
-    Enable-NetAdapterChecksumOffload -Name $_.Name -EA SilentlyContinue
-    Write-Host ('UDP offload restored for: ' + $_.Name)
-  } catch {}
-}
-"
-echo UDP offload restored.
-pause`},
+powershell -NoProfile -Command "Get-NetAdapter | Where-Object {$_.Status -eq 'Up'} | ForEach-Object { $n=$_.Name; try { Enable-NetAdapterChecksumOffload -Name $n -EA SilentlyContinue; Write-Host ('Done: ' + $n) } catch { Write-Host ('Skipped: ' + $n) } }"
+echo Done. Reboot recommended.`},
     {id:'recv-segment-coalescing',icon:'📦',name:'Disable Receive Segment Coalescing (RSC)',badges:['net','latency'],
      impact:`In Valorant, RSC coalescing multiple position updates into one delivery causes enemies to appear to jump between positions rather than move in real-time. CS2's sub-tick system is designed to handle individual packets at exact timestamps — RSC undermines this by delivering batches with a single arrival time.`,
      desc:'RSC merges multiple incoming TCP/UDP segments before delivering them to your game, adding 1-5ms of coalescing wait time. For CS2 and Valorant packets — which are small, frequent, and time-critical — this wait is wasted latency. Disabling RSC delivers each segment to the game engine the moment it arrives.',
      apply:`@echo off
 REM OPTI — Disable Receive Segment Coalescing (RSC)
-REM Run as Administrator
-echo Disabling RSC globally and on all active adapters...
+echo Disabling RSC...
 netsh int tcp set global rsc=disabled
-powershell -Command "
-Get-NetAdapter | Where-Object {$_.Status -eq 'Up'} | ForEach-Object {
-  try {
-    Disable-NetAdapterRsc -Name $_.Name -EA SilentlyContinue
-    Write-Host ('RSC disabled for: ' + $_.Name)
-  } catch { Write-Host ('Skipped (RSC not supported): ' + $_.Name) }
-}
-"
-echo Done. No reboot needed.
-pause`,
+powershell -NoProfile -Command "Get-NetAdapter | Where-Object {$_.Status -eq 'Up'} | ForEach-Object { try { Disable-NetAdapterRsc -Name $_.Name -EA SilentlyContinue; Write-Host ('RSC disabled: ' + $_.Name) } catch { Write-Host ('Skipped: ' + $_.Name) } }"
+echo Done. No reboot needed.`,
      revert:`@echo off
+REM OPTI — Re-enable Receive Segment Coalescing
 netsh int tcp set global rsc=enabled
-powershell -Command "
-Get-NetAdapter | Where-Object {$_.Status -eq 'Up'} | ForEach-Object {
-  try {
-    Enable-NetAdapterRsc -Name $_.Name -EA SilentlyContinue
-    Write-Host ('RSC enabled for: ' + $_.Name)
-  } catch {}
-}
-"
-echo RSC restored.
-pause`},
+powershell -NoProfile -Command "Get-NetAdapter | Where-Object {$_.Status -eq 'Up'} | ForEach-Object { try { Enable-NetAdapterRsc -Name $_.Name -EA SilentlyContinue; Write-Host ('RSC enabled: ' + $_.Name) } catch { Write-Host ('Skipped: ' + $_.Name) } }"
+echo Done. No reboot needed.`},
     {id:'firewall-gaming',icon:'🔥',name:'Create Windows Firewall Gaming Rules',badges:['net','ping','latency'],
      impact:`CS2 processes 60+ packets per second from Valve servers. Each packet going through full firewall inspection adds a tiny CPU overhead that accumulates. Explicit allow rules skip this inspection. In Valorant, Vanguard makes frequent network calls that also benefit from bypassing firewall inspection.`,
      desc:'Windows Firewall inspects every game packet through its ruleset before delivery. Without explicit allow rules, CS2 and Valorant packets go through the full firewall inspection chain on every packet — hundreds per second. Explicit allow rules bypass inspection for those executables, reducing per-packet firewall overhead.',
@@ -1232,73 +1164,25 @@ echo MTU restored to 1500. pause`},
      desc:'Disables NIC interrupt coalescing, forcing the adapter to interrupt the CPU immediately on every received packet rather than batching for 50µs. Eliminates the "hidden" interrupt moderation delay that sits on top of your measured ping. Most impactful on connections with consistent base ping under 30ms.',
      apply:`@echo off
 REM OPTI — Disable NIC Interrupt Moderation
-REM Applies to all active Ethernet/WiFi adapters
-REM Run as Administrator
-
-echo Disabling interrupt moderation on all network adapters...
-powershell -Command "
-Get-NetAdapter | Where-Object { $_.Status -eq 'Up' } | ForEach-Object {
-  $name = $_.Name
-  try {
-    Disable-NetAdapterChecksumOffload -Name $name -ErrorAction SilentlyContinue
-    Set-NetAdapterAdvancedProperty -Name $name -DisplayName 'Interrupt Moderation' -DisplayValue 'Disabled' -ErrorAction SilentlyContinue
-    Set-NetAdapterAdvancedProperty -Name $name -DisplayName 'Interrupt Moderation Rate' -DisplayValue 'Off' -ErrorAction SilentlyContinue
-    Write-Host ('Interrupt moderation disabled for: ' + $name)
-  } catch { Write-Host ('Skipped: ' + $name) }
-}
-"
-echo.
-echo Done. Changes take effect immediately (no reboot needed).
-echo Verify in Device Manager > [NIC] > Properties > Advanced tab.
-pause`,
+echo Disabling interrupt moderation...
+powershell -NoProfile -Command "Get-NetAdapter | Where-Object {$_.Status -eq 'Up'} | ForEach-Object { $n=$_.Name; try { Set-NetAdapterAdvancedProperty -Name $n -DisplayName 'Interrupt Moderation' -DisplayValue 'Disabled' -EA SilentlyContinue; Set-NetAdapterAdvancedProperty -Name $n -DisplayName 'Interrupt Moderation Rate' -DisplayValue 'Off' -EA SilentlyContinue; Write-Host ('IM disabled: ' + $n) } catch { Write-Host ('Skipped: ' + $n) } }"
+echo Done. No reboot needed.`,
      revert:`@echo off
-REM Restore NIC interrupt moderation to Windows default (Adaptive/Medium)
-powershell -Command "
-Get-NetAdapter | Where-Object { $_.Status -eq 'Up' } | ForEach-Object {
-  try {
-    Set-NetAdapterAdvancedProperty -Name $_.Name -DisplayName 'Interrupt Moderation' -DisplayValue 'Enabled' -ErrorAction SilentlyContinue
-    Set-NetAdapterAdvancedProperty -Name $_.Name -DisplayName 'Interrupt Moderation Rate' -DisplayValue 'Adaptive' -ErrorAction SilentlyContinue
-    Write-Host ('Restored: ' + $_.Name)
-  } catch {}
-}
-"
-echo NIC interrupt moderation restored.
-pause`},
+REM OPTI — Re-enable NIC Interrupt Moderation
+powershell -NoProfile -Command "Get-NetAdapter | Where-Object {$_.Status -eq 'Up'} | ForEach-Object { $n=$_.Name; try { Set-NetAdapterAdvancedProperty -Name $n -DisplayName 'Interrupt Moderation' -DisplayValue 'Enabled' -EA SilentlyContinue; Write-Host ('IM enabled: ' + $n) } catch { Write-Host ('Skipped: ' + $n) } }"
+echo Done. No reboot needed.`},
     {id:'rss-cpu-bind',icon:'🔀',name:'Bind NIC Receive Side Scaling to Non-Game Cores',badges:['net','latency'],
      impact:`RSS (Receive Side Scaling) distributes NIC interrupt processing across CPU cores. By default Windows assigns RSS queues starting from core 0 — the same core your game's main thread often runs on. Every incoming packet from the game server triggers a DPC on core 0, competing directly with game logic for CPU time. Pinning RSS to the last physical core(s) puts all network interrupt processing on a dedicated core that the game never touches.`,
      desc:'Receive Side Scaling distributes network DPCs across CPU cores. By default they land on core 0 alongside your game thread. This moves RSS queue processing to your last physical core, eliminating network DPC interference with game thread execution.',
      apply:`@echo off
 REM OPTI — Bind NIC RSS to Last CPU Core
-REM Keeps network interrupts off the game thread's core
-REM Run as Administrator
-
-echo Detecting CPU core count and binding RSS...
-powershell -Command "
-\$cores = (Get-WmiObject Win32_Processor).NumberOfLogicalProcessors
-\$lastCore = \$cores - 1
-\$mask = [math]::Pow(2, \$lastCore)
-Get-NetAdapter | Where-Object { \$_.Status -eq 'Up' } | ForEach-Object {
-  try {
-    Set-NetAdapterRss -Name \$_.Name -BaseProcessorNumber \$lastCore -MaxProcessors 1 -ErrorAction SilentlyContinue
-    Write-Host ('RSS bound to core ' + \$lastCore + ' for: ' + \$_.Name)
-  } catch { Write-Host ('Skipped (RSS not supported): ' + \$_.Name) }
-}
-"
-echo.
-echo RSS core binding applied. No reboot needed.
-pause`,
+echo Binding RSS to last CPU core...
+powershell -NoProfile -Command "$last = (Get-WmiObject Win32_Processor).NumberOfLogicalProcessors - 1; Get-NetAdapter | Where-Object {$_.Status -eq 'Up'} | ForEach-Object { try { Set-NetAdapterRss -Name $_.Name -BaseProcessorNumber $last -MaxProcessors 1 -EA SilentlyContinue; Write-Host ('RSS bound core ' + $last + ': ' + $_.Name) } catch { Write-Host ('Skipped: ' + $_.Name) } }"
+echo Done. No reboot needed.`,
      revert:`@echo off
-REM Restore RSS to Windows automatic core assignment
-powershell -Command "
-Get-NetAdapter | Where-Object { \$_.Status -eq 'Up' } | ForEach-Object {
-  try {
-    Set-NetAdapterRss -Name \$_.Name -BaseProcessorNumber 0 -MaxProcessors 0 -ErrorAction SilentlyContinue
-    Write-Host ('RSS restored for: ' + \$_.Name)
-  } catch {}
-}
-"
-echo RSS core assignment restored to Windows default.
-pause`},
+REM OPTI — Reset NIC RSS binding to default
+powershell -NoProfile -Command "Get-NetAdapter | Where-Object {$_.Status -eq 'Up'} | ForEach-Object { try { Set-NetAdapterRss -Name $_.Name -BaseProcessorNumber 0 -MaxProcessors 0 -EA SilentlyContinue; Write-Host ('RSS reset: ' + $_.Name) } catch { Write-Host ('Skipped: ' + $_.Name) } }"
+echo Done. No reboot needed.`},
     {id:'rss-queues',icon:'📡',name:'Enable Receive Side Scaling (RSS) — Multi-Core NIC',style:'nc',badges:['net','perf','latency'],
      impact:`RSS distributes NIC interrupt processing across multiple CPU cores. Without RSS, all network interrupts are handled by a single core — on a busy server like CS2 or Valorant, this core can become a bottleneck causing packet processing delays even when other cores are idle.`,
      desc:'Receive Side Scaling (RSS) allows your network adapter to distribute incoming packet processing across multiple CPU cores. In CS2 and Valorant, incoming game state updates arrive as a burst of UDP packets. With RSS disabled, all these packets queue on one core. With RSS enabled, they are distributed, reducing per-core load and packet processing latency.',
@@ -1387,6 +1271,7 @@ pause`},
      revert:`sc config WSearch start= delayed-auto\nsc start WSearch`},
     {id:'telemetry',icon:'📡',name:'Disable Telemetry, Xbox DVR & Background Bandwidth',badges:['perf'],
      impact:`Each disabled service removes a source of DPC interrupts, network spikes, or CPU scheduling contention. Xbox DVR alone adds a persistent GPU interrupt hook. Delivery Optimization can saturate your upload mid-match. SgrmBroker fires a kernel poll every 5 seconds. Combined, these account for 1-3ms of the gap between your current latency and target 2-3ms.`,
+     risky:true,riskNote:`⚠ DISCORD SCREEN SHARE: Disables BcastDVRUserService — the service Discord uses as its game capture hook in fullscreen. Without it Discord falls back to ~1fps polling in CS2/Valorant.`,
      desc:'Kills all background Windows processes that fire interrupts, use bandwidth, or spike CPU during gaming: DiagTrack telemetry, Xbox Game DVR (adds GPU interrupt overhead even when off in Settings), GameBar presence scanner, Delivery Optimization P2P (uses your upload bandwidth), Security Health poller (fires every 5s), Application Experience service (500ms spike on game launch), and 6 scheduled tasks that can fire mid-match.',
      apply:`reg add "HKLM\\SOFTWARE\\Policies\\Microsoft\\Windows\\DataCollection" /v AllowTelemetry /t REG_DWORD /d 0 /f\nsc stop DiagTrack & sc config DiagTrack start= disabled\nsc stop diagnosticshub.standardcollector.service & sc config diagnosticshub.standardcollector.service start= disabled\nsc stop WerSvc & sc config WerSvc start= disabled\nREM Kill Xbox Game DVR — adds GPU/DPC interrupt overhead even when "disabled" in settings:\nreg add "HKLM\\SOFTWARE\\Policies\\Microsoft\\Windows\\GameDVR" /v AllowGameDVR /t REG_DWORD /d 0 /f\nreg add "HKCU\\System\\GameConfigStore" /v GameDVR_Enabled /t REG_DWORD /d 0 /f\nreg add "HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\GameDVR" /v AppCaptureEnabled /t REG_DWORD /d 0 /f\nsc stop BcastDVRUserService 2>nul & sc config BcastDVRUserService start= disabled 2>nul\nREM Kill GameBar presence writer (polls every 2s scanning for game windows):\nsc stop GameBarPresenceWriter 2>nul & sc config GameBarPresenceWriter start= disabled 2>nul\nreg add "HKCU\\Software\\Microsoft\\GameBar" /v UseNexusForGameBarEnabled /t REG_DWORD /d 0 /f\nreg add "HKCU\\Software\\Microsoft\\GameBar" /v AllowAutoGameMode /t REG_DWORD /d 0 /f\nREM Disable Delivery Optimization (uses your bandwidth for Windows Update P2P):\nsc stop DoSvc & sc config DoSvc start= disabled\nreg add "HKLM\\SOFTWARE\\Policies\\Microsoft\\Windows\\DeliveryOptimization" /v DODownloadMode /t REG_DWORD /d 0 /f\nREM Disable Security Health poller (SgrmBroker polls every 5s = consistent DPC spike):\nsc stop SgrmBroker 2>nul & sc config SgrmBroker start= disabled 2>nul\nREM Kill Application Experience service (fires on every game launch causing 200-500ms stutter):\nsc stop AeLookupSvc 2>nul & sc config AeLookupSvc start= disabled 2>nul\nsc stop PcaSvc 2>nul & sc config PcaSvc start= disabled 2>nul\nREM Kill Windows Error Reporting live kernel dumps (can spike CPU mid-game):\nreg add "HKLM\\SOFTWARE\\Microsoft\\Windows\\Windows Error Reporting" /v Disabled /t REG_DWORD /d 1 /f\nREM Disable CEIP and Application Experience scheduled tasks:\nschtasks /Change /TN "Microsoft\\Windows\\Customer Experience Improvement Program\\Consolidator" /Disable 2>nul\nschtasks /Change /TN "Microsoft\\Windows\\Customer Experience Improvement Program\\UsbCeip" /Disable 2>nul\nschtasks /Change /TN "Microsoft\\Windows\\Application Experience\\Microsoft Compatibility Appraiser" /Disable 2>nul\nschtasks /Change /TN "Microsoft\\Windows\\Application Experience\\ProgramDataUpdater" /Disable 2>nul\nschtasks /Change /TN "Microsoft\\Windows\\Application Experience\\StartupAppTask" /Disable 2>nul\nREM Disable Windows Update background bandwidth usage during gaming:\nreg add "HKLM\\SOFTWARE\\Policies\\Microsoft\\Windows\\WindowsUpdate\\AU" /v NoAutoUpdate /t REG_DWORD /d 0 /f\nreg add "HKLM\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\DeliveryOptimization\\Config" /v DODownloadMode /t REG_DWORD /d 0 /f\nREM Block telemetry endpoints at the registry level:\nreg add "HKLM\\SOFTWARE\\Policies\\Microsoft\\Windows\\DataCollection" /v DisableEnterpriseAuthProxy /t REG_DWORD /d 1 /f\nreg add "HKLM\\SYSTEM\\CurrentControlSet\\Services\\DiagTrack" /v Start /t REG_DWORD /d 4 /f`,
      revert:`reg delete "HKLM\\SOFTWARE\\Policies\\Microsoft\\Windows\\DataCollection" /v AllowTelemetry /f 2>nul\nreg delete "HKLM\\SOFTWARE\\Policies\\Microsoft\\Windows\\DataCollection" /v DisableEnterpriseAuthProxy /f 2>nul\nsc config DiagTrack start= auto & sc start DiagTrack\nsc config WerSvc start= manual\nsc config DoSvc start= auto & sc start DoSvc 2>nul\nreg delete "HKLM\\SOFTWARE\\Policies\\Microsoft\\Windows\\GameDVR" /v AllowGameDVR /f 2>nul\nreg delete "HKCU\\System\\GameConfigStore" /v GameDVR_Enabled /f 2>nul\nreg add "HKLM\\SOFTWARE\\Microsoft\\Windows\\Windows Error Reporting" /v Disabled /t REG_DWORD /d 0 /f\nsc config AeLookupSvc start= manual 2>nul\nsc config PcaSvc start= manual 2>nul\nschtasks /Change /TN "Microsoft\\Windows\\Customer Experience Improvement Program\\Consolidator" /Enable 2>nul\nschtasks /Change /TN "Microsoft\\Windows\\Application Experience\\Microsoft Compatibility Appraiser" /Enable 2>nul\necho Telemetry reverted. Note: Xbox DVR and GameBar will need manual re-enable in Windows Settings if desired.`},
@@ -1495,41 +1380,15 @@ pause`},
      impact:`By default Windows uses line-based interrupts for GPU communication — a legacy mechanism where the GPU physically asserts a wire to signal the CPU. MSI mode replaces this with a memory-write, allowing the interrupt to be handled on any CPU core rather than always core 0. This eliminates interrupt contention between the GPU, NIC, and USB controller — the #1 cause of DPC latency spikes that appear as micro-stutters in CS2 and Valorant.`,
      desc:'Switches GPU interrupt delivery from legacy line-based mode to Message Signaled Interrupts. MSI mode allows GPU interrupts to be distributed across CPU cores, eliminating the core 0 interrupt bottleneck that causes DPC latency spikes and micro-stutters. Confirmed high-impact by Blur Busters and the competitive latency community.',
      apply:`@echo off
-REM OPTI — Enable GPU MSI Mode via Registry
-REM Finds NVIDIA/AMD GPU in PCI enum and sets MSISupported=1
-REM Run as Administrator. Reboot required.
-
-echo Enabling MSI mode for GPU(s) in PCI device registry...
-
-REM Enable MSI for all VGA/display adapters via PowerShell
-powershell -Command "
-Get-WmiObject Win32_VideoController | ForEach-Object {
-  $pnpId = $_.PNPDeviceID
-  $regPath = 'HKLM:\\SYSTEM\\CurrentControlSet\\Enum\' + $pnpId + '\\Device Parameters\\Interrupt Management\\MessageSignaledInterruptProperties'
-  if (!(Test-Path $regPath)) { New-Item -Path $regPath -Force | Out-Null }
-  Set-ItemProperty -Path $regPath -Name MSISupported -Value 1 -Type DWord -Force
-  Write-Host ('MSI enabled for: ' + $_.Name)
-}
-"
-
-echo.
-echo GPU MSI mode enabled. Reboot required for changes to take effect.
-echo To verify: use MSI Utility v3 (Guru3D) after reboot.
-pause`,
+REM OPTI — Enable GPU MSI Mode
+echo Enabling MSI mode for GPU(s)...
+powershell -NoProfile -Command "Get-WmiObject Win32_VideoController | ForEach-Object { $p = 'HKLM:\\SYSTEM\\CurrentControlSet\\Enum\\' + $_.PNPDeviceID + '\\Device Parameters\\Interrupt Management\\MessageSignaledInterruptProperties'; if (!(Test-Path $p)) { New-Item -Path $p -Force | Out-Null }; Set-ItemProperty -Path $p -Name MSISupported -Value 1 -Type DWord -Force; Write-Host ('MSI enabled: ' + $_.Name) }"
+echo Done. Reboot required.`,
      revert:`@echo off
-REM Disable GPU MSI Mode (restore line-based interrupts)
-powershell -Command "
-Get-WmiObject Win32_VideoController | ForEach-Object {
-  $pnpId = $_.PNPDeviceID
-  $regPath = 'HKLM:\\SYSTEM\\CurrentControlSet\\Enum\' + $pnpId + '\\Device Parameters\\Interrupt Management\\MessageSignaledInterruptProperties'
-  if (Test-Path $regPath) {
-    Set-ItemProperty -Path $regPath -Name MSISupported -Value 0 -Type DWord -Force
-    Write-Host ('MSI disabled for: ' + $_.Name)
-  }
-}
-"
-echo GPU MSI mode reverted to line-based. Reboot required.
-pause`},
+REM OPTI — Revert GPU MSI Mode
+echo Reverting MSI mode for GPU(s)...
+powershell -NoProfile -Command "Get-WmiObject Win32_VideoController | ForEach-Object { $p = 'HKLM:\\SYSTEM\\CurrentControlSet\\Enum\\' + $_.PNPDeviceID + '\\Device Parameters\\Interrupt Management\\MessageSignaledInterruptProperties'; if (Test-Path $p) { Set-ItemProperty -Path $p -Name MSISupported -Value 0 -Type DWord -Force; Write-Host ('Reverted: ' + $_.Name) } }"
+echo Done. Reboot required.`},
     {id:'audio-latency',icon:'🔇',name:'Disable Audio Enhancements & Reduce Audio DPC Overhead',badges:['latency'],
      impact:`Windows audio enhancements (spatial sound, loudness equalization, virtual surround) run as DPC-level kernel callbacks on the same interrupt chain as mouse input and GPU frames. Each enhancement adds processing overhead to every audio interrupt. Disabling them reduces the DPC budget consumed by audio, leaving more interrupt capacity for GPU frame delivery and USB mouse input — tightening the whole latency chain.`,
      desc:'Windows audio enhancements and spatial sound features add kernel-level processing overhead to every audio interrupt. In CS2 and Valorant this competes with GPU and mouse interrupts for CPU time. Disabling enhancements and setting the audio device to exclusive mode reduces DPC latency in the audio stack.',
@@ -1562,6 +1421,7 @@ echo Audio settings reverted.
 pause`},
     {id:'flip-model',icon:'🖥️',name:'Enable Win11 Optimized Flip Model (Windowed Game Latency)',badges:['latency','fps'],
      impact:`Windows 11 introduced an optimized flip presentation model for windowed and borderless fullscreen games. The legacy compositor path introduces an extra frame buffer copy step. The flip model bypasses this — the game writes directly to the display flip queue. Microsoft confirmed this significantly reduces latency in DX10/DX11 windowed titles. CS2 in borderless window mode benefits directly from this setting.`,
+     risky:true,riskNote:`⚠ Win11 Optimised Flip Model can cause Discord screen capture to miss an occasional frame during screen share. Revert if streaming is affected.`,
      desc:'Enables the Windows 11 optimized flip presentation model for windowed and borderless fullscreen games. Bypasses the legacy compositor copy step, reducing input-to-display latency. Enables VRR and Auto HDR in windowed mode as a side effect.',
      apply:`@echo off
 REM OPTI — Enable Optimized Flip Model for Windowed Games (Win11)
@@ -1586,6 +1446,7 @@ echo Flip model settings reverted.
 pause`},
     {id:'disable-fso',icon:'🪟',name:'Disable Fullscreen Optimizations (Per-Game Override)',badges:['latency','fps'],
      impact:`Windows "Fullscreen Optimizations" intercepts exclusive fullscreen requests and silently converts them to a borderless overlay — adding the DWM compositor into the render path. For games where you have manually configured exclusive fullscreen (recommended for lowest latency), FSO undoes that setting. Disabling it via IFEO registry ensures the game actually gets true exclusive fullscreen, bypassing the compositor entirely for the lowest possible flip latency.`,
+     risky:true,riskNote:`⚠ Disabling FSO can prevent Discord overlay from rendering in some games. Test after applying.`,
      desc:'Windows Fullscreen Optimizations silently converts exclusive fullscreen to a composited borderless mode. This adds the DWM render step back into the pipeline. Disabling via Image File Execution Options ensures CS2 and Valorant get true exclusive fullscreen when configured to use it.',
      apply:`@echo off
 REM OPTI — Disable Fullscreen Optimizations for CS2 and Valorant
@@ -1896,6 +1757,7 @@ echo Done.
 pause`}
     ,{id:'disable-multiplane-overlay',icon:'🖥️',name:'Disable Multiplane Overlay (MPO)',style:'gc',badges:['gpu','system'],
      impact:`MPO causes frame drops, black screens, and stutters on many NVIDIA/AMD cards — especially during alt-tab or with multi-monitor setups. Disabling resolves these issues with zero visual quality loss.`,
+     risky:true,riskNote:`⚠ May cause Discord/OBS screen share to drop a frame periodically. If you stream or screen share, revert this tweak if you notice single-frame gaps.`,
      desc:'Disables MPO via OverlayTestMode=5 registry key. Recommended if you experience frame pacing issues, flickering on alt-tab, or random black screens. Requires restart.',
      apply:`@echo off
 REM Disable Multiplane Overlay (MPO)
@@ -2031,6 +1893,7 @@ REM Or in console: m_rawinput 0`}
 
     {id:'shader-cache',icon:'🗄️',name:'Maximize GPU Shader Cache (No Limit)',style:'gc',badges:['fps','gpu','perf'],
      impact:`Eliminates the 1-5 second freeze stutter in CS2 when entering Mirage mid or Valorant Haven B-site for the first time. Shader cache eviction is the #1 cause of first-round stutter spikes.`,
+     risky:true,riskNote:`⚠ DISCORD SCREEN SHARE: Sets SwapEffectUpgrade which changes how frames hand off to DWM — can cause Discord capture to miss frames in windowed/borderless fullscreen.`,
      desc:'Windows caps GPU shader cache at ~10GB. When full, compiled shaders get evicted and must recompile on the fly — causing those 1-5 second freeze stutters in new areas. In CS2 this shows up as mid-round hitches when a smoke or molotov renders for the first time. Enabling unlimited cache eliminates this permanently.',
      apply:`reg add "HKLM\\SOFTWARE\\Microsoft\\DirectX\\UserGpuPreferences" /v DirectXUserGlobalSettings /t REG_SZ /d "VRROptimizeEnable=0;SwapEffectUpgradeEnable=1;" /f\nreg add "HKCU\\SOFTWARE\\Microsoft\\DirectX\\UserGpuPreferences" /v DirectXUserGlobalSettings /t REG_SZ /d "VRROptimizeEnable=0;SwapEffectUpgradeEnable=1;" /f`,
      revert:`reg delete "HKLM\\SOFTWARE\\Microsoft\\DirectX\\UserGpuPreferences" /v DirectXUserGlobalSettings /f\nreg delete "HKCU\\SOFTWARE\\Microsoft\\DirectX\\UserGpuPreferences" /v DirectXUserGlobalSettings /f`},
@@ -2142,6 +2005,7 @@ echo Chrome and Edge hardware acceleration restored. Restart browsers.
 pause`},
     {id:'xbox-game-bar',icon:'🎮',name:'Disable Xbox Game Bar & Background DVR',style:'gc',badges:['perf','gpu','latency'],
      impact:`Xbox DVR hooks into CS2 and Valorant at the DirectX driver level to monitor every frame for potential recording capture — even when you never press Win+G. The hook initializes when the game first launches, causing the random 300ms freeze at CS2 startup. It also interferes with exclusive fullscreen, silently forcing CS2 into borderless windowed mode.`,
+     risky:true,riskNote:`⚠ DISCORD SCREEN SHARE: Disables BcastDVRUserService and sets GameDVR_Enabled=0 — this is Discord's fullscreen game capture backend. Causes ~1fps screen share in CS2/Valorant.`,
      desc:'CS2\'s random first-launch freeze is almost always caused by Xbox DVR hook initialization. Once initialized, the DVR service monitors every rendered frame for potential capture, adding persistent CPU overhead. The fullscreen interference means your FSO disable and exclusive fullscreen settings may be silently overridden — DVR disabled is required for true exclusive fullscreen.',
      apply:`@echo off
 REM Disable Xbox Game Bar and Game DVR
@@ -2329,12 +2193,14 @@ pause`},
 
     {id:'cs2-latency-stack',icon:'🎯',name:'CS2 Full Latency Stack — Target 2–3ms',
      badges:['latency','cs2','perf','net'],
+     risky:true,riskNote:`⚠ BREAKS DISCORD SCREEN SHARE IN FULLSCREEN: This stack sets HwFlipQueueLength=1 and MaxFrameLatency=1. In exclusive fullscreen Discord will drop frames during screen share. Use borderless fullscreen in CS2 when streaming, or revert step 5 manually.`,
      desc:'Targeted batch of registry and system changes that address the most common causes of CS2 latency sitting at 7–10ms instead of 2–3ms. Covers timer resolution, CPU idle, MMCSS game scheduling, GPU flip queue, and kernel sleep precision. Run after applying all CPU, GPU, and network tweaks.',
      impact:'Getting from 9ms to 2–3ms requires stacking multiple small wins: timer resolution (~1ms), CPU idle off (~0.5ms), MMCSS tuning (~0.5–1ms), GPU flip queue 1 (~0.5–1ms). These compound together. Pair with the NIC Interrupt Moderation and Audio DPC tweaks for maximum effect.',
      apply:`@echo off\nREM CS2 Full Latency Stack — Targets 2-3ms\nREM Run as Administrator after all CPU/GPU/network tweaks\necho [1/7] Timer resolution — force TSC (not HPET), 0.5ms quantum...\nreg add "HKLM\\SYSTEM\\CurrentControlSet\\Control\\Session Manager\\kernel" /v GlobalTimerResolutionRequests /t REG_DWORD /d 1 /f\nREM Delete useplatformtick so Windows uses CPU TSC (faster than HPET):\nbcdedit /deletevalue useplatformtick 2>nul\nbcdedit /set disabledynamictick no 2>nul\necho [2/7] CPU — lock to 100%% min/max (no C-state exit delay)...\npowercfg /setacvalueindex scheme_current sub_processor PROCTHROTTLEMIN 100\npowercfg /setacvalueindex scheme_current sub_processor PROCTHROTTLEMAX 100\npowercfg /setactive scheme_current\necho [3/7] MMCSS — maximize game thread precision...\nreg add "HKLM\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Multimedia\\SystemProfile" /v SystemResponsiveness /t REG_DWORD /d 0 /f\nreg add "HKLM\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Multimedia\\SystemProfile\\Tasks\\Games" /v "GPU Priority" /t REG_DWORD /d 8 /f\nreg add "HKLM\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Multimedia\\SystemProfile\\Tasks\\Games" /v Priority /t REG_DWORD /d 6 /f\nreg add "HKLM\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Multimedia\\SystemProfile\\Tasks\\Games" /v "Scheduling Category" /t REG_SZ /d "High" /f\nreg add "HKLM\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Multimedia\\SystemProfile\\Tasks\\Games" /v "SFIO Priority" /t REG_SZ /d "High" /f\nreg add "HKLM\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Multimedia\\SystemProfile\\Tasks\\Games" /v "Background Only" /t REG_SZ /d "False" /f\nreg add "HKLM\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Multimedia\\SystemProfile\\Tasks\\Games" /v "Clock Rate" /t REG_DWORD /d 2500 /f\necho [4/7] Network — disable packet throttling (big latency win)...\nREM NetworkThrottlingIndex=0xFFFFFFFF disables Windows throttling game packets\nREM Default (10) batches packets adding 1-4ms. Disabled = immediate delivery.\nreg add "HKLM\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Multimedia\\SystemProfile" /v NetworkThrottlingIndex /t REG_DWORD /d 4294967295 /f\nREM Also disable TCP auto-tuning interference:\nnetsh int tcp set global autotuninglevel=normal 2>nul\necho [5/7] GPU flip queue = 1 + DXGI max latency = 1...\nreg add "HKLM\\SYSTEM\\CurrentControlSet\\Control\\GraphicsDrivers" /v HwFlipQueueLength /t REG_DWORD /d 1 /f\nreg add "HKLM\\SOFTWARE\\Microsoft\\DXGI" /v MaxFrameLatency /t REG_DWORD /d 1 /f\necho [6/7] Foreground app absolute CPU priority...\nreg add "HKLM\\SYSTEM\\CurrentControlSet\\Control\\PriorityControl" /v Win32PrioritySeparation /t REG_DWORD /d 38 /f\necho [7/7] Kill residual idle tasks...\nrundll32.exe advapi32.dll,ProcessIdleTasks\necho.\necho =============================================\necho  CS2 Latency Stack Applied\necho  Expected: 2-4ms system latency\necho  Stack with: NIC Interrupt Moderation tweak\necho  Stack with: Audio DPC tweak (if Realtek)\necho  Stack with: Telemetry tweak\necho  In CS2: NVIDIA Reflex = Enabled + Boost\necho  autoexec: r_low_latency 2, fps_max [Hz+20]\necho  Verify with: LatencyMon (resplendence.com)\necho =============================================\npause`,
      revert:`@echo off\nbcdedit /deletevalue useplatformtick 2>nul\nreg delete "HKLM\\SYSTEM\\CurrentControlSet\\Control\\Session Manager\\kernel" /v GlobalTimerResolutionRequests /f 2>nul\nreg add "HKLM\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Multimedia\\SystemProfile" /v SystemResponsiveness /t REG_DWORD /d 20 /f\nreg add "HKLM\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Multimedia\\SystemProfile" /v NetworkThrottlingIndex /t REG_DWORD /d 10 /f\nreg add "HKLM\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Multimedia\\SystemProfile\\Tasks\\Games" /v "GPU Priority" /t REG_DWORD /d 2 /f\nreg add "HKLM\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Multimedia\\SystemProfile\\Tasks\\Games" /v Priority /t REG_DWORD /d 2 /f\nreg add "HKLM\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Multimedia\\SystemProfile\\Tasks\\Games" /v "Scheduling Category" /t REG_SZ /d "Medium" /f\nreg add "HKLM\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Multimedia\\SystemProfile\\Tasks\\Games" /v "Clock Rate" /t REG_DWORD /d 10000 /f\nreg delete "HKLM\\SYSTEM\\CurrentControlSet\\Control\\GraphicsDrivers" /v HwFlipQueueLength /f 2>nul\nreg delete "HKLM\\SOFTWARE\\Microsoft\\DXGI" /v MaxFrameLatency /f 2>nul\nreg add "HKLM\\SYSTEM\\CurrentControlSet\\Control\\PriorityControl" /v Win32PrioritySeparation /t REG_DWORD /d 2 /f\nnetsh int tcp set global autotuninglevel=normal 2>nul\necho CS2 latency stack reverted.\npause`},
     {id:'cs2-telemetry-diag',icon:'📉',name:'CS2 Latency Telemetry — Diagnose Your 9ms',style:'cc',badges:['cs2','latency'],
      impact:`CS2 has a built-in latency overlay that shows exactly where your 9ms is coming from. The breakdown: Input (mouse to frame start), CPU (game thread), GPU (render time), Queue (flip queue delay). 9ms usually means flip queue backpressure or GPU-bound frames. r_low_latency 2 plus NVIDIA Reflex together typically cuts this to 2–3ms.`,
+     risky:true,riskNote:`⚠ DISCORD SCREEN SHARE: Sets HwFlipQueueLength=1 and MaxFrameLatency=1 — leaves only 1 frame in hardware buffer, Discord capture misses it in exclusive fullscreen.`,
      desc:'cl_showtelemetry 1 shows a real-time breakdown of your input latency split into 4 components. Each component points to a specific fix. GPU time high = lower video settings or enable Reflex. Flip queue high = run the Full Latency Stack tweak. CPU time high = core parking on, wrong power plan, or MMCSS not tuned. Input time high = raw input disabled or mouse driver overhead.',
      apply:`REM ── CS2 Latency Telemetry Overlay ──
 REM Run these in CS2 console (~) or add to autoexec.cfg
@@ -4722,13 +4588,22 @@ function RightPanel() {
     function getIcon(id, cat) { var _a, _b; return ((_b = (_a = TWEAKS[cat]) === null || _a === void 0 ? void 0 : _a.find(x => x.id === id)) === null || _b === void 0 ? void 0 : _b.icon) || '⚡'; }
     
 function buildBat(title, entries, isRevert, desc) {
+    const total = entries.length;
     const lines = [
         '@echo off',
+        'setlocal enabledelayedexpansion',
+        'cd /d "%~dp0"',
         'REM ============================================================',
         'REM OPTI ' + title,
         'REM Generated by OPTI Gaming Optimizer',
         'REM Run as Administrator',
         'REM ============================================================',
+        '',
+        'net session >nul 2>&1 || (echo ERROR: Please right-click and "Run as Administrator" && pause && exit /b 1)',
+        '',
+        'set ERRORS=0',
+        'set STEP=0',
+        'set TOTAL=' + total,
         ''
     ];
     if (desc) { lines.push('REM ' + desc); lines.push(''); }
@@ -4736,17 +4611,39 @@ function buildBat(title, entries, isRevert, desc) {
         var id = entry[0], cat = entry[1];
         var tw = (TWEAKS[cat] || []).find(function(t) { return t.id === id; });
         if (!tw) return;
-        var script = isRevert ? (tw.revert || '') : (tw.apply || '');
-        if (!script.trim()) return;
-        lines.push('REM --- ' + tw.name + ' ---');
-        lines.push(script.trim());
-        lines.push('');
+        var raw = isRevert ? (tw.revert || '') : (tw.apply || '');
+        if (!raw.trim()) return;
+        // Strip per-tweak @echo off, pause, and endlocal lines — we handle those globally
+        var script = raw.trim().split(/\r?\n/).filter(function(l) {
+            var t = l.trim().toLowerCase();
+            return t !== '@echo off' && t !== 'pause' && t !== 'endlocal';
+        }).join('\r\n');
+        lines.push('set /a STEP+=1');
+        lines.push('echo [!STEP!/' + total + '] ' + tw.name.replace(/[&<>|]/g, '') + '...');
+        lines.push(script);
+        lines.push('if errorlevel 1 (echo   [WARN] One or more commands returned an error & set /a ERRORS+=1)');
+        lines.push('echo.');
     });
+    lines.push('echo ============================================================');
+    lines.push('echo  OPTI ' + title + ' complete.');
+    lines.push('echo  Steps run : ' + total);
+    lines.push('echo  Warnings  : !ERRORS!');
+    lines.push('echo ============================================================');
     lines.push('echo.');
-    lines.push('echo All done. You may close this window.');
-    lines.push('pause');
+    lines.push('if !ERRORS! GTR 0 (');
+    lines.push('  echo  Some steps reported errors. This is often normal for tweaks');
+    lines.push('  echo  that are already applied or not supported on your Windows version.');
+    lines.push(') else (');
+    lines.push('  echo  All steps completed successfully.');
+    lines.push(')');
+    lines.push('echo.');
+    lines.push('if /i "%1"=="-nopause" exit /b 0');
+    lines.push('echo  Press any key to close this window...');
+    lines.push('pause >nul');
+    lines.push('endlocal');
     return lines.join('\r\n');
 }
+
 
 function exportApply() {
         if (!selE.length) {
