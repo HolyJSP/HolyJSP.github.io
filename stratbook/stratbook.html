@@ -1,0 +1,1053 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Stratbook</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+
+:root {
+  --bg:   #0c0d0f;
+  --s1:   #111316;
+  --s2:   #17191e;
+  --s3:   #1e2026;
+  --s4:   #252830;
+  --b0:   rgba(255,255,255,0.05);
+  --b1:   rgba(255,255,255,0.09);
+  --b2:   rgba(255,255,255,0.15);
+  --text: #e4e6f0;
+  --t2:   #888ba0;
+  --t3:   #3e4155;
+  --acc:  #00d4ff;
+  --acc2: #0094b3;
+
+  /* game accent overrides via JS class on body */
+  --game-c:   #ff7b2e;
+  --game-dim: rgba(255,123,46,0.12);
+  --game-bd:  rgba(255,123,46,0.3);
+
+  --tc-def:  #4dabf7;
+  --tc-play: #ffd43b;
+  --tc-pis:  #69db7c;
+  --tc-anti: #ff922b;
+}
+
+body{background:var(--bg);color:var(--text);font-family:'Outfit',sans-serif;font-size:14px;min-height:100vh;display:flex;flex-direction:column}
+body.game-cs2  { --game-c:#ff7b2e; --game-dim:rgba(255,123,46,0.1); --game-bd:rgba(255,123,46,0.3); }
+body.game-val  { --game-c:#ff4655; --game-dim:rgba(255,70,85,0.1);   --game-bd:rgba(255,70,85,0.3);  }
+body.game-r6   { --game-c:#48c774; --game-dim:rgba(72,199,116,0.1);  --game-bd:rgba(72,199,116,0.3); }
+
+/* ─── HEADER ─── */
+header{
+  background:var(--s1); border-bottom:1px solid var(--b0);
+  padding:0 24px; height:58px; flex-shrink:0;
+  display:flex; align-items:center; justify-content:space-between;
+  position:sticky; top:0; z-index:200;
+}
+.logo{display:flex;align-items:center;gap:13px}
+.logo-mark{
+  width:36px;height:36px;border-radius:10px;
+  background:var(--game-dim); border:1px solid var(--game-bd);
+  display:flex;align-items:center;justify-content:center;
+  transition:all 0.2s;
+}
+.logo-mark svg{width:18px;height:18px}
+.logo-text{font-size:20px;font-weight:800;letter-spacing:-0.01em;color:#fff}
+.logo-sub{font-family:'DM Mono',monospace;font-size:8px;letter-spacing:0.2em;color:var(--game-c);text-transform:uppercase;margin-top:1px;transition:color 0.2s}
+
+.game-tabs{display:flex;gap:3px;background:var(--s2);padding:4px;border-radius:10px;border:1px solid var(--b0)}
+.gtab{
+  padding:5px 14px;border-radius:7px;border:none;
+  background:transparent;color:var(--t2);
+  font-family:'Outfit',sans-serif;font-size:12px;font-weight:600;
+  letter-spacing:0.04em;cursor:pointer;transition:all 0.15s;
+}
+.gtab:hover:not(.on){color:var(--text);background:var(--b0)}
+.gtab.on{background:var(--s4);color:#fff;box-shadow:0 1px 3px rgba(0,0,0,0.4)}
+
+.hdr-r{display:flex;align-items:center;gap:8px}
+.hdr-btn{
+  display:flex;align-items:center;gap:6px;
+  padding:7px 14px;border-radius:8px;
+  font-family:'Outfit',sans-serif;font-size:12px;font-weight:600;
+  letter-spacing:0.03em;cursor:pointer;transition:all 0.14s;border:1px solid;
+}
+.hdr-btn svg{width:13px;height:13px;flex-shrink:0}
+.hdr-btn:active{transform:scale(0.97)}
+.btn-community{background:rgba(88,101,242,0.1);border-color:rgba(88,101,242,0.25);color:#7289da;text-decoration:none}
+.btn-community:hover{background:rgba(88,101,242,0.2);border-color:rgba(88,101,242,0.45)}
+.btn-settings{background:var(--s2);border-color:var(--b1);color:var(--t2)}
+.btn-settings:hover{border-color:var(--b2);color:var(--text)}
+.btn-export-hdr{background:rgba(0,212,255,0.07);border-color:rgba(0,212,255,0.2);color:var(--acc)}
+.btn-export-hdr:hover{background:rgba(0,212,255,0.14);border-color:rgba(0,212,255,0.4)}
+.btn-disc-hdr{background:rgba(88,101,242,0.07);border-color:rgba(88,101,242,0.18);color:#7289da}
+.btn-disc-hdr:hover{background:rgba(88,101,242,0.16);border-color:rgba(88,101,242,0.4)}
+.strat-count{font-family:'DM Mono',monospace;font-size:10px;color:var(--t3);letter-spacing:0.08em;padding:5px 11px;background:var(--s2);border-radius:6px;border:1px solid var(--b0)}
+
+/* ─── LAYOUT ─── */
+.main{display:grid;grid-template-columns:410px 1fr;height:calc(100vh - 58px);overflow:hidden}
+
+/* ─── LEFT PANEL ─── */
+.left{background:var(--s1);border-right:1px solid var(--b0);display:flex;flex-direction:column;overflow:hidden}
+.panel-hdr{padding:14px 20px 12px;border-bottom:1px solid var(--b0);flex-shrink:0;display:flex;align-items:center;gap:8px}
+.panel-dot{width:6px;height:6px;border-radius:50%;background:var(--game-c);box-shadow:0 0 7px var(--game-c);transition:all 0.2s}
+.panel-lbl{font-size:10px;font-weight:600;letter-spacing:0.14em;text-transform:uppercase;color:var(--t2)}
+.form-body{flex:1;overflow-y:auto;padding:18px;display:flex;flex-direction:column;gap:16px}
+
+.field{display:flex;flex-direction:column;gap:6px}
+.flabel{font-family:'DM Mono',monospace;font-size:9px;letter-spacing:0.2em;text-transform:uppercase;color:var(--t3)}
+
+input[type=text],textarea,input[type=url]{
+  background:var(--s2);border:1px solid var(--b1);border-radius:8px;
+  color:var(--text);padding:9px 13px;
+  font-family:'Outfit',sans-serif;font-size:13px;width:100%;outline:none;
+  transition:border-color 0.14s,background 0.14s;
+}
+input[type=text]:focus,textarea:focus,input[type=url]:focus{border-color:rgba(0,212,255,0.38);background:var(--s3)}
+textarea{resize:vertical;min-height:66px;line-height:1.55}
+
+.tog-row{display:grid;gap:5px}
+.tog-row.c2{grid-template-columns:1fr 1fr}
+.tog-row.c3{grid-template-columns:repeat(3,1fr)}
+.tog-row.c4{grid-template-columns:repeat(4,1fr)}
+.tog{
+  padding:8px 5px;text-align:center;border-radius:7px;
+  border:1px solid var(--b1);background:var(--s2);
+  color:var(--t2);font-family:'Outfit',sans-serif;font-size:12px;font-weight:600;
+  letter-spacing:0.03em;cursor:pointer;transition:all 0.13s;
+}
+.tog:hover:not(.on){border-color:var(--b2);color:var(--text)}
+/* type active */
+.tog.type[data-v=default].on{background:rgba(77,171,247,0.1);border-color:rgba(77,171,247,0.3);color:#4dabf7}
+.tog.type[data-v=play].on,.tog.type[data-v=execute].on,.tog.type[data-v=rush].on{background:rgba(255,212,59,0.1);border-color:rgba(255,212,59,0.3);color:#ffd43b}
+.tog.type[data-v=pistol].on{background:rgba(105,219,124,0.1);border-color:rgba(105,219,124,0.3);color:#69db7c}
+.tog.type[data-v=anti].on,.tog.type[data-v=setup].on{background:rgba(255,146,43,0.1);border-color:rgba(255,146,43,0.3);color:#ff922b}
+/* side active */
+.tog.side[data-v=T].on,.tog.side[data-v=ATK].on{background:rgba(255,123,46,0.1);border-color:rgba(255,123,46,0.3);color:#ff7b2e}
+.tog.side[data-v=CT].on,.tog.side[data-v=DEF].on{background:rgba(77,171,247,0.1);border-color:rgba(77,171,247,0.3);color:#4dabf7}
+/* map active */
+.tog.map.on{background:var(--s3);border-color:var(--b2);color:var(--text);font-weight:600}
+
+.custom-map-wrap{display:flex;gap:8px;align-items:center}
+.custom-map-wrap input{flex:1}
+
+.plr-wrap{background:var(--s2);border:1px solid var(--b0);border-radius:10px;overflow:hidden}
+.plr-row{display:grid;grid-template-columns:90px 1fr;border-bottom:1px solid var(--b0)}
+.plr-row:last-child{border-bottom:none}
+.plr-tag{display:flex;flex-direction:column;justify-content:center;gap:2px;padding:10px 13px;border-right:1px solid var(--b0)}
+.plr-name{font-size:12px;font-weight:700;letter-spacing:0.03em}
+.plr-role{font-family:'DM Mono',monospace;font-size:9px;opacity:0.45;letter-spacing:0.08em}
+.plr-row textarea{border:none;border-radius:0;background:transparent;padding:10px 13px;font-size:12px;font-family:'Outfit',sans-serif;color:var(--text);resize:none;min-height:unset;height:60px;outline:none}
+.plr-row textarea:focus{background:rgba(255,255,255,0.02)}
+
+.btn-add{
+  background:var(--game-dim);border:1px solid var(--game-bd);border-radius:9px;
+  color:var(--game-c);padding:11px;
+  font-family:'Outfit',sans-serif;font-size:13px;font-weight:700;
+  letter-spacing:0.06em;text-transform:uppercase;
+  cursor:pointer;width:100%;transition:all 0.14s;
+  display:flex;align-items:center;justify-content:center;gap:8px;
+}
+.btn-add:hover{filter:brightness(1.15)}
+.btn-add:active{transform:scale(0.98)}
+
+/* ─── RIGHT PANEL ─── */
+.right{display:flex;flex-direction:column;overflow:hidden;background:var(--bg)}
+.right-hdr{background:var(--bg);border-bottom:1px solid var(--b0);flex-shrink:0}
+.map-filter{display:flex;align-items:center;gap:4px;padding:9px 16px;border-bottom:1px solid var(--b0);background:var(--s1);flex-shrink:0;overflow-x:auto;scrollbar-width:none}
+.map-filter::-webkit-scrollbar{display:none}
+.mf-btn{flex-shrink:0;padding:5px 11px;border-radius:6px;border:1px solid var(--b0);background:transparent;color:var(--t3);font-family:'Outfit',sans-serif;font-size:11px;font-weight:600;letter-spacing:0.03em;cursor:pointer;transition:all 0.13s;white-space:nowrap}
+.mf-btn:hover:not(.on){border-color:var(--b1);color:var(--t2);background:var(--s2)}
+.mf-btn.on{background:var(--s3);border-color:var(--b2);color:var(--text)}
+
+.book{flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:5px}
+.grp-div{display:flex;align-items:center;gap:10px;padding:8px 0 5px;margin-top:3px}
+.grp-div:first-child{margin-top:0}
+.grp-line{flex:1;height:1px;background:var(--b0)}
+.grp-lbl{font-family:'DM Mono',monospace;font-size:9px;letter-spacing:0.2em;text-transform:uppercase;color:var(--t3);display:flex;align-items:center;gap:6px}
+.grp-dot{width:5px;height:5px;border-radius:50%}
+
+/* CARD */
+.card{background:var(--s1);border:1px solid var(--b0);border-radius:11px;transition:border-color 0.18s;position:relative}
+.card:hover{border-color:var(--b1)}
+.card-stripe{position:absolute;left:0;top:0;bottom:0;width:3px;border-radius:11px 0 0 11px;pointer-events:none}
+.card-top{padding:10px 14px 10px 18px;display:flex;align-items:center;justify-content:space-between;gap:10px;cursor:pointer;user-select:none;border-radius:11px}
+.card.open .card-top{border-radius:11px 11px 0 0}
+.card-left{display:flex;align-items:center;gap:9px;flex:1;min-width:0}
+.type-chip{flex-shrink:0;font-family:'DM Mono',monospace;font-size:9px;font-weight:500;letter-spacing:0.14em;text-transform:uppercase;padding:3px 7px;border-radius:4px;border:1px solid}
+.card-name{font-size:14px;font-weight:700;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.card-chevron{width:15px;height:15px;flex-shrink:0;opacity:0.3;transition:transform 0.2s,opacity 0.15s;color:var(--t2)}
+.card.open .card-chevron{transform:rotate(180deg);opacity:0.65}
+.card-right{display:flex;align-items:center;gap:6px;flex-shrink:0}
+.mpills{display:flex;align-items:center;gap:4px}
+.mpill{font-family:'DM Mono',monospace;font-size:9px;font-weight:500;letter-spacing:0.08em;padding:3px 7px;border-radius:4px;border:1px solid}
+.mpill-T,.mpill-ATK{background:rgba(255,123,46,0.08);border-color:rgba(255,123,46,0.25);color:#ff7b2e}
+.mpill-CT,.mpill-DEF{background:rgba(77,171,247,0.08);border-color:rgba(77,171,247,0.25);color:#4dabf7}
+.mpill-map{background:var(--s3);border-color:var(--b1);color:var(--t2)}
+.cbtns{display:flex;gap:4px}
+.cbtn{padding:5px 9px;border-radius:6px;font-family:'Outfit',sans-serif;font-size:11px;font-weight:600;cursor:pointer;transition:all 0.13s;border:1px solid;display:flex;align-items:center;gap:4px}
+.cbtn svg{width:10px;height:10px}
+.cbtn-edit{background:rgba(0,212,255,0.05);border-color:rgba(0,212,255,0.16);color:var(--acc2)}
+.cbtn-edit:hover{background:rgba(0,212,255,0.12);border-color:rgba(0,212,255,0.35);color:var(--acc)}
+.cbtn-disc{background:rgba(88,101,242,0.07);border-color:rgba(88,101,242,0.18);color:#7289da}
+.cbtn-disc:hover{background:rgba(88,101,242,0.16);border-color:rgba(88,101,242,0.4)}
+.cbtn-disc.sending{opacity:0.35;pointer-events:none}
+.cbtn-del{background:rgba(248,113,113,0.04);border-color:rgba(248,113,113,0.13);color:#f87171}
+.cbtn-del:hover{background:rgba(248,113,113,0.1);border-color:rgba(248,113,113,0.35)}
+.card-body{display:none;border-top:1px solid var(--b0);border-radius:0 0 11px 11px;overflow:hidden}
+.card.open .card-body{display:block}
+.card-plrs{display:grid;grid-template-columns:repeat(5,1fr);align-items:stretch}
+.cp{padding:11px 13px;border-right:1px solid var(--b0);min-width:0;min-height:68px;display:flex;flex-direction:column}
+.cp:last-child{border-right:none}
+.cp-n{font-size:11px;font-weight:700;letter-spacing:0.03em;margin-bottom:2px;flex-shrink:0}
+.cp-r{font-family:'DM Mono',monospace;font-size:8px;opacity:0.4;margin-bottom:5px;letter-spacing:0.08em;text-transform:uppercase;flex-shrink:0}
+.cp-t{font-size:12px;color:var(--text);line-height:1.5;word-break:break-word;white-space:pre-wrap}
+.cp-t.empty{color:var(--t3);font-style:italic;font-size:11px}
+.card-goal{padding:9px 14px 9px 18px;border-top:1px solid var(--b0);display:flex;align-items:baseline;gap:8px}
+.card-goal:last-child{border-radius:0 0 11px 11px}
+.card-goal-lbl{font-family:'DM Mono',monospace;font-size:9px;letter-spacing:0.14em;text-transform:uppercase;color:var(--acc2);flex-shrink:0}
+.card-goal-txt{font-size:12px;color:var(--text);line-height:1.5;font-weight:500}
+.card-notes{padding:8px 14px 9px 18px;border-top:1px solid var(--b0);display:flex;align-items:baseline;gap:8px;border-radius:0 0 11px 11px}
+
+.empty-wrap{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;padding:80px 20px}
+.empty-ico{width:50px;height:50px;border:1px solid var(--b1);border-radius:14px;display:flex;align-items:center;justify-content:center;background:var(--s2)}
+.empty-txt{font-family:'DM Mono',monospace;font-size:10px;letter-spacing:0.14em;color:var(--t3);text-align:center;line-height:2}
+
+.legend{background:var(--s1);border-top:1px solid var(--b0);padding:9px 18px;display:flex;align-items:center;gap:16px;flex-shrink:0}
+.leg{display:flex;align-items:center;gap:5px;font-family:'DM Mono',monospace;font-size:9px;letter-spacing:0.1em;color:var(--t3)}
+.leg-sq{width:7px;height:7px;border-radius:2px}
+.leg-ci{width:6px;height:6px;border-radius:50%}
+
+/* ─── SETTINGS MODAL ─── */
+.modal-bg{position:fixed;inset:0;z-index:500;background:rgba(0,0,0,0.75);display:flex;align-items:center;justify-content:center;padding:24px;backdrop-filter:blur(5px)}
+.modal-bg.hidden{display:none}
+.modal{background:var(--s1);border:1px solid var(--b2);border-radius:16px;width:100%;max-width:600px;max-height:90vh;display:flex;flex-direction:column;overflow:hidden}
+.modal-hdr{padding:15px 20px;border-bottom:1px solid var(--b0);display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+.modal-title{font-family:'DM Mono',monospace;font-size:10px;letter-spacing:0.18em;text-transform:uppercase;color:var(--t2)}
+.modal-close{width:28px;height:28px;border-radius:7px;background:transparent;border:1px solid var(--b1);color:var(--t2);cursor:pointer;font-size:16px;line-height:1;display:flex;align-items:center;justify-content:center;transition:all 0.13s}
+.modal-close:hover{background:var(--s3);color:var(--text);border-color:var(--b2)}
+.modal-body{overflow-y:auto;padding:20px;display:flex;flex-direction:column;gap:16px}
+.modal-2col{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.modal-plrs{background:var(--s2);border:1px solid var(--b0);border-radius:10px;overflow:hidden}
+.modal-plr-row{display:grid;grid-template-columns:1fr 1fr;border-bottom:1px solid var(--b0)}
+.modal-plr-row:last-child{border-bottom:none}
+.modal-plr-row input{border:none;border-radius:0;background:transparent;border-right:1px solid var(--b0);padding:9px 12px;font-size:12px;font-family:'Outfit',sans-serif;color:var(--text);outline:none}
+.modal-plr-row input:last-child{border-right:none}
+.modal-plr-row input:focus{background:rgba(255,255,255,0.02)}
+.modal-plr-hdr{display:grid;grid-template-columns:1fr 1fr;border-bottom:1px solid var(--b0);padding:6px 12px}
+.modal-plr-hdr span{font-family:'DM Mono',monospace;font-size:8px;letter-spacing:0.14em;text-transform:uppercase;color:var(--t3)}
+.modal-footer{padding:13px 20px;border-top:1px solid var(--b0);display:flex;justify-content:flex-end;gap:8px;flex-shrink:0}
+.btn-cancel{padding:8px 18px;border-radius:8px;background:transparent;border:1px solid var(--b1);color:var(--t2);font-family:'Outfit',sans-serif;font-size:13px;font-weight:600;cursor:pointer;transition:all 0.13s}
+.btn-cancel:hover{border-color:var(--b2);color:var(--text);background:var(--s2)}
+.btn-save{padding:8px 22px;border-radius:8px;background:rgba(0,212,255,0.1);border:1px solid rgba(0,212,255,0.28);color:var(--acc);font-family:'Outfit',sans-serif;font-size:13px;font-weight:700;cursor:pointer;transition:all 0.13s}
+.btn-save:hover{background:rgba(0,212,255,0.2);border-color:rgba(0,212,255,0.48)}
+
+/* ─── EDIT MODAL ─── */
+.edit-modal{background:var(--s1);border:1px solid var(--b2);border-radius:16px;width:100%;max-width:800px;max-height:90vh;display:flex;flex-direction:column;overflow:hidden}
+.edit-plrs{background:var(--s2);border:1px solid var(--b0);border-radius:10px;overflow:hidden}
+.edit-plr-row{display:grid;grid-template-columns:90px 1fr;border-bottom:1px solid var(--b0)}
+.edit-plr-row:last-child{border-bottom:none}
+.edit-plr-tag{display:flex;flex-direction:column;justify-content:center;gap:2px;padding:9px 13px;border-right:1px solid var(--b0)}
+.edit-plr-row textarea{border:none;border-radius:0;background:transparent;padding:9px 13px;font-size:12px;font-family:'Outfit',sans-serif;color:var(--text);resize:none;min-height:unset;height:56px;outline:none}
+.edit-plr-row textarea:focus{background:rgba(255,255,255,0.02)}
+.edit-2col{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+
+/* TOAST */
+.toast{position:fixed;bottom:20px;right:20px;background:var(--s4);border:1px solid var(--b2);border-radius:9px;color:var(--text);padding:10px 17px;font-family:'DM Mono',monospace;font-size:11px;letter-spacing:0.06em;z-index:9999;display:none;animation:pop 0.22s cubic-bezier(0.34,1.56,0.64,1);box-shadow:0 8px 32px rgba(0,0,0,0.5)}
+@keyframes pop{from{transform:translateY(12px);opacity:0}to{transform:translateY(0);opacity:1}}
+::-webkit-scrollbar{width:4px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--s4);border-radius:4px}
+
+.webhook-status{font-family:'DM Mono',monospace;font-size:9px;letter-spacing:0.1em;padding:4px 10px;border-radius:5px;border:1px solid}
+.webhook-status.set{background:rgba(105,219,124,0.1);border-color:rgba(105,219,124,0.25);color:#69db7c}
+.webhook-status.unset{background:rgba(248,113,113,0.1);border-color:rgba(248,113,113,0.2);color:#f87171}
+.section-title{font-family:'DM Mono',monospace;font-size:9px;letter-spacing:0.2em;text-transform:uppercase;color:var(--t3);padding-bottom:4px;border-bottom:1px solid var(--b0)}
+</style>
+</head>
+<body class="game-cs2">
+
+<header>
+  <div class="logo">
+    <div class="logo-mark">
+      <svg viewBox="0 0 18 18" fill="none">
+        <polygon points="9,1.5 16.5,5.5 16.5,12.5 9,16.5 1.5,12.5 1.5,5.5" fill="none" stroke="var(--game-c)" stroke-width="1.3" opacity="0.7"/>
+        <circle cx="9" cy="9" r="2.8" fill="var(--game-c)"/>
+      </svg>
+    </div>
+    <div>
+      <div class="logo-text">Stratbook</div>
+      <div class="logo-sub" id="game-sub">CS2 // Tactical</div>
+    </div>
+  </div>
+
+  <div class="game-tabs">
+    <button class="gtab on" data-g="cs2" onclick="switchGame('cs2',this)">CS2</button>
+    <button class="gtab" data-g="val"  onclick="switchGame('val',this)">VALORANT</button>
+    <button class="gtab" data-g="r6"   onclick="switchGame('r6',this)">R6</button>
+  </div>
+
+  <div class="hdr-r">
+    <span class="strat-count" id="strat-count">0 STRATS</span>
+    <button class="hdr-btn btn-disc-hdr" onclick="sendAllToDiscord()">
+      <svg viewBox="0 0 15 15" fill="currentColor"><path d="M12.78 2.47A12.3 12.3 0 009.83 1.6a.05.05 0 00-.05.02c-.13.24-.28.55-.38.79a11.36 11.36 0 00-3.81 0 7.8 7.8 0 00-.39-.79.05.05 0 00-.05-.02 12.26 12.26 0 00-2.96.87.04.04 0 00-.02.02C.37 5.6-.22 8.66.07 11.68a.05.05 0 00.02.03 12.38 12.38 0 003.73 1.89.05.05 0 00.05-.02c.29-.39.54-.8.76-1.23a.05.05 0 00-.03-.07 8.15 8.15 0 01-1.16-.55.05.05 0 010-.08l.23-.18a.05.05 0 01.05 0c2.44 1.11 5.08 1.11 7.49 0a.05.05 0 01.05 0l.23.18a.05.05 0 010 .08c-.37.22-.76.4-1.17.55a.05.05 0 00-.02.07c.22.43.48.84.76 1.23a.05.05 0 00.05.02 12.34 12.34 0 003.74-1.89.05.05 0 00.02-.03c.35-3.53-.59-6.57-2.48-9.19a.04.04 0 00-.02-.02zM5.02 9.75c-.82 0-1.5-.76-1.5-1.68 0-.93.66-1.69 1.5-1.69.84 0 1.51.77 1.5 1.69 0 .92-.66 1.68-1.5 1.68zm5.55 0c-.83 0-1.5-.76-1.5-1.68 0-.93.66-1.69 1.5-1.69.84 0 1.51.77 1.5 1.69 0 .92-.66 1.68-1.5 1.68z"/></svg>
+      Send All
+    </button>
+    <button class="hdr-btn btn-export-hdr" onclick="exportToExcel()">
+      <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M7 1v8M4 6l3 3 3-3M1 10v1a2 2 0 002 2h8a2 2 0 002-2v-1"/></svg>
+      Export
+    </button>
+    <a class="hdr-btn btn-community" href="https://discord.gg/a7jZqW6KMM" target="_blank">
+      <svg viewBox="0 0 15 15" fill="currentColor"><path d="M12.78 2.47A12.3 12.3 0 009.83 1.6a.05.05 0 00-.05.02c-.13.24-.28.55-.38.79a11.36 11.36 0 00-3.81 0 7.8 7.8 0 00-.39-.79.05.05 0 00-.05-.02 12.26 12.26 0 00-2.96.87.04.04 0 00-.02.02C.37 5.6-.22 8.66.07 11.68a.05.05 0 00.02.03 12.38 12.38 0 003.73 1.89.05.05 0 00.05-.02c.29-.39.54-.8.76-1.23a.05.05 0 00-.03-.07 8.15 8.15 0 01-1.16-.55.05.05 0 010-.08l.23-.18a.05.05 0 01.05 0c2.44 1.11 5.08 1.11 7.49 0a.05.05 0 01.05 0l.23.18a.05.05 0 010 .08c-.37.22-.76.4-1.17.55a.05.05 0 00-.02.07c.22.43.48.84.76 1.23a.05.05 0 00.05.02 12.34 12.34 0 003.74-1.89.05.05 0 00.02-.03c.35-3.53-.59-6.57-2.48-9.19a.04.04 0 00-.02-.02zM5.02 9.75c-.82 0-1.5-.76-1.5-1.68 0-.93.66-1.69 1.5-1.69.84 0 1.51.77 1.5 1.69 0 .92-.66 1.68-1.5 1.68zm5.55 0c-.83 0-1.5-.76-1.5-1.68 0-.93.66-1.69 1.5-1.69.84 0 1.51.77 1.5 1.69 0 .92-.66 1.68-1.5 1.68z"/></svg>
+      Community
+    </a>
+    <button class="hdr-btn btn-settings" onclick="openSettings()">
+      <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.4"><circle cx="7" cy="7" r="2.5"/><path d="M7 1v1.5M7 11.5V13M1 7h1.5M11.5 7H13M2.75 2.75l1.06 1.06M10.19 10.19l1.06 1.06M2.75 11.25l1.06-1.06M10.19 3.81l1.06-1.06"/></svg>
+      Settings
+    </button>
+  </div>
+</header>
+
+<div class="main">
+  <!-- FORM -->
+  <div class="left">
+    <div class="panel-hdr">
+      <div class="panel-dot"></div>
+      <span class="panel-lbl">New Strat</span>
+    </div>
+    <div class="form-body" id="form-body">
+      <!-- Populated by JS -->
+    </div>
+  </div>
+
+  <!-- BOOK -->
+  <div class="right">
+    <div class="panel-hdr right-hdr" style="background:var(--bg)">
+      <div class="panel-dot" style="background:var(--t3);box-shadow:none"></div>
+      <span class="panel-lbl">Strat Book</span>
+    </div>
+    <div class="map-filter" id="map-filter"></div>
+    <div class="book" id="book"></div>
+    <div class="legend">
+      <div class="leg"><div class="leg-sq" style="background:#4dabf7"></div>Default</div>
+      <div class="leg"><div class="leg-sq" style="background:#ffd43b"></div><span id="leg-play">Play</span></div>
+      <div class="leg"><div class="leg-sq" style="background:#69db7c"></div>Pistol</div>
+      <div class="leg"><div class="leg-sq" style="background:#ff922b"></div><span id="leg-anti">Anti</span></div>
+      <div style="flex:1"></div>
+      <div class="leg"><div class="leg-ci" style="background:#ff7b2e"></div><span id="leg-s1">T-Side</span></div>
+      <div class="leg"><div class="leg-ci" style="background:#4dabf7"></div><span id="leg-s2">CT-Side</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- SETTINGS MODAL -->
+<div class="modal-bg hidden" id="settings-modal" onclick="if(event.target===this)closeSettings()">
+  <div class="modal">
+    <div class="modal-hdr">
+      <span class="modal-title">Settings</span>
+      <button class="modal-close" onclick="closeSettings()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="field">
+        <div class="section-title">Discord Webhook</div>
+      </div>
+      <div class="field">
+        <div class="flabel">Webhook URL</div>
+        <input type="url" id="s-webhook" placeholder="https://discord.com/api/webhooks/...">
+      </div>
+      <div style="display:flex;align-items:center;justify-content:space-between">
+        <span class="webhook-status unset" id="webhook-status">Not configured</span>
+        <button class="btn-cancel" onclick="testWebhook()" style="font-size:11px;padding:5px 12px">Test</button>
+      </div>
+      <div class="field" style="margin-top:4px">
+        <div class="section-title">Team Roster — <span id="roster-game-lbl">CS2</span></div>
+      </div>
+      <div class="field">
+        <div class="flabel">Player Names & Roles</div>
+        <div class="modal-plrs">
+          <div class="modal-plr-hdr"><span>Name</span><span>Role</span></div>
+          <div class="modal-plr-row"><input id="r-n0" placeholder="Player 1"><input id="r-r0" placeholder="Role"></div>
+          <div class="modal-plr-row"><input id="r-n1" placeholder="Player 2"><input id="r-r1" placeholder="Role"></div>
+          <div class="modal-plr-row"><input id="r-n2" placeholder="Player 3"><input id="r-r2" placeholder="Role"></div>
+          <div class="modal-plr-row"><input id="r-n3" placeholder="Player 4"><input id="r-r3" placeholder="Role"></div>
+          <div class="modal-plr-row"><input id="r-n4" placeholder="Player 5"><input id="r-r4" placeholder="Role"></div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-cancel" onclick="closeSettings()">Cancel</button>
+      <button class="btn-save" onclick="saveSettings()">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- EDIT MODAL -->
+<div class="modal-bg hidden" id="edit-modal" onclick="if(event.target===this)closeEdit()">
+  <div class="edit-modal">
+    <div class="modal-hdr">
+      <span class="modal-title">Edit Strat</span>
+      <button class="modal-close" onclick="closeEdit()">✕</button>
+    </div>
+    <div class="modal-body" id="edit-body"></div>
+    <div class="modal-footer">
+      <button class="btn-cancel" onclick="closeEdit()">Cancel</button>
+      <button class="btn-save" onclick="saveEdit()">Save Changes</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ─── GAME CONFIG ───
+const GAMES = {
+  cs2: {
+    label:'CS2', sub:'CS2 // Tactical',
+    sides:['T','CT'], sideLabels:['T-Side','CT-Side'],
+    types:['default','play','pistol','anti'], typeLabels:['Default','Play','Pistol','Anti'],
+    maps:['Mirage','Inferno','Nuke','Dust II','Anubis','Ancient','Vertigo','Train','Overpass'],
+    defaultRoster:[
+      {name:'Player 1',role:'IGL'},{name:'Player 2',role:'AWP'},
+      {name:'Player 3',role:'Entry'},{name:'Player 4',role:'Lurk'},{name:'Player 5',role:'Support'}
+    ],
+    typeColors:{
+      default:{c:'#4dabf7',bg:'rgba(77,171,247,0.1)',bd:'rgba(77,171,247,0.28)'},
+      play:   {c:'#ffd43b',bg:'rgba(255,212,59,0.1)',bd:'rgba(255,212,59,0.28)'},
+      pistol: {c:'#69db7c',bg:'rgba(105,219,124,0.1)',bd:'rgba(105,219,124,0.28)'},
+      anti:   {c:'#ff922b',bg:'rgba(255,146,43,0.1)',bd:'rgba(255,146,43,0.28)'},
+    },
+    sideColors:{T:{c:'#ff7b2e'},CT:{c:'#4dabf7'}},
+  },
+  val: {
+    label:'VALORANT', sub:'VALORANT // Tactical',
+    sides:['ATK','DEF'], sideLabels:['Attack','Defense'],
+    types:['default','execute','pistol','anti'], typeLabels:['Default','Execute','Pistol','Anti'],
+    maps:['Abyss','Ascent','Bind','Fracture','Haven','Icebox','Lotus','Pearl','Split','Sunset'],
+    defaultRoster:[
+      {name:'Player 1',role:'Duelist'},{name:'Player 2',role:'Initiator'},
+      {name:'Player 3',role:'Controller'},{name:'Player 4',role:'Sentinel'},{name:'Player 5',role:'Flex'}
+    ],
+    typeColors:{
+      default: {c:'#4dabf7',bg:'rgba(77,171,247,0.1)',bd:'rgba(77,171,247,0.28)'},
+      execute: {c:'#ffd43b',bg:'rgba(255,212,59,0.1)',bd:'rgba(255,212,59,0.28)'},
+      pistol:  {c:'#69db7c',bg:'rgba(105,219,124,0.1)',bd:'rgba(105,219,124,0.28)'},
+      anti:    {c:'#ff922b',bg:'rgba(255,146,43,0.1)',bd:'rgba(255,146,43,0.28)'},
+    },
+    sideColors:{ATK:{c:'#ff7b2e'},DEF:{c:'#4dabf7'}},
+  },
+  r6: {
+    label:'R6 Siege', sub:'R6 // Tactical',
+    sides:['ATK','DEF'], sideLabels:['Attack','Defense'],
+    types:['default','rush','setup','anti'], typeLabels:['Default','Rush','Setup','Anti'],
+    maps:['Bank','Border','Chalet','Clubhouse','Coastline','Consulate','Emerald Plains','Favela','Kanal','Lair','Oregon','Skyscraper','Theme Park','Tower','Villa'],
+    defaultRoster:[
+      {name:'Player 1',role:'Hard Breach'},{name:'Player 2',role:'Soft Breach'},
+      {name:'Player 3',role:'Flank Watch'},{name:'Player 4',role:'Support'},{name:'Player 5',role:'Anchor'}
+    ],
+    typeColors:{
+      default:{c:'#4dabf7',bg:'rgba(77,171,247,0.1)',bd:'rgba(77,171,247,0.28)'},
+      rush:   {c:'#ffd43b',bg:'rgba(255,212,59,0.1)',bd:'rgba(255,212,59,0.28)'},
+      setup:  {c:'#69db7c',bg:'rgba(105,219,124,0.1)',bd:'rgba(105,219,124,0.28)'},
+      anti:   {c:'#ff922b',bg:'rgba(255,146,43,0.1)',bd:'rgba(255,146,43,0.28)'},
+    },
+    sideColors:{ATK:{c:'#ff7b2e'},DEF:{c:'#4dabf7'}},
+  },
+};
+
+// ─── STATE ───
+let currentGame = 'cs2';
+let allStrats   = {}; // keyed by game
+let rosters     = {}; // keyed by game
+let webhook     = '';
+let sel         = { type:'', side:'', map:'' };
+let mapFilter   = 'all';
+let editingId   = null;
+let modalSel    = {};
+let editModalMap = '';
+
+// ─── INIT ───
+function loadAll() {
+  webhook = localStorage.getItem('sb_webhook') || '';
+  Object.keys(GAMES).forEach(g => {
+    try { allStrats[g] = JSON.parse(localStorage.getItem('sb_strats_'+g)||'[]'); } catch{ allStrats[g]=[]; }
+    try {
+      const r = JSON.parse(localStorage.getItem('sb_roster_'+g)||'null');
+      rosters[g] = r || GAMES[g].defaultRoster.map(p=>({...p}));
+    } catch { rosters[g] = GAMES[g].defaultRoster.map(p=>({...p})); }
+  });
+}
+
+function saveStrats() {
+  localStorage.setItem('sb_strats_'+currentGame, JSON.stringify(allStrats[currentGame]));
+}
+
+function saveRoster(g) {
+  localStorage.setItem('sb_roster_'+g, JSON.stringify(rosters[g]));
+}
+
+function g() { return GAMES[currentGame]; }
+function strats() { return allStrats[currentGame]; }
+function roster() { return rosters[currentGame]; }
+
+// ─── GAME SWITCH ───
+function switchGame(gameKey, btn) {
+  currentGame = gameKey;
+  mapFilter = 'all';
+  document.querySelectorAll('.gtab').forEach(b=>b.classList.toggle('on', b.dataset.g===gameKey));
+  document.body.className = 'game-'+gameKey;
+  document.getElementById('game-sub').textContent = g().sub;
+  // Legend labels
+  document.getElementById('leg-play').textContent  = g().typeLabels[1];
+  document.getElementById('leg-anti').textContent  = g().typeLabels[3];
+  document.getElementById('leg-s1').textContent    = g().sideLabels[0];
+  document.getElementById('leg-s2').textContent    = g().sideLabels[1];
+  sel.type = g().types[0];
+  sel.side = g().sides[0];
+  sel.map  = g().maps[0];
+  buildForm();
+  buildMapFilter();
+  render();
+}
+
+// ─── FORM BUILD ───
+function buildForm() {
+  const cfg = g();
+  const r = roster();
+  // type buttons
+  const typeTogs = cfg.types.map((t,i)=>
+    `<button class="tog type${t===sel.type?' on':''}" data-v="${t}" onclick="pick('type',this)">${cfg.typeLabels[i]}</button>`
+  ).join('');
+  // side buttons
+  const sideTogs = cfg.sides.map((s,i)=>
+    `<button class="tog side${s===sel.side?' on':''}" data-v="${s}" onclick="pick('side',this)">${cfg.sideLabels[i]}</button>`
+  ).join('');
+  // map buttons (3 cols)
+  const mapTogs = cfg.maps.map(m=>
+    `<button class="tog map${m===sel.map?' on':''}" data-v="${m}" onclick="pickMap('${m}',this)">${m}</button>`
+  ).join('');
+  // player rows
+  const plrRows = r.map((p,i)=>
+    `<div class="plr-row">
+      <div class="plr-tag">
+        <span class="plr-name" id="fn-${i}" style="color:${plrColor(i)}">${p.name}</span>
+        <span class="plr-role" style="color:${plrColor(i)}">${p.role}</span>
+      </div>
+      <textarea id="p-${i}" placeholder="Task / timing..."></textarea>
+    </div>`
+  ).join('');
+
+  document.getElementById('form-body').innerHTML = `
+    <div class="field">
+      <div class="flabel">Strat Name</div>
+      <input type="text" id="sname" placeholder="e.g. B Split Smoke Fast">
+    </div>
+    <div class="field">
+      <div class="flabel">Type</div>
+      <div class="tog-row c4">${typeTogs}</div>
+    </div>
+    <div class="field">
+      <div class="flabel">Side</div>
+      <div class="tog-row c2">${sideTogs}</div>
+    </div>
+    <div class="field">
+      <div class="flabel">Map</div>
+      <div class="tog-row c3">${mapTogs}</div>
+      <div class="custom-map-wrap" style="margin-top:6px">
+        <input type="text" id="custom-map" placeholder="Custom map name…" style="font-size:12px">
+        <button class="tog" style="flex-shrink:0;padding:8px 12px;font-size:11px" onclick="useCustomMap()">Use</button>
+      </div>
+    </div>
+    <div class="field">
+      <div class="flabel">Player Assignments</div>
+      <div class="plr-wrap">${plrRows}</div>
+    </div>
+    <div class="field">
+      <div class="flabel">Round Goal</div>
+      <input type="text" id="sgoal" placeholder="e.g. Force entry B, buy time…">
+    </div>
+    <div class="field">
+      <div class="flabel">Notes</div>
+      <textarea id="snotes" placeholder="Timing, utility, triggers, comms…" rows="3"></textarea>
+    </div>
+    <button class="btn-add" onclick="addStrat()">
+      <svg width="13" height="13" viewBox="0 0 13 13" fill="none" stroke="currentColor" stroke-width="2"><path d="M6.5 1v11M1 6.5h11"/></svg>
+      Add Strat
+    </button>`;
+}
+
+function pick(group, btn) {
+  sel[group] = btn.dataset.v;
+  btn.closest('.tog-row').querySelectorAll('.tog').forEach(b=>b.classList.remove('on'));
+  btn.classList.add('on');
+}
+
+function pickMap(m, btn) {
+  sel.map = m;
+  document.querySelectorAll('#form-body .tog.map').forEach(b=>b.classList.toggle('on', b.dataset.v===m));
+}
+
+function useCustomMap() {
+  const val = document.getElementById('custom-map').value.trim();
+  if (!val) return;
+  sel.map = val;
+  document.querySelectorAll('#form-body .tog.map').forEach(b=>b.classList.remove('on'));
+  document.getElementById('custom-map').value = '';
+  toast('Map set: ' + val);
+}
+
+const PLR_COLORS = ['#c084fc','#60a5fa','#f87171','#fbbf24','#34d399'];
+function plrColor(i) { return PLR_COLORS[i % PLR_COLORS.length]; }
+
+// ─── MAP FILTER ───
+function buildMapFilter() {
+  const s = strats();
+  const usedMaps = ['all', ...new Set(s.map ? [s.map] : [])];
+  // Always show all maps used
+  const allMaps = ['all', ...new Set(strats().map(x=>x.map))];
+  const filter = document.getElementById('map-filter');
+  filter.innerHTML = allMaps.map(m=>
+    `<button class="mf-btn${m===mapFilter?' on':''}" data-m="${m}" onclick="setMapFilter('${m}',this)">${m==='all'?'All Maps':m}</button>`
+  ).join('');
+}
+
+function setMapFilter(m, btn) {
+  mapFilter = m;
+  document.querySelectorAll('.mf-btn').forEach(b=>b.classList.toggle('on',b.dataset.m===m));
+  render();
+}
+
+// ─── ADD STRAT ───
+function addStrat() {
+  const name = document.getElementById('sname').value.trim();
+  if (!name) { document.getElementById('sname').focus(); return; }
+  const r = roster();
+  allStrats[currentGame].push({
+    id: Date.now(), game: currentGame,
+    name, type: sel.type, side: sel.side, map: sel.map,
+    players: r.map((p,i) => ({ name:p.name, role:p.role, task: document.getElementById('p-'+i).value.trim() })),
+    goal:  document.getElementById('sgoal').value.trim(),
+    notes: document.getElementById('snotes').value.trim(),
+  });
+  document.getElementById('sname').value = '';
+  document.getElementById('sgoal').value = '';
+  document.getElementById('snotes').value = '';
+  for (let i=0;i<5;i++) { const el=document.getElementById('p-'+i); if(el) el.value=''; }
+  saveStrats();
+  buildMapFilter();
+  render();
+  toast('Strat added');
+}
+
+function delStrat(id) {
+  allStrats[currentGame] = strats().filter(s=>s.id!==id);
+  saveStrats();
+  buildMapFilter();
+  render();
+}
+
+// ─── RENDER ───
+function render() {
+  const cfg = g();
+  const visible = mapFilter==='all' ? strats() : strats().filter(s=>s.map===mapFilter);
+  document.getElementById('strat-count').textContent = strats().length + ' STRAT' + (strats().length!==1?'S':'');
+  const book = document.getElementById('book');
+  book.innerHTML = '';
+
+  if (!strats().length) {
+    book.innerHTML = `<div class="empty-wrap"><div class="empty-ico"><svg width="22" height="22" viewBox="0 0 22 22" fill="none"><polygon points="11,2 20,7 20,15 11,20 2,15 2,7" fill="none" stroke="#1e2024" stroke-width="1.5"/><path d="M11 8v6M8 11h6" stroke="#3e4155" stroke-width="1.2"/></svg></div><div class="empty-txt">NO STRATS YET<br>CREATE YOUR FIRST STRAT</div></div>`;
+    return;
+  }
+  if (!visible.length) {
+    book.innerHTML = `<div class="empty-wrap"><div class="empty-ico"><svg width="22" height="22" viewBox="0 0 22 22" fill="none"><polygon points="11,2 20,7 20,15 11,20 2,15 2,7" fill="none" stroke="#1e2024" stroke-width="1.5"/></svg></div><div class="empty-txt">NO STRATS FOR<br>${mapFilter.toUpperCase()}</div></div>`;
+    return;
+  }
+
+  const typeOrder = cfg.types;
+  cfg.sides.forEach(side => {
+    const grp = visible.filter(s=>s.side===side);
+    if (!grp.length) return;
+    const sc = cfg.sideColors[side];
+    const div = document.createElement('div');
+    div.className = 'grp-div';
+    div.innerHTML = `<div class="grp-line"></div><div class="grp-lbl"><span class="grp-dot" style="background:${sc.c}"></span>${side}-Side · ${grp.length} strat${grp.length!==1?'s':''}</div><div class="grp-line"></div>`;
+    book.appendChild(div);
+    typeOrder.forEach(type => grp.filter(s=>s.type===type).forEach(s=>book.appendChild(makeCard(s))));
+  });
+}
+
+// ─── CARD ───
+const DISC_SVG = `<svg viewBox="0 0 15 15" fill="currentColor"><path d="M12.78 2.47A12.3 12.3 0 009.83 1.6a.05.05 0 00-.05.02c-.13.24-.28.55-.38.79a11.36 11.36 0 00-3.81 0 7.8 7.8 0 00-.39-.79.05.05 0 00-.05-.02 12.26 12.26 0 00-2.96.87.04.04 0 00-.02.02C.37 5.6-.22 8.66.07 11.68a.05.05 0 00.02.03 12.38 12.38 0 003.73 1.89.05.05 0 00.05-.02c.29-.39.54-.8.76-1.23a.05.05 0 00-.03-.07 8.15 8.15 0 01-1.16-.55.05.05 0 010-.08l.23-.18a.05.05 0 01.05 0c2.44 1.11 5.08 1.11 7.49 0a.05.05 0 01.05 0l.23.18a.05.05 0 010 .08c-.37.22-.76.4-1.17.55a.05.05 0 00-.02.07c.22.43.48.84.76 1.23a.05.05 0 00.05.02 12.34 12.34 0 003.74-1.89.05.05 0 00.02-.03c.35-3.53-.59-6.57-2.48-9.19a.04.04 0 00-.02-.02zM5.02 9.75c-.82 0-1.5-.76-1.5-1.68 0-.93.66-1.69 1.5-1.69.84 0 1.51.77 1.5 1.69 0 .92-.66 1.68-1.5 1.68zm5.55 0c-.83 0-1.5-.76-1.5-1.68 0-.93.66-1.69 1.5-1.69.84 0 1.51.77 1.5 1.69 0 .92-.66 1.68-1.5 1.68z"/></svg>`;
+
+function makeCard(s) {
+  const cfg = GAMES[s.game] || g();
+  const tc = cfg.typeColors[s.type] || cfg.typeColors[cfg.types[0]];
+  const typeIdx = cfg.types.indexOf(s.type);
+  const typeLbl = cfg.typeLabels[typeIdx] || s.type.toUpperCase();
+  const el = document.createElement('div');
+  el.className = 'card';
+
+  const cells = (s.players||[]).map((p,i)=>{
+    return `<div class="cp">
+      <div class="cp-n" style="color:${plrColor(i)}">${p.name}</div>
+      <div class="cp-r">${p.role}</div>
+      <div class="cp-t${p.task?'':' empty'}">${p.task||'—'}</div>
+    </div>`;
+  }).join('');
+
+  const goalHtml = s.goal
+    ? `<div class="card-goal"><span class="card-goal-lbl">Goal</span><span class="card-goal-txt">${s.goal}</span></div>`
+    : '';
+  const notesHtml = s.notes
+    ? `<div class="card-notes"><span class="card-goal-lbl" style="color:var(--t3)">Notes</span><span style="font-size:12px;color:var(--t2);line-height:1.5;font-style:italic">${s.notes}</span></div>`
+    : '';
+  const chevron = `<svg class="card-chevron" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 6l4 4 4-4"/></svg>`;
+
+  el.innerHTML = `
+    <div class="card-stripe" style="background:${tc.c}"></div>
+    <div class="card-top" onclick="toggleCard(this.closest('.card'))">
+      <div class="card-left">
+        <span class="type-chip" style="background:${tc.bg};border-color:${tc.bd};color:${tc.c}">${typeLbl}</span>
+        <span class="card-name">${s.name}</span>
+        ${chevron}
+      </div>
+      <div class="card-right" onclick="event.stopPropagation()">
+        <div class="mpills">
+          <span class="mpill mpill-${s.side}">${s.side}</span>
+          <span class="mpill mpill-map">${s.map}</span>
+        </div>
+        <div class="cbtns">
+          <button class="cbtn cbtn-edit" onclick="openEdit(${s.id})">Edit</button>
+          <button class="cbtn cbtn-disc" id="d-${s.id}" onclick="sendOne(${s.id})">${DISC_SVG} Post</button>
+          <button class="cbtn cbtn-del" onclick="delStrat(${s.id})">Del</button>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <div class="card-plrs">${cells}</div>
+      ${goalHtml}${notesHtml}
+    </div>`;
+  return el;
+}
+
+function toggleCard(el) { el.classList.toggle('open'); }
+
+// ─── SETTINGS ───
+function openSettings() {
+  document.getElementById('s-webhook').value = webhook;
+  const r = roster();
+  for (let i=0;i<5;i++) {
+    document.getElementById('r-n'+i).value = r[i]?.name || '';
+    document.getElementById('r-r'+i).value = r[i]?.role || '';
+  }
+  document.getElementById('roster-game-lbl').textContent = g().label;
+  updateWebhookStatus();
+  document.getElementById('settings-modal').classList.remove('hidden');
+}
+
+function closeSettings() { document.getElementById('settings-modal').classList.add('hidden'); }
+
+function saveSettings() {
+  webhook = document.getElementById('s-webhook').value.trim();
+  localStorage.setItem('sb_webhook', webhook);
+  const newRoster = [];
+  for (let i=0;i<5;i++) {
+    newRoster.push({ name: document.getElementById('r-n'+i).value.trim() || `Player ${i+1}`, role: document.getElementById('r-r'+i).value.trim() || 'Role' });
+  }
+  rosters[currentGame] = newRoster;
+  saveRoster(currentGame);
+  closeSettings();
+  buildForm();
+  render();
+  toast('Settings saved');
+}
+
+function updateWebhookStatus() {
+  const el = document.getElementById('webhook-status');
+  const isSet = !!webhook;
+  el.className = 'webhook-status ' + (isSet?'set':'unset');
+  el.textContent = isSet ? '✓ Webhook configured' : 'Not configured';
+}
+
+async function testWebhook() {
+  const url = document.getElementById('s-webhook').value.trim();
+  if (!url) { toast('Enter a webhook URL first'); return; }
+  try {
+    const r = await fetch(url, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({ content:'✅ Stratbook webhook test successful!' }) });
+    toast(r.ok ? 'Webhook test successful!' : 'Webhook error: ' + r.status);
+  } catch { toast('Could not reach webhook'); }
+}
+
+// ─── EDIT MODAL ───
+function openEdit(id) {
+  const s = strats().find(x=>x.id===id);
+  if (!s) return;
+  editingId = id;
+  const cfg = GAMES[s.game] || g();
+  modalSel = { type:s.type, side:s.side };
+  editModalMap = s.map;
+
+  const typeTogs = cfg.types.map((t,i)=>
+    `<button class="tog type${t===s.type?' on':''}" data-v="${t}" onclick="pickModal('type',this)">${cfg.typeLabels[i]}</button>`
+  ).join('');
+  const sideTogs = cfg.sides.map((sd,i)=>
+    `<button class="tog side${sd===s.side?' on':''}" data-v="${sd}" onclick="pickModal('side',this)">${cfg.sideLabels[i]}</button>`
+  ).join('');
+  const mapTogs = cfg.maps.map(m=>
+    `<button class="tog map${m===s.map?' on':''}" data-v="${m}" onclick="pickEditMap('${m}',this)">${m}</button>`
+  ).join('');
+  const plrRows = (s.players||[]).map((p,i)=>
+    `<div class="edit-plr-row">
+      <div class="edit-plr-tag"><span class="plr-name" style="color:${plrColor(i)}">${p.name}</span><span class="plr-role" style="color:${plrColor(i)}">${p.role}</span></div>
+      <textarea id="e-p${i}" placeholder="Task / timing...">${p.task||''}</textarea>
+    </div>`
+  ).join('');
+
+  document.getElementById('edit-body').innerHTML = `
+    <div class="field"><div class="flabel">Strat Name</div><input type="text" id="e-name" value="${s.name}"></div>
+    <div class="edit-2col">
+      <div class="field"><div class="flabel">Type</div><div class="tog-row c4">${typeTogs}</div></div>
+      <div class="field"><div class="flabel">Side</div><div class="tog-row c2">${sideTogs}</div></div>
+    </div>
+    <div class="field"><div class="flabel">Map</div>
+      <div class="tog-row c3">${mapTogs}</div>
+      <div class="custom-map-wrap" style="margin-top:6px">
+        <input type="text" id="e-custom-map" placeholder="Custom map…" style="font-size:12px">
+        <button class="tog" style="flex-shrink:0;padding:8px 12px;font-size:11px" onclick="useEditCustomMap()">Use</button>
+      </div>
+    </div>
+    <div class="field"><div class="flabel">Player Assignments</div><div class="edit-plrs">${plrRows}</div></div>
+    <div class="field"><div class="flabel">Round Goal</div><input type="text" id="e-goal" value="${s.goal||''}"></div>
+    <div class="field"><div class="flabel">Notes</div><textarea id="e-notes" rows="3">${s.notes||''}</textarea></div>`;
+
+  document.getElementById('edit-modal').classList.remove('hidden');
+}
+
+function pickModal(group, btn) {
+  modalSel[group] = btn.dataset.v;
+  btn.closest('.tog-row').querySelectorAll('.tog').forEach(b=>b.classList.remove('on'));
+  btn.classList.add('on');
+}
+
+function pickEditMap(m, btn) {
+  editModalMap = m;
+  btn.closest('.tog-row').querySelectorAll('.tog').forEach(b=>b.classList.toggle('on', b.dataset.v===m));
+}
+
+function useEditCustomMap() {
+  const v = document.getElementById('e-custom-map').value.trim();
+  if (!v) return;
+  editModalMap = v;
+  document.querySelectorAll('#edit-body .tog.map').forEach(b=>b.classList.remove('on'));
+  document.getElementById('e-custom-map').value = '';
+  toast('Map set: ' + v);
+}
+
+function closeEdit() { document.getElementById('edit-modal').classList.add('hidden'); editingId=null; }
+
+function saveEdit() {
+  if (!editingId) return;
+  const idx = strats().findIndex(x=>x.id===editingId);
+  if (idx===-1) return;
+  const s = strats()[idx];
+  const updatedPlayers = s.players.map((p,i) => ({ ...p, task: (document.getElementById('e-p'+i)?.value||'').trim() }));
+  allStrats[currentGame][idx] = { ...s,
+    name:    document.getElementById('e-name').value.trim() || s.name,
+    type:    modalSel.type || s.type,
+    side:    modalSel.side || s.side,
+    map:     editModalMap  || s.map,
+    goal:    document.getElementById('e-goal').value.trim(),
+    notes:   document.getElementById('e-notes').value.trim(),
+    players: updatedPlayers,
+  };
+  saveStrats(); closeEdit(); buildMapFilter(); render();
+  toast('Strat updated');
+}
+
+// ─── TOAST ───
+function toast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.style.display = 'block';
+  clearTimeout(t._t);
+  t._t = setTimeout(()=>t.style.display='none', 2400);
+}
+
+// ─── EXCEL EXPORT ───
+const XL_TYPE_COLORS = {
+  default: {bg:'FF4DABF7',ft:'FF01202F'}, execute:{bg:'FF4DABF7',ft:'FF01202F'},
+  play:    {bg:'FFFFD43B',ft:'FF322400'}, rush:   {bg:'FFFFD43B',ft:'FF322400'},
+  pistol:  {bg:'FF69DB7C',ft:'FF04300F'}, setup:  {bg:'FF69DB7C',ft:'FF04300F'},
+  anti:    {bg:'FFFF922B',ft:'FF321200'},
+};
+
+async function exportToExcel() {
+  const s = strats();
+  if (!s.length) { toast('No strats to export'); return; }
+  toast('Building spreadsheet…');
+
+  const wb = new ExcelJS.Workbook();
+  const cfg = g();
+  const COL_W = [32,10,36,25,25,25,25,25,42];
+  const HDRS  = ['Strat Name','Type','Round Goal',...roster().map(p=>`${p.name} (${p.role})`),'Notes'];
+  const typeOrder = cfg.types;
+  const sortByType = arr => typeOrder.flatMap(t=>arr.filter(x=>x.type===t));
+  const mapOrder = [...new Set(s.map(x=>x.map))];
+
+  mapOrder.forEach(map => {
+    const ms = s.filter(x=>x.map===map);
+    if (!ms.length) return;
+    const sheetName = map.length > 31 ? map.slice(0,31) : map;
+    const ws = wb.addWorksheet(sheetName, { views:[{state:'frozen',ySplit:3}] });
+    ws.columns = COL_W.map(w=>({width:w}));
+
+    // Title row
+    ws.addRow([map.toUpperCase(),...Array(HDRS.length-1).fill('')]);
+    ws.mergeCells(1,1,1,HDRS.length);
+    const tc = ws.getRow(1).getCell(1);
+    tc.fill={type:'pattern',pattern:'solid',fgColor:{argb:'FF0C0D0F'}};
+    tc.font={bold:true,size:16,name:'Calibri',color:{argb:'FFFFFFFF'}};
+    tc.alignment={vertical:'middle',horizontal:'center'};
+    ws.getRow(1).height=34;
+
+    // Spacer
+    ws.addRow(Array(HDRS.length).fill(''));
+    ws.getRow(2).height=5;
+    ws.getRow(2).eachCell(c=>{c.fill={type:'pattern',pattern:'solid',fgColor:{argb:'FF17191E'}};});
+
+    // Headers
+    const hr=ws.addRow(HDRS);
+    hr.height=26;
+    hr.eachCell((c,cn)=>{
+      c.fill={type:'pattern',pattern:'solid',fgColor:{argb:'FF1A1B1F'}};
+      c.font={bold:true,color:{argb:'FFB0B3C4'},size:10,name:'Calibri'};
+      c.alignment={vertical:'middle',horizontal:cn<=2?'center':'left',wrapText:true};
+      c.border={bottom:{style:'medium',color:{argb:'FF00D4FF'}}};
+    });
+
+    const addLabel=(lbl,fbg,fc)=>{
+      const r=ws.addRow([lbl,...Array(HDRS.length-1).fill('')]);
+      r.height=19;
+      ws.mergeCells(r.number,1,r.number,HDRS.length);
+      const c=r.getCell(1);
+      c.fill={type:'pattern',pattern:'solid',fgColor:{argb:fbg}};
+      c.font={bold:true,size:10,name:'Calibri',color:{argb:fc}};
+      c.alignment={vertical:'middle',horizontal:'center'};
+    };
+
+    const addRow=(str,ri)=>{
+      const xt=XL_TYPE_COLORS[str.type]||XL_TYPE_COLORS.default;
+      const even=ri%2===0;
+      const plrCols=even
+        ?['FFFFFFFF','FFE2E2E2','FFFFFFFF','FFE2E2E2','FFFFFFFF']
+        :['FFF0F0F0','FFD6D6D6','FFF0F0F0','FFD6D6D6','FFF0F0F0'];
+      const row=ws.addRow([str.name, cfg.typeLabels[cfg.types.indexOf(str.type)]||str.type, str.goal||'',
+        ...str.players.map(p=>p.task||''), str.notes||'']);
+      row.height=44;
+      row.eachCell((c,cn)=>{
+        c.border={bottom:{style:'thin',color:{argb:even?'FFD4D4D4':'FFC4C4C4'}},right:{style:'hair',color:{argb:'FFBBBBBB'}}};
+        if(cn===1){c.fill={type:'pattern',pattern:'solid',fgColor:{argb:xt.bg}};c.font={bold:true,size:13,name:'Calibri',color:{argb:xt.ft}};c.alignment={vertical:'middle',horizontal:'left',indent:1,wrapText:false};}
+        else if(cn===2){c.fill={type:'pattern',pattern:'solid',fgColor:{argb:xt.bg}};c.font={bold:true,size:10,name:'Calibri',color:{argb:xt.ft}};c.alignment={vertical:'middle',horizontal:'center'};}
+        else if(cn===3){c.fill={type:'pattern',pattern:'solid',fgColor:{argb:even?'FFE2F2FF':'FFD4EAFF'}};c.font={size:10,name:'Calibri',color:{argb:'FF0A3A50'},italic:true};c.alignment={vertical:'top',wrapText:true};}
+        else if(cn>=4&&cn<=8){c.fill={type:'pattern',pattern:'solid',fgColor:{argb:plrCols[cn-4]}};c.font={size:10,name:'Calibri',color:{argb:'FF111111'}};c.alignment={vertical:'top',wrapText:true};c.border={bottom:{style:'thin',color:{argb:even?'FFD4D4D4':'FFC4C4C4'}},right:{style:'thin',color:{argb:'FFB0B0B0'}},left:{style:'hair',color:{argb:'FFBBBBBB'}}};}
+        else if(cn===9){c.fill={type:'pattern',pattern:'solid',fgColor:{argb:even?'FFFFF9F0':'FFFFF2E0'}};c.font={italic:true,size:9,name:'Calibri',color:{argb:'FF666666'}};c.alignment={vertical:'top',wrapText:true};}
+      });
+    };
+
+    const tS=sortByType(ms.filter(x=>x.side===cfg.sides[0]));
+    const dS=sortByType(ms.filter(x=>x.side===cfg.sides[1]));
+    if(tS.length){addLabel(cfg.sideLabels[0].toUpperCase(),'FF200D00','FFFF7B2E');tS.forEach((s,i)=>addRow(s,i));}
+    if(tS.length&&dS.length){const g=ws.addRow(Array(HDRS.length).fill(''));g.height=10;g.eachCell(c=>{c.fill={type:'pattern',pattern:'solid',fgColor:{argb:'FFCCCCCC'}};});}
+    if(dS.length){addLabel(cfg.sideLabels[1].toUpperCase(),'FF0D1A28','FF4DABF7');dS.forEach((s,i)=>addRow(s,i));}
+  });
+
+  const buf=await wb.xlsx.writeBuffer();
+  const blob=new Blob([buf],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url;a.download=`stratbook_${currentGame}.xlsx`;a.click();
+  URL.revokeObjectURL(url);
+  toast(`Exported ${mapOrder.length} sheet${mapOrder.length!==1?'s':''}`);
+}
+
+// ─── DISCORD ───
+const DC_COLORS = {default:0x4DABF7,play:0xFFD43B,execute:0xFFD43B,rush:0xFFD43B,pistol:0x69DB7C,setup:0x69DB7C,anti:0xFF922B};
+const SIDE_EMOJI = {T:'🟧',CT:'🟦',ATK:'🟧',DEF:'🟦'};
+const TYPE_EMOJI = {default:'🔵',play:'🟡',execute:'🟡',rush:'🟡',pistol:'🟢',setup:'🟢',anti:'🟠'};
+const PLR_EMOJI  = ['🟣','🔵','🔴','🟡','🟢'];
+
+async function postWebhook(payload) {
+  if (!webhook) { toast('Set webhook in Settings first'); throw new Error('no webhook'); }
+  const r = await fetch(webhook, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(payload) });
+  if (!r.ok) throw new Error('HTTP '+r.status);
+}
+
+function mkEmbed(s) {
+  const cfg = GAMES[s.game] || g();
+  const typeIdx = cfg.types.indexOf(s.type);
+  const typeLbl = cfg.typeLabels[typeIdx] || s.type.toUpperCase();
+  const bar = '──────────────────────';
+  const plrLines = s.players.map((p,i)=>`${PLR_EMOJI[i]} **${p.name}** *(${p.role})*${p.task?' — '+p.task:''}`).join('\n');
+  let desc = `${SIDE_EMOJI[s.side]} **${s.side}**  ·  🗺️ **${s.map}**  ·  ${TYPE_EMOJI[s.type]} **${typeLbl}**`;
+  if (s.goal) desc += `\n🎯 **Goal:** ${s.goal}`;
+  desc += `\n${bar}\n${plrLines}`;
+  if (s.notes) desc += `\n${bar}\n> ${s.notes}`;
+  return { title:s.name.toUpperCase(), color:DC_COLORS[s.type]||0x4DABF7, description:desc, footer:{text:`Stratbook · ${cfg.label} · ${typeLbl}`}, timestamp:new Date().toISOString() };
+}
+
+function mkSheetBlock(s) {
+  const cfg = GAMES[s.game] || g();
+  const typeIdx = cfg.types.indexOf(s.type);
+  const T='\t';
+  const h=['Strat Name','Type','Map','Round Goal',...s.players.map(p=>`${p.name} (${p.role})`),'Notes'].join(T);
+  const r=[s.name, cfg.typeLabels[typeIdx]||s.type, s.map, s.goal||'', ...s.players.map(p=>p.task||''), s.notes||''].join(T);
+  return `\`\`\`\n${h}\n${r}\n\`\`\``;
+}
+
+const wait = ms => new Promise(r=>setTimeout(r,ms));
+
+async function sendOne(id) {
+  const s = strats().find(x=>x.id===id);
+  if (!s) return;
+  const btn = document.getElementById('d-'+id);
+  if (btn) { btn.classList.add('sending'); btn.textContent='···'; }
+  try {
+    await postWebhook({ embeds:[mkEmbed(s)] });
+    await wait(420);
+    await postWebhook({ content:mkSheetBlock(s) });
+    toast('Posted: '+s.name);
+  } catch(e) { if(e.message!=='no webhook') toast('Discord error'); }
+  finally { if(btn){ btn.classList.remove('sending'); btn.innerHTML=DISC_SVG+' Post'; } }
+}
+
+async function sendAllToDiscord() {
+  const s = strats();
+  if (!s.length) { toast('No strats to post'); return; }
+  if (!webhook) { toast('Set webhook in Settings first'); return; }
+  toast('Posting '+s.length+' strats…');
+  const cfg = g();
+  let sent=0;
+  for (const type of cfg.types) {
+    const grp=s.filter(x=>x.type===type);
+    if (!grp.length) continue;
+    const typeIdx=cfg.types.indexOf(type);
+    const typeLbl=cfg.typeLabels[typeIdx];
+    await postWebhook({ embeds:[{ title:`${TYPE_EMOJI[type]}  ${typeLbl.toUpperCase()}S  ——  ${grp.length} strat${grp.length>1?'s':''}`, color:DC_COLORS[type]||0x4DABF7, description:grp.map((x,i)=>`**${i+1}. ${x.name}** · ${SIDE_EMOJI[x.side]} ${x.side} · ${x.map}`).join('\n'), footer:{text:'Stratbook · '+cfg.label} }] }).catch(()=>{});
+    await wait(500);
+    for (const st of grp) {
+      await postWebhook({ embeds:[mkEmbed(st)] }).catch(()=>{});
+      await wait(400);
+      await postWebhook({ content:mkSheetBlock(st) }).catch(()=>{});
+      sent++; await wait(400);
+    }
+  }
+  toast('All '+sent+' strats posted');
+}
+
+// ─── BOOTSTRAP ───
+loadAll();
+switchGame('cs2', document.querySelector('.gtab[data-g="cs2"]'));
+</script>
+</body>
+</html>
